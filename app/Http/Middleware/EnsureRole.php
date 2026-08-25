@@ -15,7 +15,7 @@ class EnsureRole
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (! $request->user() || ! in_array($request->user()->role, $roles)) {
-            abort(403, 'Bạn không có quyền truy cập trang này.');
+        abort(403, 'Bạn không có quyền truy cập trang này.');
         }
 
         return $next($request);
