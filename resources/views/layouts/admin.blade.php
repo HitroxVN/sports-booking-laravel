@@ -29,14 +29,15 @@
                  class="fixed inset-0 z-20 bg-black bg-opacity-50 sm:hidden"></div>
 
             {{-- Sidebar --}}
-            <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+            <aside :class="sidebarOpen ? 'translate-x-0' : ''"
                    class="fixed inset-y-0 left-0 z-30 w-64 bg-gray-900 dark:bg-gray-950
-                          transform transition-transform duration-200 ease-in-out sm:translate-x-0 sm:static sm:inset-auto">
+                          transform transition-transform duration-200 ease-in-out
+                          -translate-x-full sm:translate-x-0 sm:static sm:inset-auto">
 
                 {{-- Logo --}}
                 <div class="flex items-center justify-center h-16 border-b border-gray-700">
                     <a href="{{ route('admin.dashboard') }}" class="text-lg font-bold text-white">
-                        ⚙️ Admin Panel
+                        Admin Panel
                     </a>
                 </div>
 
@@ -44,22 +45,22 @@
                 <nav class="mt-4 px-3 space-y-1">
                     @php
                         $links = [
-                            ['route' => 'admin.dashboard', 'icon' => '📊', 'label' => 'Tổng quan'],
-                            ['route' => '#',               'icon' => '👥', 'label' => 'Người dùng'],
-                            ['route' => '#',               'icon' => '🏟', 'label' => 'Khu sân'],
-                            ['route' => '#',               'icon' => '📋', 'label' => 'Đơn đặt sân'],
-                            ['route' => '#',               'icon' => '⚽', 'label' => 'Môn thể thao'],
-                            ['route' => '#',               'icon' => '📈', 'label' => 'Báo cáo'],
+                            ['route' => 'admin.dashboard',      'prefix' => 'admin.dashboard',      'label' => 'Tổng quan'],
+                            ['route' => 'admin.users.index',    'prefix' => 'admin.users.*',        'label' => 'Người dùng'],
+                            ['route' => 'admin.venues.index',   'prefix' => 'admin.venues.*',       'label' => 'Khu sân'],
+                            ['route' => 'admin.bookings.index', 'prefix' => 'admin.bookings.*',     'label' => 'Đơn đặt sân'],
+                            ['route' => 'admin.sports.index',   'prefix' => 'admin.sports.*',       'label' => 'Môn thể thao'],
+                            ['route' => 'admin.reports.index',  'prefix' => 'admin.reports.*',      'label' => 'Báo cáo'],
                         ];
                     @endphp
 
                     @foreach ($links as $link)
-                        <a href="{{ $link['route'] === '#' ? '#' : route($link['route']) }}"
+                        <a href="{{ route($link['route']) }}"
                            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                                  {{ $link['route'] !== '#' && request()->routeIs($link['route'])
+                                  {{ request()->routeIs($link['prefix'])
                                      ? 'bg-gray-700 text-white'
                                      : 'text-gray-400 hover:bg-gray-700 hover:text-white' }}">
-                            <span>{{ $link['icon'] }}</span> {{ $link['label'] }}
+                            {{ $link['label'] }}
                         </a>
                     @endforeach
                 </nav>
@@ -95,7 +96,7 @@
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                    🚪 Đăng xuất
+                                    Đăng xuất
                                 </button>
                             </form>
                         </div>
@@ -103,6 +104,13 @@
                 </header>
 
                 <main class="flex-1 p-4 sm:p-6">
+                    @if(session('success'))
+                        <div class="mb-4 px-4 py-3 bg-green-100 text-green-800 rounded-lg text-sm">{{ session('success') }}</div>
+                    @endif
+                    @if(session('error'))
+                        <div class="mb-4 px-4 py-3 bg-red-100 text-red-800 rounded-lg text-sm">{{ session('error') }}</div>
+                    @endif
+
                     {{ $slot }}
                 </main>
             </div>

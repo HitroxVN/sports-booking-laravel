@@ -16,7 +16,7 @@ class Venue extends Model
         'owner_id', 'name', 'slug', 'description',
         'address', 'ward', 'district', 'city',
         'latitude', 'longitude', 'phone', 'email',
-        'status', 'cover_image', 'amenities', 'rating_avg',
+        'status', 'reject_reason', 'cover_image', 'amenities', 'rating_avg',
     ];
 
     protected function casts(): array

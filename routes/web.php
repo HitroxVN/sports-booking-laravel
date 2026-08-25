@@ -67,10 +67,35 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'role:owner'])->grou
 });
 
 // ─── Admin ───────────────────────────────────────────────────────────────────
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\VenueController as AdminVenueController;
+use App\Http\Controllers\Admin\BookingController as AdminBookingController;
+use App\Http\Controllers\Admin\SportController as AdminSportController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
+
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/dashboard', function () {
-        return 'Admin Dashboard — Sprint 6';
-    })->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    // Users: index + ban/unban
+    Route::get('/users',               [AdminUserController::class, 'index'])->name('users.index');
+    Route::post('/users/{user}/ban',   [AdminUserController::class, 'ban'])->name('users.ban');
+    Route::post('/users/{user}/unban', [AdminUserController::class, 'unban'])->name('users.unban');
+
+    // Venues: index + approve + reject (dùng {id} integer, không phải slug)
+    Route::get('/venues',               [AdminVenueController::class, 'index'])->name('venues.index');
+    Route::post('/venues/{id}/approve', [AdminVenueController::class, 'approve'])->name('venues.approve');
+    Route::post('/venues/{id}/reject',  [AdminVenueController::class, 'reject'])->name('venues.reject');
+
+    // Bookings: read-only
+    Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+
+    // Sports: CRUD (không cần create/edit view riêng — inline modal)
+    Route::resource('sports', AdminSportController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    // Reports + export CSV
+    Route::get('/reports',        [AdminReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
 });
 
 require __DIR__.'/auth.php';
