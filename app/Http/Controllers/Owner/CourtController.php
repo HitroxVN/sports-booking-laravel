@@ -42,7 +42,8 @@ class CourtController extends Controller
         $validated = $request->validate([
             'sport_id'     => 'required|exists:sports,id',
             'name'         => 'required|string|max:255',
-            'surface_type' => 'required|string|max:50',
+            // Đã khóa chặt bằng rule in: để khớp 100% với Enum Database
+            'surface_type' => 'required|in:natural,artificial,wood,concrete', 
             'max_players'  => 'nullable|integer|min:1',
             'description'  => 'nullable|string',
             'status'       => 'required|in:active,maintenance,closed',
@@ -77,7 +78,8 @@ class CourtController extends Controller
         $validated = $request->validate([
             'sport_id'     => 'required|exists:sports,id',
             'name'         => 'required|string|max:255',
-            'surface_type' => 'required|string|max:50',
+            // Đã khóa chặt bằng rule in:
+            'surface_type' => 'required|in:natural,artificial,wood,concrete',
             'max_players'  => 'nullable|integer|min:1',
             'description'  => 'nullable|string',
             'status'       => 'required|in:active,maintenance,closed',

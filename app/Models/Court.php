@@ -15,6 +15,37 @@ class Court extends Model
         'surface_type', 'max_players', 'status',
     ];
 
+    // --- Accessors (Tự động dịch dữ liệu sang Tiếng Việt) ---
+
+    /**
+     * Dịch mặt sân.
+     * Cách gọi ở View: {{ $court->surface_type_name }}
+     */
+    public function getSurfaceTypeNameAttribute()
+    {
+        return match($this->surface_type) {
+            'artificial' => 'Cỏ nhân tạo',
+            'natural'    => 'Cỏ tự nhiên',
+            'wood'       => 'Sàn gỗ',
+            'concrete'   => 'Bê tông',
+            default      => 'Chưa xác định',
+        };
+    }
+
+    /**
+     * Dịch trạng thái.
+     * Cách gọi ở View: {{ $court->status_name }}
+     */
+    public function getStatusNameAttribute()
+    {
+        return match($this->status) {
+            'active'      => 'Hoạt động',
+            'maintenance' => 'Bảo trì',
+            'closed'      => 'Đóng cửa',
+            default       => 'Không xác định',
+        };
+    }
+
     // --- Relationships ---
 
     // Sân con thuộc về 1 khu sân
