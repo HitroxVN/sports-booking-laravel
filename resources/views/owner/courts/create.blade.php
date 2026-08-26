@@ -39,8 +39,8 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Loại Mặt Sân *</label>
                             <select name="surface_type" class="w-full border-gray-300 rounded-xl focus:ring-pink-500 focus:border-pink-500">
-                                <option value="artificial">Cỏ nhân tạo</option>
-                                <option value="natural">Cỏ tự nhiên</option>
+                                <option value="artificial_turf">Cỏ nhân tạo</option>
+                                <option value="natural_grass">Cỏ tự nhiên</option>
                                 <option value="wood">Sàn gỗ (Trong nhà)</option>
                                 <option value="concrete">Sân bê tông</option>
                             </select>

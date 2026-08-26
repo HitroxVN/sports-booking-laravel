@@ -75,6 +75,9 @@
                                         @endif
                                     </td>
                                     <td class="p-4 flex items-center justify-center space-x-4">
+                                        <a href="{{ route('owner.courts.slots.index', $court) }}" class="text-blue-500 hover:text-blue-700 text-sm font-bold transition-colors">
+                                            Khung giờ & Giá
+                                        </a>
                                         <a href="{{ route('owner.courts.edit', $court) }}" class="text-pink-500 hover:text-pink-700 text-sm font-bold transition-colors">
                                             Sửa
                                         </a>

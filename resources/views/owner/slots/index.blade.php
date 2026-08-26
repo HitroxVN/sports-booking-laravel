@@ -44,7 +44,7 @@
                         @endphp
                         @forelse($slots as $slot)
                         <tr class="hover:bg-pink-50/30 transition-colors">
-                            <td class="p-5 font-bold text-gray-800">{{ $days[$slot->day_of_week] }}</td>
+                            <td class="p-5 font-bold text-gray-800">{{ $days[$slot->day_of_week] ?? 'Tất cả các ngày / Chưa chọn' }}</td>
                             <td class="p-5 text-center font-mono text-gray-600">
                                 {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
                             </td>
