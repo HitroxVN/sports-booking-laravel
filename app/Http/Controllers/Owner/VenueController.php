@@ -14,10 +14,11 @@ class VenueController extends Controller
      */
     public function index()
     {
-        $venues = Venue::where('owner_id', auth()->id())
+        $venues = Venue::withCount('courts')
+            ->where('owner_id', auth()->id())
             ->latest()
             ->paginate(10);
-            
+
         return view('owner.venues.index', compact('venues'));
     }
 

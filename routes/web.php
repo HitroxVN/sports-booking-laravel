@@ -100,10 +100,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/users/{user}/ban',   [AdminUserController::class, 'ban'])->name('users.ban');
     Route::post('/users/{user}/unban', [AdminUserController::class, 'unban'])->name('users.unban');
 
-    // Venues: index + approve + reject (dùng {id} integer, không phải slug)
+    // Venues: index + approve + reject (dùng {venue} — implicit binding theo slug)
     Route::get('/venues',               [AdminVenueController::class, 'index'])->name('venues.index');
-    Route::post('/venues/{id}/approve', [AdminVenueController::class, 'approve'])->name('venues.approve');
-    Route::post('/venues/{id}/reject',  [AdminVenueController::class, 'reject'])->name('venues.reject');
+    Route::post('/venues/{venue}/approve', [AdminVenueController::class, 'approve'])->name('venues.approve');
+    Route::post('/venues/{venue}/reject',  [AdminVenueController::class, 'reject'])->name('venues.reject');
 
     // Bookings: read-only
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');

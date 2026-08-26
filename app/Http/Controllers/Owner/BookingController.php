@@ -46,6 +46,8 @@ class BookingController extends Controller
      */
     public function update(Request $request, \App\Models\Booking $booking)
     {
+        $this->authorizeBooking($booking);
+
         $validated = $request->validate([
             'status' => 'required|in:pending,confirmed,completed,cancelled',
             // Bắt buộc nhập lý do nếu chọn trạng thái Hủy
@@ -54,8 +56,21 @@ class BookingController extends Controller
             'cancel_reason.required_if' => 'Vui lòng nhập lý do hủy đơn.',
         ]);
 
+        $newStatus = $validated['status'];
+
+        // Chặn các chuyển trạng thái không hợp lệ (chỉ tiến: pending → confirmed → completed, bất kỳ → cancelled)
+        $allowedTransitions = [
+            'pending'   => ['confirmed', 'cancelled'],
+            'confirmed' => ['completed', 'cancelled'],
+            'completed' => [],
+            'cancelled' => [],
+        ];
+        if (! in_array($newStatus, $allowedTransitions[$booking->status] ?? [], true)) {
+            return back()->with('error', "Không thể chuyển trạng thái từ \"{$booking->status}\" sang \"{$newStatus}\".");
+        }
+
         // Nếu là hủy đơn, tự động lưu thời gian hủy
-        if ($validated['status'] === 'cancelled') {
+        if ($newStatus === 'cancelled') {
             $validated['cancelled_at'] = now();
         } else {
             // Nếu chuyển trạng thái khác, xóa lý do hủy cũ đi (nếu có)

@@ -26,7 +26,8 @@ class SportController extends Controller
 
     public function update(Request $request, Sport $sport)
     {
-        $data = $request->validate([
+        // validateWithBag khớp với error bag 'sport_'.$id trong view inline edit
+        $data = $request->validateWithBag('sport_' . $sport->id, [
             'name'      => "required|string|max:100|unique:sports,name,{$sport->id}",
             'icon'      => 'nullable|string|max:10',
             'is_active' => 'boolean',

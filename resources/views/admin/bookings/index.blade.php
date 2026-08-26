@@ -39,6 +39,7 @@
                         <th class="p-4 font-semibold">Khu sân › Sân con</th>
                         <th class="p-4 font-semibold">Ngày đặt</th>
                         <th class="p-4 font-semibold">Giờ</th>
+                        <th class="p-4 font-semibold">Ngày tạo đơn</th>
                         <th class="p-4 font-semibold text-right">Tổng tiền</th>
                         <th class="p-4 font-semibold">Trạng thái</th>
                         <th class="p-4 font-semibold">Thanh toán</th>
@@ -52,6 +53,7 @@
                         <td class="p-4 text-gray-600 text-sm">{{ $booking->court->venue->name ?? '—' }} › {{ $booking->court->name ?? '—' }}</td>
                         <td class="p-4 text-gray-600 text-sm">{{ \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') }}</td>
                         <td class="p-4 text-gray-600 text-sm">{{ \Carbon\Carbon::parse($booking->start_time)->format('H:i') }} – {{ \Carbon\Carbon::parse($booking->end_time)->format('H:i') }}</td>
+                        <td class="p-4 text-gray-500 text-sm">{{ $booking->created_at?->format('d/m/Y H:i') }}</td>
                         <td class="p-4 text-gray-800 font-semibold text-right">{{ number_format($booking->total_amount, 0, ',', '.') }} đ</td>
                         <td class="p-4">
                             @if($booking->isPending())
@@ -76,7 +78,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="8" class="p-12 text-center text-gray-400">Không có đơn đặt sân nào.</td>
+                        <td colspan="9" class="p-12 text-center text-gray-400">Không có đơn đặt sân nào.</td>
                     </tr>
                     @endforelse
                 </tbody>

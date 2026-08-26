@@ -41,9 +41,15 @@
     {{-- Bar chart doanh thu 6 tháng --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h3 class="text-lg font-bold text-gray-800 mb-4">Doanh Thu 6 Tháng Gần Nhất</h3>
-        <div class="h-72">
-            <canvas id="revenueChart"></canvas>
-        </div>
+        @if(collect($revenueChart)->sum('amount') > 0)
+            <div class="h-72">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        @else
+            <div class="h-72 flex items-center justify-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                <p class="text-gray-400 text-sm font-medium">Chưa có doanh thu trong 6 tháng gần nhất.</p>
+            </div>
+        @endif
     </div>
 
     @push('scripts')

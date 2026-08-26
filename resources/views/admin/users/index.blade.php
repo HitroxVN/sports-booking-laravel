@@ -71,13 +71,13 @@
                                 <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Bị khóa</span>
                             @endif
                         </td>
-                        <td class="p-4 text-gray-500 text-sm">{{ $user->created_at->format('d/m/Y') }}</td>
+                        <td class="p-4 text-gray-500 text-sm">{{ $user->created_at?->format('d/m/Y') }}</td>
                         <td class="p-4 text-center">
                             @if($user->isActive())
                                 <form method="POST" action="{{ route('admin.users.ban', $user) }}" class="inline">
                                     @csrf
                                     <button type="submit"
-                                            @click="if(!confirm('Chắc chắn khóa tài khoản {{ addslashes($user->name) }}?')) $event.preventDefault()"
+                                            @click="if(!confirm(`Chắc chắn khóa tài khoản ${@js($user->name)}?`)) $event.preventDefault()"
                                             class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold transition"
                                             x-data="">Khóa</button>
                                 </form>
