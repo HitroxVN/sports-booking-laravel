@@ -24,11 +24,11 @@ class Court extends Model
     public function getSurfaceTypeNameAttribute()
     {
         return match($this->surface_type) {
-            'artificial' => 'Cỏ nhân tạo',
-            'natural'    => 'Cỏ tự nhiên',
-            'wood'       => 'Sàn gỗ',
-            'concrete'   => 'Bê tông',
-            default      => 'Chưa xác định',
+            'artificial_turf' => 'Cỏ nhân tạo',
+            'natural_grass'   => 'Cỏ tự nhiên',
+            'wood'            => 'Sàn gỗ',
+            'concrete'        => 'Bê tông',
+            default           => 'Chưa xác định',
         };
     }
 

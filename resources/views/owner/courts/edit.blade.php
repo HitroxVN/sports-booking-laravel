@@ -40,8 +40,8 @@
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Loại Mặt Sân *</label>
                             <select name="surface_type" required class="w-full border-gray-300 rounded-xl focus:ring-pink-500 focus:border-pink-500 shadow-sm">
-                                <option value="artificial" @selected(old('surface_type', $court->surface_type) == 'artificial')>Cỏ nhân tạo</option>
-                                <option value="natural" @selected(old('surface_type', $court->surface_type) == 'natural')>Cỏ tự nhiên</option>
+                                <option value="artificial_turf" @selected(old('surface_type', $court->surface_type) == 'artificial_turf')>Cỏ nhân tạo</option>
+                                <option value="natural_grass" @selected(old('surface_type', $court->surface_type) == 'natural_grass')>Cỏ tự nhiên</option>
                                 <option value="wood" @selected(old('surface_type', $court->surface_type) == 'wood')>Sàn gỗ</option>
                                 <option value="concrete" @selected(old('surface_type', $court->surface_type) == 'concrete')>Bê tông / Thảm cao su</option>
                             </select>
