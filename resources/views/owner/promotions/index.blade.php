@@ -60,11 +60,17 @@
                                     <span class="bg-gray-100 text-gray-500 px-3 py-1 rounded-full text-xs font-bold">Vô hiệu</span>
                                 @endif
                             </td>
-                            <td class="p-5 text-right">
+                            <td class="p-5 text-right space-x-4">
+                                <!-- Nút Sửa -->
+                                <a href="{{ route('owner.promotions.edit', $promo) }}" class="text-pink-500 hover:text-pink-700 font-medium transition-colors">
+                                    Sửa
+                                </a>
+
+                                <!-- Nút Xóa -->
                                 <form action="{{ route('owner.promotions.destroy', $promo) }}" method="POST" class="inline-block" onsubmit="return confirm('Xóa mã giảm giá này?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-gray-400 hover:text-red-500 font-medium">Xóa</button>
+                                    <button type="submit" class="text-gray-400 hover:text-red-500 font-medium transition-colors">Xóa</button>
                                 </form>
                             </td>
                         </tr>

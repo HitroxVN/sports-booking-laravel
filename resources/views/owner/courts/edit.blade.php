@@ -15,7 +15,8 @@
             </div>
 
             <div class="bg-white rounded-3xl shadow-sm border border-pink-100 p-8">
-                <form action="{{ route('owner.courts.update', $court) }}" method="POST" class="space-y-6">
+                <!-- Thêm enctype để hỗ trợ upload file ảnh khi cập nhật -->
+                <form action="{{ route('owner.courts.update', $court) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                     @csrf
                     @method('PUT')
 
@@ -23,6 +24,19 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Tên Sân Con *</label>
                         <input type="text" name="name" value="{{ old('name', $court->name) }}" required placeholder="VD: Sân 1, Sân A, Sân VIP..." class="w-full border-gray-300 rounded-xl focus:ring-pink-500 focus:border-pink-500 shadow-sm">
                         @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    <!-- Ô chọn ảnh sân con mới (có hiển thị ảnh hiện tại nếu có) -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Ảnh Sân Con Mới</label>
+                        @if($court->image)
+                            <div class="mb-3">
+                                <img src="{{ asset('storage/' . $court->image) }}" alt="{{ $court->name }}" class="w-24 h-24 object-cover rounded-xl shadow-sm border border-pink-100">
+                                <span class="text-xs text-gray-500 block mt-1">Ảnh hiện tại</span>
+                            </div>
+                        @endif
+                        <input type="file" name="image" accept="image/*" class="w-full border border-gray-300 rounded-xl p-2 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100">
+                        @error('image') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

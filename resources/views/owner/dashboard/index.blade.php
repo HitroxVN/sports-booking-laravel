@@ -14,7 +14,7 @@
                 <p class="text-gray-500 text-sm mt-1">Dưới đây là tình hình hoạt động kinh doanh sân thể thao của bạn hôm nay.</p>
             </div>
 
-            <!-- Các thẻ Thống kê (Cards) -->
+            <!-- Các thẻ Thống kê (Cards) - Giữ nguyên 4 cột chuẩn xác -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                 <!-- Thẻ 1: Khu sân -->
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-pink-100 flex items-center justify-between">
@@ -53,19 +53,23 @@
                 </div>
             </div>
 
-            <!-- Phím tắt nhanh chức năng -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <a href="{{ route('owner.venues.index') }}" class="p-6 bg-white rounded-3xl shadow-sm border border-pink-100 hover:border-pink-300 transition group">
+            <!-- Phím tắt nhanh chức năng - Đã chuyển thành 4 cột để nhét vừa nút Báo cáo -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                <a href="{{ route('owner.venues.index') }}" class="p-6 bg-white rounded-3xl shadow-sm border border-pink-100 hover:border-pink-300 hover:shadow-md transition group">
                     <h4 class="font-bold text-gray-800 text-lg group-hover:text-pink-600 transition">Quản lý Khu Sân &rarr;</h4>
-                    <p class="text-sm text-gray-500 mt-1">Thêm sửa xóa thông tin cơ sở và xem các sân con.</p>
+                    <p class="text-sm text-gray-500 mt-1">Thêm sửa xóa thông tin cơ sở và sân.</p>
                 </a>
-                <a href="{{ route('owner.bookings.index') }}" class="p-6 bg-white rounded-3xl shadow-sm border border-pink-100 hover:border-pink-300 transition group">
-                    <h4 class="font-bold text-gray-800 text-lg group-hover:text-pink-600 transition">Quản lý Đơn Đặt Sân &rarr;</h4>
-                    <p class="text-sm text-gray-500 mt-1">Xác nhận đơn, kiểm tra thanh toán và hủy lịch.</p>
+                <a href="{{ route('owner.bookings.index') }}" class="p-6 bg-white rounded-3xl shadow-sm border border-pink-100 hover:border-pink-300 hover:shadow-md transition group">
+                    <h4 class="font-bold text-gray-800 text-lg group-hover:text-pink-600 transition">Đơn Đặt Sân &rarr;</h4>
+                    <p class="text-sm text-gray-500 mt-1">Xác nhận đơn, kiểm tra thanh toán.</p>
                 </a>
-                <a href="{{ route('owner.schedule.index') }}" class="p-6 bg-white rounded-3xl shadow-sm border border-pink-100 hover:border-pink-300 transition group">
-                    <h4 class="font-bold text-gray-800 text-lg group-hover:text-pink-600 transition">Xem Lịch Biểu Trực Quan &rarr;</h4>
-                    <p class="text-sm text-gray-500 mt-1">Kiểm tra khung giờ trống và lịch đá trong ngày.</p>
+                <a href="{{ route('owner.schedule.index') }}" class="p-6 bg-white rounded-3xl shadow-sm border border-pink-100 hover:border-pink-300 hover:shadow-md transition group">
+                    <h4 class="font-bold text-gray-800 text-lg group-hover:text-pink-600 transition">Lịch Biểu &rarr;</h4>
+                    <p class="text-sm text-gray-500 mt-1">Kiểm tra khung giờ trống và lịch đá.</p>
+                </a>
+                <a href="{{ route('owner.reports.index') }}" class="p-6 bg-white rounded-3xl shadow-sm border border-pink-100 hover:border-pink-300 hover:shadow-md transition group">
+                    <h4 class="font-bold text-gray-800 text-lg group-hover:text-pink-600 transition">Báo Cáo &rarr;</h4>
+                    <p class="text-sm text-gray-500 mt-1">Xem biểu đồ doanh thu và tình hình.</p>
                 </a>
             </div>
 
