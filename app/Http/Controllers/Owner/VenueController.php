@@ -94,32 +94,31 @@ class VenueController extends Controller
 
         $validated = $request->validate([
             'name'        => 'required|string|max:255',
+            'address'     => 'required|string|max:255',
+            'district'    => 'required|string|max:100',
+            'city'        => 'required|string|max:100',
             'phone'       => 'required|string|max:20',
             'email'       => 'nullable|email|max:255',
-            'city'        => 'required|string|max:100',
-            'district'    => 'required|string|max:100',
-            'ward'        => 'nullable|string|max:100',
-            'address'     => 'required|string|max:255',
             'description' => 'nullable|string',
-            'latitude'    => 'nullable|numeric|between:-90,90',
-            'longitude'   => 'nullable|numeric|between:-180,180',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
-            'amenities'   => 'nullable|array',
-            'status'      => 'nullable|in:active,pending,closed',
+            'status'      => 'required|in:active,pending,closed',
+            'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        if ($request->hasFile('cover_image')) {
-            // Xóa ảnh cũ khỏi storage nếu có
-            if ($venue->cover_image) {
-                Storage::disk('public')->delete($venue->cover_image);
-            }
-            $validated['cover_image'] = $request->file('cover_image')->store('venues', 'public');
-        }
-
+        // Cập nhật thông tin cơ bản
         $venue->update($validated);
 
-        return redirect()->route('owner.venues.index')
-            ->with('success', 'Cập nhật thông tin khu sân thành công!');
+        // Xử lý upload ảnh vào bảng venue_images
+        if ($request->hasFile('image')) {
+            $filePath = $request->file('image')->store('venues', 'public');
+
+            // Tạo mới bản ghi ảnh liên kết với khu sân này
+            $venue->images()->create([
+                'path'       => $filePath,
+                'sort_order' => 1,
+            ]);
+        }
+
+        return redirect()->route('owner.venues.show', $venue)->with('success', 'Cập nhật thông tin khu sân thành công!');
     }
 
     /**

@@ -13,6 +13,7 @@ use App\Http\Controllers\Owner\ScheduleController;
 use App\Http\Controllers\Owner\ReviewController;
 use App\Http\Controllers\Owner\ReportController;
 use App\Http\Controllers\Owner\DashboardController;
+use App\Http\Controllers\ProfileController; // Đã bổ sung ProfileController
 
 // ─── Public ──────────────────────────────────────────────────────────────────
 Route::get('/', function () {
@@ -25,8 +26,19 @@ Route::get('/dashboard', function () {
     if ($user->role === 'admin') {
         return redirect()->route('admin.dashboard');
     }
+    // Vá lỗi Bug #2: Tránh việc tài khoản customer bị đá sang owner.dashboard rồi dính 403
+    if ($user->role === 'customer') {
+        return redirect()->route('home');
+    }
     return redirect()->route('owner.dashboard');
 })->middleware(['auth'])->name('dashboard');
+
+// ─── Profile Chung Cho Mọi User (Vá Bug #3) ───────────────────────────────────
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
 // ─── Khách hàng ──────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'role:customer'])->group(function () {
@@ -42,16 +54,16 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'role:owner'])->grou
     Route::resource('venues', VenueController::class);
     
     // 2. Quản lý Sân Con (Courts)
-    Route::resource('venues.courts', CourtController::class)->shallow();
+    Route::resource('venues.courts', CourtController::class)->shallow()->except(['show']);
 
-    // 3. Quản lý Khuyến Mãi (Promotions)
+    // 3. Quản lý Khuyến Mãi (Promotions) - Đã giữ nguyên shallow để khớp với logic Controller
     Route::resource('venues.promotions', PromotionController::class)->shallow();
 
-    // 4. Quản lý Khung Giờ (Slots)
-    Route::resource('courts.slots', SlotController::class)->shallow();
+    // 4. Quản lý Khung Giờ (Slots) - Vá Bug #4: Chặn các route rác không dùng
+    Route::resource('courts.slots', SlotController::class)->shallow()->except(['show', 'edit', 'update']);
     
-    // 5. Quản lý Khóa Lịch (Closures)
-    Route::resource('courts.closures', ClosureController::class)->shallow();
+    // 5. Quản lý Khóa Lịch (Closures) - Vá Bug #4: Chặn các route rác không dùng
+    Route::resource('courts.closures', ClosureController::class)->shallow()->except(['show', 'edit', 'update']);
 
     // 6. Quản lý Đơn Đặt Sân (Bookings)
     Route::resource('bookings', BookingController::class)->only(['index', 'show', 'update']);

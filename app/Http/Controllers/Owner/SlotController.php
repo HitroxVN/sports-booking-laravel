@@ -38,25 +38,46 @@ class SlotController extends Controller
     /**
      * Lưu khung giờ mới.
      */
-    public function store(Request $request, Court $court)
+    public function store(Request $request, \App\Models\Court $court)
     {
-        $this->authorizeCourt($court);
+        // Xử lý chuyển đổi checkbox is_peak thành boolean
+        $request->merge([
+            'is_peak' => $request->boolean('is_peak')
+        ]);
 
+        // 1. Validate định dạng cơ bản kèm theo quy tắc Giờ Vàng
         $validated = $request->validate([
-            'day_of_week' => 'required|integer|between:0,6', // 0 = Chủ nhật, 1-6 = Thứ 2 đến Thứ 7
+            'day_of_week' => 'required|integer|between:0,6',
             'start_time'  => 'required|date_format:H:i',
             'end_time'    => 'required|date_format:H:i|after:start_time',
             'price'       => 'required|numeric|min:0',
             'is_peak'     => 'boolean',
             'peak_price'  => 'nullable|numeric|min:0|required_if:is_peak,1',
+        ], [
+            'peak_price.required_if' => 'Vui lòng nhập mức giá giờ vàng khi bật tính năng này.',
         ]);
 
+        // 2. THUẬT TOÁN CHẶN CHỒNG GIỜ (OVERLAP)
+        $isOverlapping = $court->slots()
+            ->where('day_of_week', $validated['day_of_week'])
+            ->where(function ($query) use ($validated) {
+                $query->where('start_time', '<', $validated['end_time'])
+                      ->where('end_time', '>', $validated['start_time']);
+            })
+            ->exists();
+
+        if ($isOverlapping) {
+            return back()
+                ->withErrors(['start_time' => 'Khung giờ này bị trùng hoặc lồng ghép với một khung giờ đã tồn tại trong cùng ngày!'])
+                ->withInput();
+        }
+
+        // 3. Lưu vào Database (bao gồm cả giờ vàng)
         $court->slots()->create($validated);
 
         return redirect()->route('owner.courts.slots.index', $court)
-            ->with('success', 'Đã thêm khung giờ mới thành công!');
+                         ->with('success', 'Đã thêm khung giờ thành công!');
     }
-
     /**
      * Xóa khung giờ.
      */

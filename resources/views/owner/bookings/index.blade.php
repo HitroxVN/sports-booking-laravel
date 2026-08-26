@@ -45,7 +45,8 @@
                             <tr class="hover:bg-pink-50/30 transition-colors">
                                 <td class="p-5">
                                     <div class="font-bold text-pink-600 text-base">#{{ $booking->code }}</div>
-                                    <div class="text-xs text-gray-500 mt-1">{{ $booking->created_at->format('d/m/Y H:i') }}</div>
+                                    <!-- Đã fix Lỗi 10: Dùng toán tử ?-> để an toàn khi created_at bị null -->
+                                    <div class="text-xs text-gray-500 mt-1">{{ $booking->created_at?->format('d/m/Y H:i') ?? 'N/A' }}</div>
                                 </td>
                                 <td class="p-5">
                                     <div class="font-medium text-gray-800">{{ $booking->user->name ?? 'Khách lẻ' }}</div>

@@ -37,7 +37,6 @@
                                 <th class="p-4">Tên Sân Con</th>
                                 <th class="p-4">Môn Thể Thao</th>
                                 <th class="p-4 text-center">Loại Mặt Sân</th>
-                                <th class="p-4 text-center">Người Tối Đa</th>
                                 <th class="p-4 text-center">Trạng Thái</th>
                                 <th class="p-4 text-center">Thao Tác</th>
                             </tr>
@@ -56,9 +55,6 @@
                                             {{ $court->surface_type_name }}
                                         </span>
                                     </td>
-                                    <td class="p-4 text-sm text-center font-medium">
-                                        {{ $court->max_players ? $court->max_players . ' người' : '--' }}
-                                    </td>
                                     <td class="p-4 text-center">
                                         @if($court->status === 'active')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">
@@ -74,9 +70,13 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="p-4 flex items-center justify-center space-x-4">
+                                    <td class="p-4 flex items-center justify-center space-x-3">
                                         <a href="{{ route('owner.courts.slots.index', $court) }}" class="text-blue-500 hover:text-blue-700 text-sm font-bold transition-colors">
                                             Khung giờ & Giá
+                                        </a>
+                                        <!-- Nút Khóa Lịch Mới Thêm -->
+                                        <a href="{{ route('owner.courts.closures.index', $court) }}" class="text-orange-500 hover:text-orange-700 text-sm font-bold transition-colors">
+                                            Khóa lịch
                                         </a>
                                         <a href="{{ route('owner.courts.edit', $court) }}" class="text-pink-500 hover:text-pink-700 text-sm font-bold transition-colors">
                                             Sửa
@@ -92,11 +92,8 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="p-10 text-center text-gray-500">
+                                    <td colspan="5" class="p-10 text-center text-gray-500">
                                         <div class="flex flex-col items-center justify-center">
-                                            <svg class="w-12 h-12 text-pink-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                                            </svg>
                                             <p class="font-medium">Khu sân này chưa có sân con nào.</p>
                                         </div>
                                     </td>
