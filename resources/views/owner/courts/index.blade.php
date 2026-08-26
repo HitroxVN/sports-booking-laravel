@@ -1,112 +1,114 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-            {{ __('Danh sách Sân Con') }} — {{ $venue->name }}
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="font-bold text-2xl text-gray-800 leading-tight">
+                {{ __('Quản lý Sân Con') }} — {{ $venue->name }}
+            </h2>
+            <a href="{{ route('owner.venues.index') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-xl text-xs font-bold text-gray-700 shadow-sm hover:bg-pink-50 hover:text-pink-600 transition">
+                &larr; Trở về Khu Sân
+            </a>
+        </div>
     </x-slot>
 
     <div class="min-h-screen bg-gradient-to-br from-pink-50 via-white to-pink-50 py-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             
-            @if(session('success'))
-                <div x-data="{ show: true }" x-show="show" class="mb-6 bg-white border-l-4 border-pink-500 text-gray-700 px-6 py-4 rounded-xl shadow-sm flex justify-between items-center transition-all">
-                    <div class="flex items-center gap-3">
-                        <svg class="w-6 h-6 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="font-medium">{{ session('success') }}</span>
-                    </div>
-                    <button @click="show = false" class="text-gray-400 hover:text-gray-600">&times;</button>
+            @if (session('success'))
+                <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl relative shadow-sm" role="alert">
+                    <span class="block sm:inline font-semibold">{{ session('success') }}</span>
                 </div>
             @endif
 
-            <div class="flex justify-between items-center mb-8">
+            <div class="mb-6 flex justify-between items-center">
                 <div>
-                    <a href="{{ route('owner.venues.index') }}" class="text-sm font-bold text-pink-500 hover:text-pink-700 mb-2 inline-block transition">
-                        &larr; Quay lại danh sách Khu sân
-                    </a>
-                    <h3 class="text-2xl font-extrabold text-gray-800 tracking-tight">Sân con thuộc: <span class="text-pink-600">{{ $venue->name }}</span></h3>
+                    <h3 class="text-lg font-bold text-gray-900">Danh Sách Sân Con</h3>
+                    <p class="text-sm text-gray-500">Quản lý các sân thể thao thuộc khu vực này</p>
                 </div>
-                <a href="{{ route('owner.venues.courts.create', $venue) }}" class="px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                    + Thêm Sân Con Mới
+                <a href="{{ route('owner.venues.courts.create', $venue) }}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all">
+                    + Thêm sân con mới
                 </a>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden">
+            <div class="bg-white rounded-3xl shadow-sm border border-pink-100 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse whitespace-nowrap">
+                    <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-pink-50/70 border-b border-pink-100 text-pink-900">
-                                <th class="p-5 font-semibold text-sm">Tên Sân Con</th>
-                                <th class="p-5 font-semibold text-sm">Môn Thể Thao</th>
-                                <th class="p-5 font-semibold text-sm">Loại Mặt Sân</th>
-                                <th class="p-5 font-semibold text-sm">Số Người Tối Đa</th>
-                                <th class="p-5 font-semibold text-sm text-center">Trạng Thái</th>
-                                <th class="p-5 font-semibold text-sm text-right">Thao Tác</th>
+                            <tr class="bg-pink-50/50 text-gray-600 text-sm font-bold uppercase tracking-wider border-b border-pink-100">
+                                <th class="p-4">Tên Sân Con</th>
+                                <th class="p-4">Môn Thể Thao</th>
+                                <th class="p-4 text-center">Loại Mặt Sân</th>
+                                <th class="p-4 text-center">Người Tối Đa</th>
+                                <th class="p-4 text-center">Trạng Thái</th>
+                                <th class="p-4 text-center">Thao Tác</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-pink-50">
+                        <tbody class="divide-y divide-pink-50 text-gray-700">
                             @forelse($courts as $court)
-                            <tr class="hover:bg-pink-50/30 transition-colors">
-                                <td class="p-5">
-                                    <div class="font-bold text-gray-800 text-base">{{ $court->name }}</div>
-                                    <div class="text-xs text-gray-400 mt-1 font-mono">ID: #{{ $court->id }}</div>
-                                </td>
-                                <td class="p-5 font-medium text-gray-700">{{ $court->sport->name ?? 'N/A' }}</td>
-                                <td class="p-5 text-gray-600 capitalize">
-                                    {{ str_replace('_', ' ', $court->surface_type) }}
-                                </td>
-                                <td class="p-5 text-gray-600">
-                                    {{ $court->max_players ? $court->max_players . ' người' : 'Không giới hạn' }}
-                                </td>
-                                <td class="p-5 text-center">
-                                    @if($court->status === 'active')
-                                        <span class="inline-flex items-center bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-200">
-                                            <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>Hoạt động
+                                <tr class="hover:bg-pink-50/30 transition-colors">
+                                    <td class="p-4 font-bold text-gray-900">
+                                        {{ $court->name }}
+                                    </td>
+                                    <td class="p-4 text-sm font-medium">
+                                        {{ $court->sport->name ?? 'N/A' }}
+                                    </td>
+                                    <td class="p-4 text-sm text-center">
+                                        <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold border border-gray-200">
+                                            {{ $court->surface_type_name }}
                                         </span>
-                                    @elseif($court->status === 'maintenance')
-                                        <span class="inline-flex items-center bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold border border-yellow-200">
-                                            <span class="w-2 h-2 rounded-full bg-yellow-500 mr-2"></span>Bảo trì
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-xs font-bold border border-gray-200">
-                                            <span class="w-2 h-2 rounded-full bg-gray-500 mr-2"></span>Đóng cửa
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="p-5 text-right space-x-2 text-sm font-medium">
-                                    <!-- Nút cấu hình Giá & Giờ -->
-                                    <a href="{{ route('owner.courts.slots.index', $court) }}" class="inline-block text-indigo-500 hover:text-indigo-700 transition font-bold border border-indigo-200 bg-indigo-50 px-3 py-1.5 rounded-lg">Giá & Giờ</a>
-                                    
-                                    <!-- Nút Khóa lịch (Mới thêm) -->
-                                    <a href="{{ route('owner.courts.closures.index', $court) }}" class="inline-block text-red-500 hover:text-red-700 transition font-bold border border-red-200 bg-red-50 px-3 py-1.5 rounded-lg">Khóa lịch</a>
-
-                                    <a href="{{ route('owner.courts.edit', $court) }}" class="inline-block text-pink-500 hover:text-pink-700 transition px-2">Sửa</a>
-                                    
-                                    <form action="{{ route('owner.courts.destroy', $court) }}" method="POST" class="inline-block" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sân con này? Mọi khung giờ và dữ liệu liên quan sẽ bị xóa.');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-gray-400 hover:text-red-500 transition px-2">Xóa</button>
-                                    </form>
-                                </td>
-                            </tr>
+                                    </td>
+                                    <td class="p-4 text-sm text-center font-medium">
+                                        {{ $court->max_players ? $court->max_players . ' người' : '--' }}
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        @if($court->status === 'active')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-200">
+                                                {{ $court->status_name }}
+                                            </span>
+                                        @elseif($court->status === 'maintenance')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-200">
+                                                {{ $court->status_name }}
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">
+                                                {{ $court->status_name }}
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="p-4 flex items-center justify-center space-x-4">
+                                        <a href="{{ route('owner.courts.edit', $court) }}" class="text-pink-500 hover:text-pink-700 text-sm font-bold transition-colors">
+                                            Sửa
+                                        </a>
+                                        <form action="{{ route('owner.courts.destroy', $court) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sân này không? Hành động này không thể hoàn tác.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="text-red-400 hover:text-red-600 text-sm font-bold transition-colors">
+                                                Xóa
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
                             @empty
-                            <tr>
-                                <td colspan="6" class="p-16 text-center text-gray-500">
-                                    <div class="mb-4 text-pink-200 flex justify-center">
-                                        <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                                    </div>
-                                    <p class="text-lg font-medium text-gray-700">Chưa có sân con nào</p>
-                                    <p class="text-sm mt-1">Khu sân này chưa được thiết lập sân con. Bấm "Thêm Sân Con Mới" để bắt đầu.</p>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td colspan="6" class="p-10 text-center text-gray-500">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <svg class="w-12 h-12 text-pink-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                            </svg>
+                                            <p class="font-medium">Khu sân này chưa có sân con nào.</p>
+                                        </div>
+                                    </td>
+                                </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <div class="mt-6">
-                {{ $courts->links() }}
+                
+                @if($courts->hasPages())
+                    <div class="p-4 border-t border-pink-100 bg-gray-50">
+                        {{ $courts->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>
-</x-app-layout>     
+</x-app-layout>
