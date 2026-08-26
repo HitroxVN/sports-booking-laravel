@@ -63,7 +63,7 @@ class Court extends Model
     // Khung giờ + giá của sân này
     public function slots()
     {
-        return $this->hasMany(CourtSlot::class);
+       return $this->hasMany(\App\Models\CourtSlot::class);
     }
 
     // Lịch khóa đột xuất

@@ -15,22 +15,28 @@ use App\Http\Controllers\Owner\ReportController;
 use App\Http\Controllers\Owner\DashboardController;
 
 // ─── Public ──────────────────────────────────────────────────────────────────
+use App\Http\Controllers\Customer\CustomerBookingController;
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
 // Route trung gian giải quyết lỗi Route [dashboard] not defined của Breeze
 Route::get('/dashboard', function () {
-    $user = auth()->user();
-    if ($user->role === 'admin') {
+    $user = \Illuminate\Support\Facades\Auth::user(); // Hoặc dùng Auth::user()
+    if ($user && $user->role === 'admin') {
         return redirect()->route('admin.dashboard');
     }
     return redirect()->route('owner.dashboard');
 })->middleware(['auth'])->name('dashboard');
 
 // ─── Khách hàng ──────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'role:customer'])->group(function () {
-    // TODO Sprint 2-3: Booking, Review, Favorite, Notification, Profile
+Route::middleware(['auth', 'role:customer'])->name('customer.')->group(function () {
+    // 1. Đặt sân (Booking)
+    Route::get('/courts/{courtId}/book', [CustomerBookingController::class, 'create'])->name('bookings.create');
+    Route::post('/bookings', [CustomerBookingController::class, 'store'])->name('bookings.store');
+    
+    // 2. Lịch sử đặt sân của tôi (Trang danh sách)
+    Route::get('/my-bookings', [CustomerBookingController::class, 'index'])->name('bookings.index');
 });
 
 // ─── Chủ sân ─────────────────────────────────────────────────────────────────
