@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Models;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CourtSlot extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'court_id', 'day_of_week', 'start_time', 'end_time',
         'price', 'peak_price', 'is_peak',
