@@ -12,7 +12,7 @@ class Court extends Model
 
     protected $fillable = [
         'venue_id', 'sport_id', 'name', 'description',
-        'surface_type', 'max_players', 'status',
+        'surface_type', 'max_players', 'status', 'image',
     ];
 
     // --- Accessors (Tự động dịch dữ liệu sang Tiếng Việt) ---
@@ -63,7 +63,7 @@ class Court extends Model
     // Khung giờ + giá của sân này
     public function slots()
     {
-        return $this->hasMany(CourtSlot::class);
+       return $this->hasMany(\App\Models\CourtSlot::class);
     }
 
     // Lịch khóa đột xuất
