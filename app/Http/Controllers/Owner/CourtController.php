@@ -43,7 +43,7 @@ class CourtController extends Controller
             'sport_id'     => 'required|exists:sports,id',
             'name'         => 'required|string|max:255',
             // Đã khóa chặt bằng rule in: để khớp 100% với Enum Database
-            'surface_type' => 'required|in:natural,artificial,wood,concrete', 
+            'surface_type' => 'required|in:natural_grass,artificial_turf,wood,concrete',
             'max_players'  => 'nullable|integer|min:1',
             'description'  => 'nullable|string',
             'status'       => 'required|in:active,maintenance,closed',
@@ -79,7 +79,7 @@ class CourtController extends Controller
             'sport_id'     => 'required|exists:sports,id',
             'name'         => 'required|string|max:255',
             // Đã khóa chặt bằng rule in:
-            'surface_type' => 'required|in:natural,artificial,wood,concrete',
+            'surface_type' => 'required|in:natural_grass,artificial_turf,wood,concrete',
             'max_players'  => 'nullable|integer|min:1',
             'description'  => 'nullable|string',
             'status'       => 'required|in:active,maintenance,closed',

@@ -28,9 +28,11 @@ class PromotionController extends Controller
     {
         $this->authorizeVenue($venue);
 
+        $request->merge(['code' => strtoupper($request->input('code') ?? '')]);
+
         $validated = $request->validate([
             'code'           => [
-                'required', 'string', 'max:50', 'alpha_dash', 'uppercase',
+                'required', 'string', 'max:50', 'alpha_dash',
                 Rule::unique('promotions')->where(fn ($query) => $query->where('venue_id', $venue->id))
             ],
             'description'    => 'nullable|string|max:255',
