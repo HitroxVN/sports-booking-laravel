@@ -34,6 +34,7 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-pink-50/50 text-gray-600 text-sm font-bold uppercase tracking-wider border-b border-pink-100">
+                                <th class="p-4 text-center">Ảnh</th>
                                 <th class="p-4">Tên Sân Con</th>
                                 <th class="p-4">Môn Thể Thao</th>
                                 <th class="p-4 text-center">Loại Mặt Sân</th>
@@ -44,8 +45,18 @@
                         <tbody class="divide-y divide-pink-50 text-gray-700">
                             @forelse($courts as $court)
                                 <tr class="hover:bg-pink-50/30 transition-colors">
+                                    <td class="p-4 text-center">
+                                        @if(!empty($court->image))
+                                            <img src="{{ asset('storage/' . $court->image) }}" alt="{{ $court->name }}" class="w-14 h-14 object-cover rounded-xl shadow-sm border border-pink-100 mx-auto">
+                                        @else
+                                            <div class="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 text-xs font-semibold mx-auto border border-gray-200">
+                                                No img
+                                            </div>
+                                        @endif
+                                    </td>
                                     <td class="p-4 font-bold text-gray-900">
                                         {{ $court->name }}
+                                        <div class="text-xs font-normal text-gray-500">Tối đa: {{ $court->max_players ?? 'N/A' }} người</div>
                                     </td>
                                     <td class="p-4 text-sm font-medium">
                                         {{ $court->sport->name ?? 'N/A' }}
@@ -74,7 +85,6 @@
                                         <a href="{{ route('owner.courts.slots.index', $court) }}" class="text-blue-500 hover:text-blue-700 text-sm font-bold transition-colors">
                                             Khung giờ & Giá
                                         </a>
-                                        <!-- Nút Khóa Lịch Mới Thêm -->
                                         <a href="{{ route('owner.courts.closures.index', $court) }}" class="text-orange-500 hover:text-orange-700 text-sm font-bold transition-colors">
                                             Khóa lịch
                                         </a>
@@ -92,7 +102,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="p-10 text-center text-gray-500">
+                                    <td colspan="6" class="p-10 text-center text-gray-500">
                                         <div class="flex flex-col items-center justify-center">
                                             <p class="font-medium">Khu sân này chưa có sân con nào.</p>
                                         </div>
