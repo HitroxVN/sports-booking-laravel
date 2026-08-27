@@ -43,24 +43,22 @@ class CourtController extends Controller
         $validated = $request->validate([
             'sport_id'     => 'required|exists:sports,id',
             'name'         => 'required|string|max:255',
-            // Đã khóa chặt bằng rule in: để khớp 100% với Enum Database
             'surface_type' => 'required|in:natural_grass,artificial_turf,wood,concrete',
             'max_players'  => 'nullable|integer|min:1',
             'description'  => 'nullable|string',
             'status'       => 'required|in:active,maintenance,closed',
-            'image'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Validate ảnh sân con
+            'image'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $validated['venue_id'] = $venue->id;
 
-        // Xử lý upload ảnh sân con nếu có
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('courts', 'public');
         }
 
         Court::create($validated);
 
-        return redirect()->route('owner.venues.courts.index', $venue)
+        return redirect()->route('owner.venues.courts.index', $venue->slug)
             ->with('success', 'Thêm sân con thành công!');
     }
 
@@ -85,17 +83,14 @@ class CourtController extends Controller
         $validated = $request->validate([
             'sport_id'     => 'required|exists:sports,id',
             'name'         => 'required|string|max:255',
-            // Đã khóa chặt bằng rule in:
             'surface_type' => 'required|in:natural_grass,artificial_turf,wood,concrete',
             'max_players'  => 'nullable|integer|min:1',
             'description'  => 'nullable|string',
             'status'       => 'required|in:active,maintenance,closed',
-            'image'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Validate ảnh sân con
+            'image'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
-        // Xử lý upload ảnh mới nếu có
         if ($request->hasFile('image')) {
-            // Xóa ảnh cũ nếu tồn tại để tiết kiệm dung lượng server
             if ($court->image && Storage::disk('public')->exists($court->image)) {
                 Storage::disk('public')->delete($court->image);
             }
@@ -105,7 +100,7 @@ class CourtController extends Controller
 
         $court->update($validated);
 
-        return redirect()->route('owner.venues.courts.index', $court->venue)
+        return redirect()->route('owner.venues.courts.index', $court->venue->slug)
             ->with('success', 'Cập nhật sân con thành công!');
     }
 
@@ -119,7 +114,7 @@ class CourtController extends Controller
 
         $court->delete();
 
-        return redirect()->route('owner.venues.courts.index', $venue)
+        return redirect()->route('owner.venues.courts.index', $venue->slug)
             ->with('success', 'Đã xóa sân con thành công!');
     }
 
