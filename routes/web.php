@@ -13,11 +13,13 @@ use App\Http\Controllers\Owner\ScheduleController;
 use App\Http\Controllers\Owner\ReviewController;
 use App\Http\Controllers\Owner\ReportController;
 use App\Http\Controllers\Owner\DashboardController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Customer\SearchController;
 
 // ─── Public ──────────────────────────────────────────────────────────────────
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/search', [SearchController::class, 'index'])->name('search');
+Route::get('/venues/{slug}', [\App\Http\Controllers\Customer\VenueController::class, 'show'])->name('venues.show');
 
 // Route trung gian giải quyết lỗi Route [dashboard] not defined của Breeze
 Route::get('/dashboard', function () {
@@ -37,10 +39,10 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
 Route::prefix('owner')->name('owner.')->middleware(['auth', 'role:owner'])->group(function () {
     // Trang tổng quan Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // 1. Quản lý Khu Sân (Venues)
     Route::resource('venues', VenueController::class);
-    
+
     // 2. Quản lý Sân Con (Courts)
     Route::resource('venues.courts', CourtController::class)->shallow();
 
@@ -49,7 +51,7 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'role:owner'])->grou
 
     // 4. Quản lý Khung Giờ (Slots)
     Route::resource('courts.slots', SlotController::class)->shallow();
-    
+
     // 5. Quản lý Khóa Lịch (Closures)
     Route::resource('courts.closures', ClosureController::class)->shallow();
 
@@ -98,4 +100,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
 });
 
-require __DIR__.'/auth.php';
+use App\Http\Controllers\ProfileController;
+
+// ─── Profile ─────────────────────────────────────────────────────────────────
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__ . '/auth.php';
