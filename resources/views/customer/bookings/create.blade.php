@@ -142,49 +142,46 @@
                 existingBookings: JSON.parse('{!! json_encode($existingBookings) !!}'),
                 closures: JSON.parse('{!! json_encode($closures) !!}'),
                 
-                get availableSlots() {
-                    let slots = [];
-                    for (let hour = 5; hour < 22; hour++) {
-                        let startStr = (hour < 10 ? '0' : '') + hour + ':00';
-                        let endStr = (hour + 1 < 10 ? '0' : '') + (hour + 1) + ':00';
+  get availableSlots() {
+    let slots = [];
+    for (let hour = 5; hour < 22; hour++) {
+        let startStr = (hour < 10 ? '0' : '') + hour + ':00';
+        let endStr = (hour + 1 < 10 ? '0' : '') + (hour + 1) + ':00';
 
-                        let isBooked = this.existingBookings.some(b => {
-                            if (b.booking_date !== this.selectedDate) return false;
-                            let bStart = b.start_time.substring(0, 5);
-                            let bEnd = b.end_time.substring(0, 5);
-                            return (startStr < bEnd && endStr > bStart);
-                        });
+        // Kiểm tra đã đặt
+        let isBooked = this.existingBookings.some(b => {
+            if (b.booking_date !== this.selectedDate) return false;
+            return (startStr < b.end_time && endStr > b.start_time);
+        });
 
-                        // Sân bị khóa lịch trong ngày này: khóa cả ngày (start_time null) hoặc trùng khung giờ
-                        let isClosed = this.closures.some(c => {
-                            if (c.date !== this.selectedDate) return false;
-                            if (!c.start_time) return true; // khóa cả ngày
-                            let cStart = c.start_time.substring(0, 5);
-                            let cEnd = c.end_time.substring(0, 5);
-                            return (startStr < cEnd && endStr > cStart);
-                        });
+        // Kiểm tra bị khóa
+        let isClosed = this.closures.some(c => {
+            if (c.date !== this.selectedDate) return false;
+            if (!c.start_time) return true; // Khóa cả ngày
+            return (startStr < c.end_time && endStr > c.start_time);
+        });
 
-                        let matchingSlot = this.courtSlots.find(s => {
-                            let sStart = s.start_time.substring(0, 5);
-                            let sEnd = s.end_time.substring(0, 5);
-                            return startStr >= sStart && endStr <= sEnd;
-                        });
+        let matchingSlot = this.courtSlots.find(s => {
+            let sStart = s.start_time.substring(0, 5);
+            let sEnd = s.end_time.substring(0, 5);
+            return startStr >= sStart && endStr <= sEnd;
+        });
 
-                        let price = 100000;
-                        if (matchingSlot) {
-                            price = (matchingSlot.is_peak && matchingSlot.peak_price) ? parseFloat(matchingSlot.peak_price) : parseFloat(matchingSlot.price);
-                        }
+        let price = 100000;
+        if (matchingSlot) {
+            price = (matchingSlot.is_peak && matchingSlot.peak_price) ? parseFloat(matchingSlot.peak_price) : parseFloat(matchingSlot.price);
+        }
 
-                        slots.push({
-                            start: startStr,
-                            end: endStr,
-                            price: price,
-                            isBooked: isBooked || isClosed,
-                            isClosed: isClosed
-                        });
-                    }
-                    return slots;
-                },
+        slots.push({
+            start: startStr,
+            end: endStr,
+            price: price,
+            isBooked: isBooked || isClosed,
+            isClosed: isClosed
+        });
+    }
+    return slots;
+},
 
                 selectSlot(idx) {
                     if (this.availableSlots[idx].isBooked) return;
