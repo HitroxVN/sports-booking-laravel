@@ -22,18 +22,22 @@ class UserController extends Controller
         return view('admin.users.index', compact('users'));
     }
 
-    // ban — guard: không tự ban mình, không ban admin khác
+    // ban — guard: không tự ban mình, không ban admin khác, không ban người đã ban
     public function ban(User $user)
     {
         abort_if($user->id === auth()->id(), 403, 'Không thể tự khóa chính mình.');
         abort_if($user->role === 'admin', 403);
+        abort_if($user->status === 'banned', 422, 'Tài khoản này đã bị khóa.');
         $user->update(['status' => 'banned']);
         return back()->with('success', "Đã khóa tài khoản {$user->name}.");
     }
 
+    // unban — guard: không tự mở khóa chính mình (kẻ tấn công admin chỉ bị khóa tay, không tự gỡ)
     public function unban(User $user)
     {
+        abort_if($user->id === auth()->id(), 403, 'Không thể tự mở khóa chính mình.');
         abort_if($user->role === 'admin', 403);
+        abort_if($user->status !== 'banned', 422, 'Tài khoản này không bị khóa.');
         $user->update(['status' => 'active']);
         return back()->with('success', "Đã mở khóa tài khoản {$user->name}.");
     }

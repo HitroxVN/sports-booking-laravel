@@ -7,6 +7,7 @@ use App\Models\Court;
 use App\Models\Sport;
 use App\Models\Venue;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CourtController extends Controller
 {
@@ -47,9 +48,15 @@ class CourtController extends Controller
             'max_players'  => 'nullable|integer|min:1',
             'description'  => 'nullable|string',
             'status'       => 'required|in:active,maintenance,closed',
+            'image'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Validate ảnh sân con
         ]);
 
         $validated['venue_id'] = $venue->id;
+
+        // Xử lý upload ảnh sân con nếu có
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('courts', 'public');
+        }
 
         Court::create($validated);
 
@@ -83,7 +90,18 @@ class CourtController extends Controller
             'max_players'  => 'nullable|integer|min:1',
             'description'  => 'nullable|string',
             'status'       => 'required|in:active,maintenance,closed',
+            'image'        => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Validate ảnh sân con
         ]);
+
+        // Xử lý upload ảnh mới nếu có
+        if ($request->hasFile('image')) {
+            // Xóa ảnh cũ nếu tồn tại để tiết kiệm dung lượng server
+            if ($court->image && Storage::disk('public')->exists($court->image)) {
+                Storage::disk('public')->delete($court->image);
+            }
+
+            $validated['image'] = $request->file('image')->store('courts', 'public');
+        }
 
         $court->update($validated);
 

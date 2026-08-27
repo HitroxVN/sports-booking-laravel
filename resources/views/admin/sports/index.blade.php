@@ -64,14 +64,17 @@
                         </td>
                         <td class="p-4 text-center text-gray-600 text-sm">{{ $sport->courts_count }}</td>
                         <td class="p-4 text-center">
-                            <form method="POST" action="{{ route('admin.sports.update', $sport) }}" class="inline">
+                            <form method="POST" action="{{ route('admin.sports.update', $sport) }}" class="inline"
+                                  @submit="submitting = true" x-data="{ submitting: false }">
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="name" value="{{ $sport->name }}">
                                 <input type="hidden" name="is_active" value="0">
                                 <button type="submit" name="is_active" value="{{ $sport->is_active ? 0 : 1 }}"
+                                        :disabled="submitting"
                                         class="px-3 py-1.5 rounded-full text-xs font-bold transition
-                                               {{ $sport->is_active ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}">
+                                               {{ $sport->is_active ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-500 hover:bg-gray-200' }}
+                                               disabled:opacity-50 disabled:cursor-not-allowed">
                                     {{ $sport->is_active ? 'Hoạt động' : 'Tắt' }}
                                 </button>
                             </form>
@@ -83,7 +86,7 @@
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" x-data=""
-                                        @click="if(!confirm('Chắc chắn xóa môn thể thao {{ addslashes($sport->name) }}?')) $event.preventDefault()"
+                                        @click="if(!confirm(`Chắc chắn xóa môn thể thao ${@js($sport->name)}?`)) $event.preventDefault()"
                                         class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-bold transition">Xóa</button>
                             </form>
                         </td>

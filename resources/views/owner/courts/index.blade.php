@@ -34,10 +34,10 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-pink-50/50 text-gray-600 text-sm font-bold uppercase tracking-wider border-b border-pink-100">
+                                <th class="p-4 text-center">Ảnh</th>
                                 <th class="p-4">Tên Sân Con</th>
                                 <th class="p-4">Môn Thể Thao</th>
                                 <th class="p-4 text-center">Loại Mặt Sân</th>
-                                <th class="p-4 text-center">Người Tối Đa</th>
                                 <th class="p-4 text-center">Trạng Thái</th>
                                 <th class="p-4 text-center">Thao Tác</th>
                             </tr>
@@ -45,8 +45,18 @@
                         <tbody class="divide-y divide-pink-50 text-gray-700">
                             @forelse($courts as $court)
                                 <tr class="hover:bg-pink-50/30 transition-colors">
+                                    <td class="p-4 text-center">
+                                        @if(!empty($court->image))
+                                            <img src="{{ asset('storage/' . $court->image) }}" alt="{{ $court->name }}" class="w-14 h-14 object-cover rounded-xl shadow-sm border border-pink-100 mx-auto">
+                                        @else
+                                            <div class="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 text-xs font-semibold mx-auto border border-gray-200">
+                                                No img
+                                            </div>
+                                        @endif
+                                    </td>
                                     <td class="p-4 font-bold text-gray-900">
                                         {{ $court->name }}
+                                        <div class="text-xs font-normal text-gray-500">Tối đa: {{ $court->max_players ?? 'N/A' }} người</div>
                                     </td>
                                     <td class="p-4 text-sm font-medium">
                                         {{ $court->sport->name ?? 'N/A' }}
@@ -55,9 +65,6 @@
                                         <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold border border-gray-200">
                                             {{ $court->surface_type_name }}
                                         </span>
-                                    </td>
-                                    <td class="p-4 text-sm text-center font-medium">
-                                        {{ $court->max_players ? $court->max_players . ' người' : '--' }}
                                     </td>
                                     <td class="p-4 text-center">
                                         @if($court->status === 'active')
@@ -74,9 +81,12 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="p-4 flex items-center justify-center space-x-4">
+                                    <td class="p-4 flex items-center justify-center space-x-3">
                                         <a href="{{ route('owner.courts.slots.index', $court) }}" class="text-blue-500 hover:text-blue-700 text-sm font-bold transition-colors">
                                             Khung giờ & Giá
+                                        </a>
+                                        <a href="{{ route('owner.courts.closures.index', $court) }}" class="text-orange-500 hover:text-orange-700 text-sm font-bold transition-colors">
+                                            Khóa lịch
                                         </a>
                                         <a href="{{ route('owner.courts.edit', $court) }}" class="text-pink-500 hover:text-pink-700 text-sm font-bold transition-colors">
                                             Sửa
@@ -94,9 +104,6 @@
                                 <tr>
                                     <td colspan="6" class="p-10 text-center text-gray-500">
                                         <div class="flex flex-col items-center justify-center">
-                                            <svg class="w-12 h-12 text-pink-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                                            </svg>
                                             <p class="font-medium">Khu sân này chưa có sân con nào.</p>
                                         </div>
                                     </td>

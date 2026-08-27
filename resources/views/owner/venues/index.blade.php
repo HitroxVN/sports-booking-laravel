@@ -81,10 +81,13 @@
                                 </td>
                                 <td class="p-5 text-right space-x-2 text-sm font-medium">
                                     <!-- Nút quản lý Sân Con -->
-                                    <a href="{{ route('owner.venues.courts.index', $venue) }}" class="inline-block text-indigo-500 hover:text-indigo-700 transition font-bold border border-indigo-200 bg-indigo-50 px-3 py-1.5 rounded-lg">Sân con ({{ $venue->courts()->count() }})</a>
+                                    <a href="{{ route('owner.venues.courts.index', $venue) }}" class="inline-block text-indigo-500 hover:text-indigo-700 transition font-bold border border-indigo-200 bg-indigo-50 px-3 py-1.5 rounded-lg">Sân con ({{ $venue->courts_count }})</a>
 
                                     <!-- Nút quản lý Khuyến Mãi -->
                                     <a href="{{ route('owner.venues.promotions.index', $venue) }}" class="inline-block text-yellow-600 hover:text-yellow-800 transition font-bold border border-yellow-200 bg-yellow-50 px-3 py-1.5 rounded-lg">Khuyến mãi</a>
+
+                                    <!-- Nút Xem Chi Tiết Vừa Được Bổ Sung -->
+                                    <a href="{{ route('owner.venues.show', $venue) }}" class="inline-block text-blue-500 hover:text-blue-700 transition px-2">Chi tiết</a>
 
                                     <a href="{{ route('owner.venues.edit', $venue) }}" class="inline-block text-pink-500 hover:text-pink-700 transition px-2">Sửa</a>
                                     

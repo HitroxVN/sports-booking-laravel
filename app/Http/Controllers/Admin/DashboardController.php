@@ -21,13 +21,17 @@ class DashboardController extends Controller
                         ->whereYear('booking_date', now()->year)
                         ->sum('total_amount');
 
-        // Doanh thu 6 tháng gần nhất cho Chart.js
+        // Doanh thu 6 tháng gần nhất cho Chart.js — 1 query groupBy thay vì 6 query riêng
+        $startOf6Months = now()->subMonths(5)->startOfMonth();
+        $monthlyRevenue = Booking::whereIn('status', ['confirmed', 'completed'])
+                        ->where('booking_date', '>=', $startOf6Months)
+                        ->get()
+                        ->groupBy(fn ($b) => $b->booking_date->format('Y-m'))
+                        ->map->sum('total_amount');
+
         $revenueChart = collect(range(5, 0))->map(fn ($i) => [
             'label'  => now()->subMonths($i)->format('m/Y'),
-            'amount' => Booking::whereIn('status', ['confirmed', 'completed'])
-                        ->whereYear('booking_date',  now()->subMonths($i)->year)
-                        ->whereMonth('booking_date', now()->subMonths($i)->month)
-                        ->sum('total_amount'),
+            'amount' => $monthlyRevenue->get(now()->subMonths($i)->format('Y-m'), 0),
         ]);
 
         return view('admin.dashboard.index', compact(

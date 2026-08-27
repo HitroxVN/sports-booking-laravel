@@ -42,28 +42,45 @@ class BookingController extends Controller
     }
 
     /**
-     * Cập nhật trạng thái đơn (Xác nhận, Hủy, Hoàn thành).
+     * Cập nhật trạng thái đơn đặt sân.
      */
-    public function update(Request $request, Booking $booking)
+    public function update(Request $request, \App\Models\Booking $booking)
     {
         $this->authorizeBooking($booking);
 
         $validated = $request->validate([
-            'status'        => 'required|in:pending,confirmed,completed,cancelled',
-            'cancel_reason' => 'nullable|string|required_if:status,cancelled',
+            'status' => 'required|in:pending,confirmed,completed,cancelled',
+            // Bắt buộc nhập lý do nếu chọn trạng thái Hủy
+            'cancel_reason' => 'required_if:status,cancelled|nullable|string|max:255',
+        ], [
+            'cancel_reason.required_if' => 'Vui lòng nhập lý do hủy đơn.',
         ]);
 
-        $booking->status = $validated['status'];
-        
-        // Nếu hủy thì lưu thời gian hủy và lý do
-        if ($validated['status'] === 'cancelled') {
-            $booking->cancelled_at = now();
-            $booking->cancel_reason = $request->cancel_reason;
+        $newStatus = $validated['status'];
+
+        // Chặn các chuyển trạng thái không hợp lệ (chỉ tiến: pending → confirmed → completed, bất kỳ → cancelled)
+        $allowedTransitions = [
+            'pending'   => ['confirmed', 'cancelled'],
+            'confirmed' => ['completed', 'cancelled'],
+            'completed' => [],
+            'cancelled' => [],
+        ];
+        if (! in_array($newStatus, $allowedTransitions[$booking->status] ?? [], true)) {
+            return back()->with('error', "Không thể chuyển trạng thái từ \"{$booking->status}\" sang \"{$newStatus}\".");
         }
 
-        $booking->save();
+        // Nếu là hủy đơn, tự động lưu thời gian hủy
+        if ($newStatus === 'cancelled') {
+            $validated['cancelled_at'] = now();
+        } else {
+            // Nếu chuyển trạng thái khác, xóa lý do hủy cũ đi (nếu có)
+            $validated['cancel_reason'] = null;
+            $validated['cancelled_at'] = null;
+        }
 
-        return back()->with('success', 'Đã cập nhật trạng thái đơn đặt sân thành công!');
+        $booking->update($validated);
+
+        return back()->with('success', 'Cập nhật trạng thái đơn đặt sân thành công!');
     }
 
     /**

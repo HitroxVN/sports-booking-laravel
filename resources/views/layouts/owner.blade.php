@@ -48,24 +48,24 @@
                               {{ request()->routeIs('owner.dashboard') ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
                         <span>📊</span> Tổng quan
                     </a>
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <a href="{{ route('owner.venues.index') }}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+                              {{ request()->routeIs('owner.venues.*') ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
                         <span>🏟</span> Khu sân của tôi
                     </a>
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <a href="{{ route('owner.schedule.index') }}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+                              {{ request()->routeIs('owner.schedule.*') ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
                         <span>📅</span> Lịch sân
                     </a>
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <a href="{{ route('owner.bookings.index') }}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+                              {{ request()->routeIs('owner.bookings.*') ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
                         <span>📋</span> Đơn đặt sân
                     </a>
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <span>🎟</span> Khuyến mãi
-                    </a>
-                    <a href="#"
-                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <a href="{{ route('owner.reports.index') }}"
+                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
+                              {{ request()->routeIs('owner.reports.*') ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
                         <span>📈</span> Báo cáo
                     </a>
                 </nav>
@@ -101,7 +101,10 @@
 
                         <div x-show="open" @click.outside="open = false"
                              class="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 py-1 z-50">
-                            <a href="{{ route('home') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                👤 Hồ sơ cá nhân
+                            </a>
+                            <a href="{{ route('home') ?? url('/') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
                                 🏠 Về trang chủ
                             </a>
                             <form method="POST" action="{{ route('logout') }}">

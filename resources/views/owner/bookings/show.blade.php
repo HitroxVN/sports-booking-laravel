@@ -39,7 +39,8 @@
                                 <h4 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Sân Thể Thao</h4>
                                 <p class="font-medium text-gray-800 mb-1">{{ $booking->court->venue->name }}</p>
                                 <p class="text-gray-600 mb-1">Sân: <span class="font-bold">{{ $booking->court->name }}</span></p>
-                                <p class="text-gray-600">Loại: {{ str_replace('_', ' ', $booking->court->surface_type) }}</p>
+                                <!-- Đã fix Lỗi 11: Gọi hàm surface_type_name -->
+                                <p class="text-gray-600">Loại: {{ $booking->court->surface_type_name }}</p>
                             </div>
                         </div>
 
@@ -82,7 +83,8 @@
                                     <div class="flex justify-between items-center p-4 border border-gray-100 rounded-xl bg-gray-50 hover:bg-white transition-colors">
                                         <div>
                                             <p class="font-bold text-gray-800">{{ number_format($payment->amount, 0, ',', '.') }} đ <span class="text-xs font-normal text-gray-500 ml-2 uppercase">{{ $payment->gateway }}</span></p>
-                                            <p class="text-xs text-gray-500 mt-1">Mã GD: {{ $payment->gateway_txn_id ?? 'N/A' }} | Cập nhật lúc: {{ $payment->updated_at->format('H:i d/m/Y') }}</p>
+                                            <!-- Đã fix Lỗi 12: Dùng toán tử ?-> để an toàn khi updated_at bị null -->
+                                            <p class="text-xs text-gray-500 mt-1">Mã GD: {{ $payment->gateway_txn_id ?? 'N/A' }} | Cập nhật lúc: {{ $payment->updated_at?->format('H:i d/m/Y') ?? 'Chưa xác định' }}</p>
                                         </div>
                                         <div>
                                             @if($payment->status === 'success')
