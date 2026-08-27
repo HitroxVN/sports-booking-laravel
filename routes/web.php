@@ -51,9 +51,10 @@ Route::get('/dashboard', function () {
     }
 
     return match ($user->role) {
-        'admin'    => redirect()->route('admin.dashboard'),
-        'customer' => redirect()->route('home'),
-        default    => redirect()->route('owner.dashboard'),
+        // Giữ flash session (vd: thông báo xác thực email) khi chuyển tiếp sang trang theo vai trò
+        'admin'    => redirect()->route('admin.dashboard')->with('success', session('success')),
+        'customer' => redirect()->route('home')->with('success', session('success')),
+        default    => redirect()->route('owner.dashboard')->with('success', session('success')),
     };
 })->middleware(['auth'])->name('dashboard');
 
@@ -75,6 +76,7 @@ Route::middleware(['auth', 'verified', 'role:customer'])->name('customer.')->gro
 
     // 3. Thanh toán QR (VietQR Quick Link)
     Route::get('/bookings/{booking}/pay', [CustomerBookingController::class, 'pay'])->name('bookings.pay');
+    Route::post('/bookings/{booking}/pay/confirm', [CustomerBookingController::class, 'confirmPayment'])->name('bookings.pay.confirm');
 });
 
 // ─── Chủ sân ─────────────────────────────────────────────────────────────────
