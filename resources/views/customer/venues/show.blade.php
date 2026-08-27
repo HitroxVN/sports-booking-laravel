@@ -294,7 +294,7 @@
                                     @endif
                                 </div>
 
-                                <a href="/search?q={{ urlencode($court->name) }}"
+                                <a href="{{ route('customer.bookings.create', $court->id) }}"
                                    class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl transition shadow-sm hover:shadow-md">
                                     Đặt sân này
                                 </a>

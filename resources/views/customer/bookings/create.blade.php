@@ -65,30 +65,30 @@
                         <button type="button"
                                 :disabled="timeSlot.isBooked"
                                 @click="selectSlot(index)"
-                                :style="timeSlot.isBooked 
-                                    ? 'background-color: #fee2e2 !important; border-color: #fca5a5 !important; cursor: not-allowed !important;' 
-                                    : (isSlotSelected(index) 
-                                        ? 'background-color: #4f46e5 !important; border-color: #4f46e5 !important;' 
+                                :style="timeSlot.isBooked
+                                    ? 'background-color: #fee2e2 !important; border-color: #fca5a5 !important; cursor: not-allowed !important;'
+                                    : (isSlotSelected(index)
+                                        ? 'background-color: #4f46e5 !important; border-color: #4f46e5 !important;'
                                         : 'background-color: #ffffff !important; border-color: #d1d5db !important;')"
                                 class="p-3 border rounded-xl flex flex-col justify-between items-center transition-all h-20 focus:outline-none cursor-pointer">
-                            
+
                             <!-- Giờ bắt đầu - Giờ kết thúc -->
-                            <span class="text-sm font-bold" 
-                                  :style="timeSlot.isBooked 
-                                      ? 'color: #dc2626 !important;' 
-                                      : (isSlotSelected(index) 
-                                          ? 'color: #ffffff !important;' 
+                            <span class="text-sm font-bold"
+                                  :style="timeSlot.isBooked
+                                      ? 'color: #dc2626 !important;'
+                                      : (isSlotSelected(index)
+                                          ? 'color: #ffffff !important;'
                                           : 'color: #1f2937 !important;')"
                                   x-text="timeSlot.start + ' - ' + timeSlot.end"></span>
-                            
+
                             <!-- Giá tiền / Trạng thái -->
-                            <span class="text-xs font-semibold" 
-                                  :style="timeSlot.isBooked 
-                                      ? 'color: #ef4444 !important;' 
-                                      : (isSlotSelected(index) 
-                                          ? 'color: #e0e7ff !important;' 
-                                          : 'color: #4f46e5 !important;')" 
-                                  x-text="timeSlot.isBooked ? 'Đã đặt' : formatMoney(timeSlot.price) + '/h'"></span>
+                            <span class="text-xs font-semibold"
+                                  :style="timeSlot.isBooked
+                                      ? 'color: #ef4444 !important;'
+                                      : (isSlotSelected(index)
+                                          ? 'color: #e0e7ff !important;'
+                                          : 'color: #4f46e5 !important;')"
+                                  x-text="timeSlot.isClosed ? 'Đã khóa' : (timeSlot.isBooked ? 'Đã đặt' : formatMoney(timeSlot.price) + '/h')"></span>
                         </button>
                     </template>
                 </div>
@@ -140,18 +140,28 @@
                 endSlotIdx: null,
                 courtSlots: JSON.parse('{!! json_encode($court->slots) !!}'),
                 existingBookings: JSON.parse('{!! json_encode($existingBookings) !!}'),
+                closures: JSON.parse('{!! json_encode($closures) !!}'),
                 
                 get availableSlots() {
                     let slots = [];
                     for (let hour = 5; hour < 22; hour++) {
                         let startStr = (hour < 10 ? '0' : '') + hour + ':00';
                         let endStr = (hour + 1 < 10 ? '0' : '') + (hour + 1) + ':00';
-                        
+
                         let isBooked = this.existingBookings.some(b => {
                             if (b.booking_date !== this.selectedDate) return false;
                             let bStart = b.start_time.substring(0, 5);
                             let bEnd = b.end_time.substring(0, 5);
                             return (startStr < bEnd && endStr > bStart);
+                        });
+
+                        // Sân bị khóa lịch trong ngày này: khóa cả ngày (start_time null) hoặc trùng khung giờ
+                        let isClosed = this.closures.some(c => {
+                            if (c.date !== this.selectedDate) return false;
+                            if (!c.start_time) return true; // khóa cả ngày
+                            let cStart = c.start_time.substring(0, 5);
+                            let cEnd = c.end_time.substring(0, 5);
+                            return (startStr < cEnd && endStr > cStart);
                         });
 
                         let matchingSlot = this.courtSlots.find(s => {
@@ -169,7 +179,8 @@
                             start: startStr,
                             end: endStr,
                             price: price,
-                            isBooked: isBooked
+                            isBooked: isBooked || isClosed,
+                            isClosed: isClosed
                         });
                     }
                     return slots;

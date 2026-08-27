@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Court;
+use App\Models\CourtClosure;
 use App\Models\CourtSlot;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -27,7 +28,7 @@ class CustomerBookingController extends Controller
     // 2. Hiển thị sơ đồ chọn giờ đặt sân
     public function create($courtId)
     {
-        $court = Court::with(['venue', 'slots'])->findOrFail($courtId);
+        $court = $this->findBookableCourt($courtId);
 
         $dates = [];
         for ($i = 0; $i < 7; $i++) {
@@ -45,7 +46,13 @@ class CustomerBookingController extends Controller
             ->where('status', '!=', 'cancelled')
             ->get(['booking_date', 'start_time', 'end_time']);
 
-        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings'));
+        // Lịch khóa của sân (7 ngày tới) — để chặn hiển thị/đặt các khung giờ bị khóa
+        $closures = CourtClosure::where('court_id', $courtId)
+            ->whereDate('date', '>=', Carbon::today()->toDateString())
+            ->whereDate('date', '<=', Carbon::today()->addDays(6)->toDateString())
+            ->get(['date', 'start_time', 'end_time']);
+
+        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures'));
     }
 
     // 3. Xử lý đặt sân + Tính tiền cộng dồn theo khung giờ
@@ -58,7 +65,27 @@ class CustomerBookingController extends Controller
             'end_time'     => 'required|after:start_time',
         ]);
 
-        $isBooked = Booking::where('court_id', $request->court_id)
+        $court = $this->findBookableCourt($request->court_id);
+
+        $isClosed = CourtClosure::where('court_id', $court->id)
+            ->whereDate('date', $request->booking_date)
+            ->where(function ($query) use ($request) {
+                // Khóa cả ngày (start_time null)
+                $query->whereNull('start_time')
+                    // Khóa theo khung giờ: trùng lặp khoảng
+                    ->orWhere(function ($q) use ($request) {
+                        $q->whereNotNull('start_time')
+                          ->where('start_time', '<', $request->end_time)
+                          ->where('end_time', '>', $request->start_time);
+                    });
+            })
+            ->exists();
+
+        if ($isClosed) {
+            return back()->with('error', 'Sân đang bị khóa lịch trong khoảng thời gian này, vui lòng chọn thời gian khác!');
+        }
+
+        $isBooked = Booking::where('court_id', $court->id)
             ->where('booking_date', $request->booking_date)
             ->where('status', '!=', 'cancelled')
             ->where(function ($query) use ($request) {
@@ -103,7 +130,7 @@ class CustomerBookingController extends Controller
         Booking::create([
             'code'           => 'BK-' . strtoupper(Str::random(8)),
             'user_id'        => Auth::id(),
-            'court_id'       => $request->court_id,
+            'court_id'       => $court->id,
             'booking_date'   => $request->booking_date,
             'start_time'     => $request->start_time,
             'end_time'       => $request->end_time,
@@ -114,5 +141,19 @@ class CustomerBookingController extends Controller
         ]);
 
         return redirect()->route('customer.bookings.index')->with('success', 'Đặt sân thành công!');
+    }
+
+    /**
+     * Lấy sân có thể đặt: phải tồn tại, đang hoạt động, và thuộc khu sân đã được duyệt.
+     */
+    private function findBookableCourt($courtId)
+    {
+        $court = Court::with(['venue', 'slots'])
+            ->whereHas('venue', fn ($q) => $q->where('status', 'active'))
+            ->findOrFail($courtId);
+
+        abort_if($court->status !== 'active', 403, 'Sân này hiện không nhận đặt (bảo trì/đóng cửa).');
+
+        return $court;
     }
 }

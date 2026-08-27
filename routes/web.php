@@ -2,40 +2,54 @@
 
 use Illuminate\Support\Facades\Route;
 
-// Import các Controller của Owner
-use App\Http\Controllers\Owner\VenueController;
-use App\Http\Controllers\Owner\CourtController;
-use App\Http\Controllers\Owner\SlotController;
-use App\Http\Controllers\Owner\ClosureController;
+// Owner
 use App\Http\Controllers\Owner\BookingController;
-use App\Http\Controllers\Owner\PromotionController;
-use App\Http\Controllers\Owner\ScheduleController;
-use App\Http\Controllers\Owner\ReviewController;
-use App\Http\Controllers\Owner\ReportController;
+use App\Http\Controllers\Owner\ClosureController;
+use App\Http\Controllers\Owner\CourtController;
 use App\Http\Controllers\Owner\DashboardController;
-use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Owner\PromotionController;
+use App\Http\Controllers\Owner\ReportController;
+use App\Http\Controllers\Owner\ReviewController;
+use App\Http\Controllers\Owner\ScheduleController;
+use App\Http\Controllers\Owner\SlotController;
+use App\Http\Controllers\Owner\VenueController;
+
+// Customer
+use App\Http\Controllers\Customer\CustomerBookingController;
 use App\Http\Controllers\Customer\SearchController;
+use App\Http\Controllers\Customer\VenueController as CustomerVenueController;
+
+// Admin
+use App\Http\Controllers\Admin\BookingController as AdminBookingController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\SportController as AdminSportController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\VenueController as AdminVenueController;
+
+// Chung
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProfileController;
 
 // ─── Public ──────────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
-Route::get('/venues/{slug}', [\App\Http\Controllers\Customer\VenueController::class, 'show'])->name('venues.show');
-use App\Http\Controllers\ProfileController; // Đã bổ sung ProfileController
-
-// ─── Public ──────────────────────────────────────────────────────────────────
-use App\Http\Controllers\Customer\CustomerBookingController;
+Route::get('/venues/{slug}', [CustomerVenueController::class, 'show'])->name('venues.show');
 
 // Route trung gian giải quyết lỗi Route [dashboard] not defined của Breeze
 Route::get('/dashboard', function () {
-    $user = \Illuminate\Support\Facades\Auth::user(); // Hoặc dùng Auth::user()
-    if ($user && $user->role === 'admin') {
-        return redirect()->route('admin.dashboard');
+    $user = \Illuminate\Support\Facades\Auth::user();
+
+    // user null -> về login
+    if (! $user) {
+        return redirect()->route('login');
     }
-    // Vá lỗi Bug #2: Tránh việc tài khoản customer bị đá sang owner.dashboard rồi dính 403
-    if ($user->role === 'customer') {
-        return redirect()->route('home');
-    }
-    return redirect()->route('owner.dashboard');
+
+    return match ($user->role) {
+        'admin'    => redirect()->route('admin.dashboard'),
+        'customer' => redirect()->route('home'),
+        default    => redirect()->route('owner.dashboard'),
+    };
 })->middleware(['auth'])->name('dashboard');
 
 // ─── Profile Chung Cho Mọi User (Vá Bug #3) ───────────────────────────────────
@@ -89,13 +103,6 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'role:owner'])->grou
 });
 
 // ─── Admin ───────────────────────────────────────────────────────────────────
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\VenueController as AdminVenueController;
-use App\Http\Controllers\Admin\BookingController as AdminBookingController;
-use App\Http\Controllers\Admin\SportController as AdminSportController;
-use App\Http\Controllers\Admin\ReportController as AdminReportController;
-
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
@@ -118,13 +125,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     // Reports + export CSV
     Route::get('/reports',        [AdminReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
-});
-
-// ─── Profile ─────────────────────────────────────────────────────────────────
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__ . '/auth.php';

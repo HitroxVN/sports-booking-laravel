@@ -127,6 +127,10 @@ class VenueController extends Controller
                 'path'       => $filePath,
                 'sort_order' => 1,
             ]);
+
+            // Ảnh upload qua form sửa cũng đặt làm ảnh bìa → hiển thị công khai
+            // (home / tìm kiếm / trang chi tiết chỉ đọc venues.cover_image)
+            $venue->update(['cover_image' => $filePath]);
         }
 
         return redirect()->route('owner.venues.show', $venue)->with('success', 'Cập nhật thông tin khu sân thành công!');

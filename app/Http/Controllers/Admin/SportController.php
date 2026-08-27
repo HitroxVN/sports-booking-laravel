@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Sport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SportController extends Controller
 {
@@ -37,6 +38,10 @@ class SportController extends Controller
         ]);
         // Chỉ thay ảnh nếu admin upload ảnh mới; không chọn file = giữ ảnh cũ
         if ($request->hasFile('icon')) {
+            // Xóa ảnh cũ
+            if ($sport->icon && Storage::disk('public')->exists($sport->icon)) {
+                Storage::disk('public')->delete($sport->icon);
+            }
             $data['icon'] = $request->file('icon')->store('sports', 'public');
         }
         $sport->update($data);
@@ -48,6 +53,10 @@ class SportController extends Controller
         // Chặn xóa nếu còn sân con đang dùng — dùng flash error thay vì abort 422
         if ($sport->courts()->exists()) {
             return back()->with('error', 'Không thể xóa môn thể thao đang có sân con.');
+        }
+        // Xóa cả ảnh của sport 
+        if ($sport->icon && Storage::disk('public')->exists($sport->icon)) {
+            Storage::disk('public')->delete($sport->icon);
         }
         $sport->delete();
         return back()->with('success', 'Đã xóa môn thể thao.');
