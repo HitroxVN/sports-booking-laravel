@@ -24,9 +24,6 @@ use App\Http\Controllers\ProfileController; // Đã bổ sung ProfileController
 
 // ─── Public ──────────────────────────────────────────────────────────────────
 use App\Http\Controllers\Customer\CustomerBookingController;
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
 
 // Route trung gian giải quyết lỗi Route [dashboard] not defined của Breeze
 Route::get('/dashboard', function () {
@@ -72,14 +69,9 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'role:owner'])->grou
     // 3. Quản lý Khuyến Mãi (Promotions) - Đã giữ nguyên shallow để khớp với logic Controller
     Route::resource('venues.promotions', PromotionController::class)->shallow();
 
-    // 4. Quản lý Khung Giờ (Slots)
-    Route::resource('courts.slots', SlotController::class)->shallow();
-
-    // 5. Quản lý Khóa Lịch (Closures)
-    Route::resource('courts.closures', ClosureController::class)->shallow();
     // 4. Quản lý Khung Giờ (Slots) - Vá Bug #4: Chặn các route rác không dùng
     Route::resource('courts.slots', SlotController::class)->shallow()->except(['show', 'edit', 'update']);
-    
+
     // 5. Quản lý Khóa Lịch (Closures) - Vá Bug #4: Chặn các route rác không dùng
     Route::resource('courts.closures', ClosureController::class)->shallow()->except(['show', 'edit', 'update']);
 
@@ -127,8 +119,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/reports',        [AdminReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
 });
-
-use App\Http\Controllers\ProfileController;
 
 // ─── Profile ─────────────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {

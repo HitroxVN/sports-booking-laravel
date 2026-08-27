@@ -8,6 +8,7 @@ use App\Models\Sport;
 use App\Models\User;
 use App\Models\Venue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
@@ -197,14 +198,14 @@ class AdminPanelTest extends TestCase
         $this->actingAs($this->admin());
 
         // store
-        $this->post('/admin/sports', ['name' => 'Bóng chuyền', 'icon' => '🏐'])
+        $this->post('/admin/sports', ['name' => 'Bóng chuyền', 'icon' => UploadedFile::fake()->image('icon.png')])
             ->assertRedirect();
         $this->assertDatabaseHas('sports', ['name' => 'Bóng chuyền']);
 
         $sport = Sport::where('name', 'Bóng chuyền')->first();
 
         // update
-        $this->patch("/admin/sports/{$sport->id}", ['name' => 'Bóng chuyền bãi biển', 'icon' => '🏖'])
+        $this->patch("/admin/sports/{$sport->id}", ['name' => 'Bóng chuyền bãi biển', 'icon' => UploadedFile::fake()->image('icon.png')])
             ->assertRedirect();
         $this->assertDatabaseHas('sports', ['name' => 'Bóng chuyền bãi biển']);
 

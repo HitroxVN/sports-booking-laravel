@@ -54,9 +54,12 @@
                 @foreach($sports as $sport)
                     <a href="/search?sport_id={{ $sport->id }}"
                        class="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md border border-gray-200 dark:border-gray-700 p-5 text-center flex flex-col items-center justify-center transition-all duration-300 hover:-translate-y-1">
-                        <span class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">
-                            {{ $sport->icon ?? '🏅' }}
-                        </span>
+                        @if ($sport->icon && \Storage::disk('public')->exists($sport->icon))
+                            <img src="{{ asset('storage/' . $sport->icon) }}" alt="{{ $sport->name }}"
+                                 class="w-16 h-16 object-cover rounded-full mb-3 group-hover:scale-110 transition-transform duration-300">
+                        @else
+                            <span class="text-4xl mb-3 group-hover:scale-110 transition-transform duration-300">🏅</span>
+                        @endif
                         <h3 class="text-base font-bold text-gray-800 dark:text-gray-100 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
                             {{ $sport->name }}
                         </h3>

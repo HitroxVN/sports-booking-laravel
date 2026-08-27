@@ -3,12 +3,12 @@
     {{-- Form thêm mới --}}
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
         <h3 class="text-lg font-bold text-gray-800 mb-4">Thêm môn thể thao</h3>
-        <form method="POST" action="{{ route('admin.sports.store') }}" class="flex flex-wrap items-end gap-3">
+        <form method="POST" action="{{ route('admin.sports.store') }}" enctype="multipart/form-data" class="flex flex-wrap items-end gap-3">
             @csrf
-            <div class="w-24">
-                <label class="block text-xs font-bold text-gray-500 mb-1">Icon (emoji)</label>
-                <input type="text" name="icon" value="{{ old('icon') }}" maxlength="10" placeholder="⚽"
-                       class="w-full rounded-lg border-gray-300 text-center text-lg focus:ring-blue-500 focus:border-blue-500">
+            <div class="w-40">
+                <label class="block text-xs font-bold text-gray-500 mb-1">Ảnh (tùy chọn)</label>
+                <input type="file" name="icon" accept="image/*"
+                       class="w-full text-sm rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
             </div>
 
             <div class="flex-1 min-w-[200px]">
@@ -40,17 +40,24 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse($sports as $sport)
                     <tr x-data="{ editing: @error('name', 'sport_' . $sport->id) true @else false @enderror }" class="hover:bg-gray-50 transition-colors">
-                        <td class="p-4 text-center text-2xl">{{ $sport->icon ?? '⚽' }}</td>
+                        <td class="p-4 text-center">
+                            @if ($sport->icon && \Storage::disk('public')->exists($sport->icon))
+                                <img src="{{ asset('storage/' . $sport->icon) }}" alt="{{ $sport->name }}"
+                                     class="w-12 h-12 object-cover rounded-xl inline-block">
+                            @else
+                                <span class="text-2xl">🏅</span>
+                            @endif
+                        </td>
                         <td class="p-4">
                             {{-- Hiển thị tên --}}
                             <span x-show="!editing" class="font-semibold text-gray-800">{{ $sport->name }}</span>
 
                             {{-- Inline edit form --}}
-                            <form x-show="editing" x-cloak method="POST" action="{{ route('admin.sports.update', $sport) }}" class="flex items-center gap-2">
+                            <form x-show="editing" x-cloak method="POST" action="{{ route('admin.sports.update', $sport) }}" enctype="multipart/form-data" class="flex items-center gap-2">
                                 @csrf
                                 @method('PATCH')
-                                <input type="text" name="icon" value="{{ $sport->icon }}" maxlength="10"
-                                       class="w-14 rounded-lg border-gray-300 text-center text-lg focus:ring-blue-500 focus:border-blue-500">
+                                <input type="file" name="icon" accept="image/*" title="Chọn ảnh mới (bỏ trống = giữ ảnh cũ)"
+                                       class="w-32 text-xs rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
                                 <input type="text" name="name" value="{{ $sport->name }}" required maxlength="100"
                                        class="flex-1 min-w-[150px] rounded-lg border-gray-300 text-sm focus:ring-blue-500 focus:border-blue-500 @error('name', 'sport_' . $sport->id) border-red-300 @enderror">
                                 <button type="submit" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700">Lưu</button>

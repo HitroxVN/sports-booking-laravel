@@ -18,8 +18,11 @@ class SportController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:100|unique:sports',
-            'icon' => 'nullable|string|max:10',
+            'icon' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
+        if ($request->hasFile('icon')) {
+            $data['icon'] = $request->file('icon')->store('sports', 'public');
+        }
         Sport::create(array_merge($data, ['is_active' => true]));
         return back()->with('success', 'Đã thêm môn thể thao.');
     }
@@ -29,9 +32,13 @@ class SportController extends Controller
         // validateWithBag khớp với error bag 'sport_'.$id trong view inline edit
         $data = $request->validateWithBag('sport_' . $sport->id, [
             'name'      => "required|string|max:100|unique:sports,name,{$sport->id}",
-            'icon'      => 'nullable|string|max:10',
+            'icon'      => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'is_active' => 'boolean',
         ]);
+        // Chỉ thay ảnh nếu admin upload ảnh mới; không chọn file = giữ ảnh cũ
+        if ($request->hasFile('icon')) {
+            $data['icon'] = $request->file('icon')->store('sports', 'public');
+        }
         $sport->update($data);
         return back()->with('success', 'Đã cập nhật môn thể thao.');
     }
