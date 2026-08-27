@@ -45,6 +45,11 @@ Route::get('/dashboard', function () {
         return redirect()->route('login');
     }
 
+    // user chưa xác thực email -> về trang yêu cầu xác thực
+    if (! $user->hasVerifiedEmail()) {
+        return redirect()->route('verification.notice');
+    }
+
     return match ($user->role) {
         'admin'    => redirect()->route('admin.dashboard'),
         'customer' => redirect()->route('home'),
@@ -53,14 +58,14 @@ Route::get('/dashboard', function () {
 })->middleware(['auth'])->name('dashboard');
 
 // ─── Profile Chung Cho Mọi User (Vá Bug #3) ───────────────────────────────────
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 // ─── Khách hàng ──────────────────────────────────────────────────────────────
-Route::middleware(['auth', 'role:customer'])->name('customer.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:customer'])->name('customer.')->group(function () {
     // 1. Đặt sân (Booking)
     Route::get('/courts/{courtId}/book', [CustomerBookingController::class, 'create'])->name('bookings.create');
     Route::post('/bookings', [CustomerBookingController::class, 'store'])->name('bookings.store');
@@ -70,7 +75,7 @@ Route::middleware(['auth', 'role:customer'])->name('customer.')->group(function 
 });
 
 // ─── Chủ sân ─────────────────────────────────────────────────────────────────
-Route::prefix('owner')->name('owner.')->middleware(['auth', 'role:owner'])->group(function () {
+Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:owner'])->group(function () {
     // Trang tổng quan Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -103,7 +108,7 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'role:owner'])->grou
 });
 
 // ─── Admin ───────────────────────────────────────────────────────────────────
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // Users: index + ban/unban

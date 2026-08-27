@@ -61,6 +61,16 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Chặn user chưa xác thực email tiếp tục đăng nhập
+        if (Auth::user() && Auth::user()->email_verified_at === null) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Bạn chưa xác thực email. Vui lòng kiểm tra hộp thư để xác thực tài khoản.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
