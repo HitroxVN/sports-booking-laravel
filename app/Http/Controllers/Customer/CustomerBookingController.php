@@ -41,16 +41,28 @@ class CustomerBookingController extends Controller
             ];
         }
 
+        // Chuẩn hóa định dạng booking_date (Y-m-d) và start_time/end_time (H:i)
+        // để JS so sánh string không bị lệch do TIME trả về có giây (H:i:s)
         $existingBookings = Booking::where('court_id', $courtId)
             ->where('booking_date', '>=', Carbon::today()->toDateString())
             ->where('status', '!=', 'cancelled')
-            ->get(['booking_date', 'start_time', 'end_time']);
+            ->get(['booking_date', 'start_time', 'end_time'])
+            ->map(fn ($b) => [
+                'booking_date' => $b->booking_date->toDateString(),
+                'start_time'   => Carbon::parse($b->start_time)->format('H:i'),
+                'end_time'     => Carbon::parse($b->end_time)->format('H:i'),
+            ]);
 
         // Lịch khóa của sân (7 ngày tới) — để chặn hiển thị/đặt các khung giờ bị khóa
         $closures = CourtClosure::where('court_id', $courtId)
             ->whereDate('date', '>=', Carbon::today()->toDateString())
             ->whereDate('date', '<=', Carbon::today()->addDays(6)->toDateString())
-            ->get(['date', 'start_time', 'end_time']);
+            ->get(['date', 'start_time', 'end_time'])
+            ->map(fn ($c) => [
+                'date'       => $c->date->toDateString(),
+                'start_time' => $c->start_time ? Carbon::parse($c->start_time)->format('H:i') : null,
+                'end_time'   => $c->end_time ? Carbon::parse($c->end_time)->format('H:i') : null,
+            ]);
 
         return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures'));
     }
