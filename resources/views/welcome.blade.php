@@ -8,6 +8,14 @@
 
         @fonts
 
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:400,500,600,700&display=swap" rel="stylesheet" />
+        <style>
+            html {
+                font-family: 'Be Vietnam Pro', ui-sans-serif, system-ui, sans-serif;
+            }
+        </style>
+
         <!-- Styles / Scripts -->
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
             @vite(['resources/css/app.css', 'resources/js/app.js'])
