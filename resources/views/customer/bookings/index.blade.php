@@ -19,6 +19,7 @@
                             <th class="px-6 py-3">Khung giờ</th>
                             <th class="px-6 py-3">Tổng tiền</th>
                             <th class="px-6 py-3">Trạng thái</th>
+                            <th class="px-6 py-3"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -38,17 +39,25 @@
                                     {{ number_format($booking->total_amount) }} VNĐ
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full
                                         {{ $booking->status === 'confirmed' ? 'bg-green-100 text-green-800' : '' }}
                                         {{ $booking->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : '' }}
                                         {{ $booking->status === 'cancelled' ? 'bg-red-100 text-red-800' : '' }}">
                                         {{ ucfirst($booking->status) }}
                                     </span>
                                 </td>
+                                <td class="px-6 py-4 text-right whitespace-nowrap">
+                                    @if($booking->status !== 'cancelled' && $booking->payment_status !== 'fully_paid')
+                                        <a href="{{ route('customer.bookings.pay', $booking) }}"
+                                           class="inline-block px-3 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition">
+                                            Thanh toán
+                                        </a>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">Bạn chưa có đơn đặt sân nào.</td>
+                                <td colspan="7" class="px-6 py-4 text-center text-gray-500">Bạn chưa có đơn đặt sân nào.</td>
                             </tr>
                         @endforelse
                     </tbody>

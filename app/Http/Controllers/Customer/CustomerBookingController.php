@@ -143,6 +143,15 @@ class CustomerBookingController extends Controller
         return redirect()->route('customer.bookings.index')->with('success', 'Đặt sân thành công!');
     }
 
+    // 4. Hiển thị trang thanh toán QR (VietQR Quick Link)
+    public function pay(Booking $booking)
+    {
+        abort_if($booking->user_id !== Auth::id(), 403);
+        abort_if($booking->payment_status === 'fully_paid', 404);
+
+        return view('customer.bookings.pay', compact('booking'));
+    }
+
     /**
      * Lấy sân có thể đặt: phải tồn tại, đang hoạt động, và thuộc khu sân đã được duyệt.
      */

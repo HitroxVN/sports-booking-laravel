@@ -72,6 +72,9 @@ Route::middleware(['auth', 'verified', 'role:customer'])->name('customer.')->gro
     
     // 2. Lịch sử đặt sân của tôi (Trang danh sách)
     Route::get('/my-bookings', [CustomerBookingController::class, 'index'])->name('bookings.index');
+
+    // 3. Thanh toán QR (VietQR Quick Link)
+    Route::get('/bookings/{booking}/pay', [CustomerBookingController::class, 'pay'])->name('bookings.pay');
 });
 
 // ─── Chủ sân ─────────────────────────────────────────────────────────────────
