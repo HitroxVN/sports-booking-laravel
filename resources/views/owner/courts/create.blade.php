@@ -9,14 +9,13 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div class="mb-6">
-                <a href="{{ route('owner.venues.courts.index', $venue) }}" class="inline-flex items-center text-pink-500 hover:text-pink-700 text-sm font-bold">
+                <a href="{{ route('owner.venues.courts.index', $venue->slug) }}" class="inline-flex items-center text-pink-500 hover:text-pink-700 text-sm font-bold">
                     &larr; Quay lại danh sách Sân Con
                 </a>
             </div>
 
             <div class="bg-white rounded-3xl shadow-sm border border-pink-100 p-8">
-                <!-- Thêm enctype để hỗ trợ upload file ảnh -->
-                <form action="{{ route('owner.venues.courts.store', $venue) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                <form action="{{ route('owner.venues.courts.store', $venue->slug) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                     @csrf
 
                     <div>
@@ -25,7 +24,6 @@
                         @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Ô chọn ảnh sân con -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Ảnh Sân Con</label>
                         <input type="file" name="image" accept="image/*" class="w-full border border-gray-300 rounded-xl p-2 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100">

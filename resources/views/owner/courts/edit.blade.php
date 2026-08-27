@@ -9,13 +9,12 @@
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             
             <div class="mb-6">
-                <a href="{{ route('owner.venues.courts.index', $court->venue_id) }}" class="inline-flex items-center text-pink-500 hover:text-pink-700 text-sm font-bold">
+                <a href="{{ route('owner.venues.courts.index', $court->venue->slug) }}" class="inline-flex items-center text-pink-500 hover:text-pink-700 text-sm font-bold">
                     &larr; Quay lại danh sách Sân Con
                 </a>
             </div>
 
             <div class="bg-white rounded-3xl shadow-sm border border-pink-100 p-8">
-                <!-- Thêm enctype để hỗ trợ upload file ảnh khi cập nhật -->
                 <form action="{{ route('owner.courts.update', $court) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                     @csrf
                     @method('PUT')
@@ -26,7 +25,6 @@
                         @error('name') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Ô chọn ảnh sân con mới (có hiển thị ảnh hiện tại nếu có) -->
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Ảnh Sân Con Mới</label>
                         @if($court->image)
