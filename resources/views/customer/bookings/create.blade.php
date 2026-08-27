@@ -6,7 +6,9 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center pb-4 mb-6 border-b">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Đặt sân: {{ $court->name }}</h2>
-                    <p class="text-sm text-gray-500">Khu vực: {{ $court->venue->name ?? 'N/A' }} | Mặt sân: {{ $court->surface_type }}</p>
+                    <p class="text-sm text-gray-500">
+    Khu vực: {{ $court->venue->name ?? 'N/A' }} | Mặt sân: {{ $court->surface_type_name }}
+</p>
                 </div>
                 <!-- Chú thích -->
                 <div class="flex items-center space-x-4 mt-3 md:mt-0 text-xs font-semibold">
