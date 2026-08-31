@@ -160,7 +160,7 @@ class CustomerBookingController extends Controller
      */
     private function findBookableCourt($courtId)
     {
-        $court = Court::with(['venue', 'slots'])
+        $court = Court::with(['venue', 'sport', 'slots'])
             ->whereHas('venue', fn ($q) => $q->where('status', 'active'))
             ->findOrFail($courtId);
 

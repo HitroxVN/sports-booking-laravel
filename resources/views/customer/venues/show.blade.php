@@ -232,7 +232,36 @@
             @if($courts->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     @foreach($courts as $court)
-                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl border border-gray-200 dark:border-gray-700 p-5 transition-all duration-300 flex flex-col justify-between hover:-translate-y-1">
+                        <div class="group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl border border-gray-200 dark:border-gray-700 transition-all duration-300 flex flex-col justify-between hover:-translate-y-1 overflow-hidden">
+                            {{-- Ảnh sân con (tỉ lệ cố định 4:3 để đồng nhất bố cục) --}}
+                            <div class="relative w-full aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-700">
+                                @if($court->image)
+                                    <img src="{{ asset('storage/' . $court->image) }}"
+                                         alt="{{ $court->name }}"
+                                         class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                @else
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
+                                        <svg class="w-12 h-12 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span class="text-xs">Chưa có ảnh sân</span>
+                                    </div>
+                                @endif
+
+                                {{-- Badge trạng thái nổi trên ảnh --}}
+                                @if($court->status === 'active')
+                                    <span class="absolute top-3 right-3 bg-emerald-500/90 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full border border-white/20">
+                                        Hoạt động
+                                    </span>
+                                @else
+                                    <span class="absolute top-3 right-3 bg-amber-500/90 backdrop-blur-md text-white text-[11px] font-bold px-2.5 py-1 rounded-full border border-white/20">
+                                        {{ $court->status_name }}
+                                    </span>
+                                @endif
+                            </div>
+
+                            {{-- Nội dung thẻ --}}
+                            <div class="p-5 flex flex-col flex-1 justify-between">
                             <div>
                                 {{-- Header thẻ sân con --}}
                                 <div class="flex items-start justify-between gap-2 mb-3">
@@ -244,24 +273,12 @@
                                             {{ $court->name }}
                                         </h3>
                                     </div>
-
-                                    @if($court->status === 'active')
-                                        <span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 text-[11px] font-bold px-2.5 py-1 rounded-full">
-                                            Hoạt động
-                                        </span>
-                                    @else
-                                        <span class="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 text-[11px] font-bold px-2.5 py-1 rounded-full">
-                                            {{ $court->status_name }}
-                                        </span>
-                                    @endif
                                 </div>
 
-                                {{-- Mô tả ngắn --}}
-                                @if($court->description)
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-3">
-                                        {{ $court->description }}
-                                    </p>
-                                @endif
+                                {{-- Mô tả ngắn (luôn render, min-h để đồng nhất chiều cao) --}}
+                                <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mb-3 min-h-[2rem]">
+                                    {{ $court->description ?: 'Sân cầu lông chất lượng, không có mô tả chi tiết.' }}
+                                </p>
 
                                 {{-- Chi tiết thông số: Mặt sân, sức chứa --}}
                                 <div class="space-y-1.5 text-xs text-gray-600 dark:text-gray-300 mb-4 bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl">
@@ -269,35 +286,36 @@
                                         <span class="text-gray-400">Mặt sân:</span>
                                         <span class="font-semibold text-gray-800 dark:text-gray-200">{{ $court->surface_type_name }}</span>
                                     </div>
-                                    @if($court->max_players)
-                                        <div class="flex items-center justify-between">
-                                            <span class="text-gray-400">Sức chứa:</span>
-                                            <span class="font-semibold text-gray-800 dark:text-gray-200">Tối đa {{ $court->max_players }} người</span>
-                                        </div>
-                                    @endif
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-400">Sức chứa:</span>
+                                        <span class="font-semibold text-gray-800 dark:text-gray-200">
+                                            @if($court->max_players) Tối đa {{ $court->max_players }} người @else — @endif
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
-                            {{-- Footer: Giá & Nút Đặt sân --}}
-                            <div class="pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                                @php
-                                    $minCourtPrice = $court->slots->min('price');
-                                @endphp
-                                <div>
-                                    <span class="text-[11px] text-gray-400 block">Giá thuê từ</span>
-                                    @if($minCourtPrice)
-                                        <span class="text-base font-extrabold text-green-600 dark:text-green-400">
-                                            {{ number_format($minCourtPrice, 0, ',', '.') }}đ <span class="text-[11px] font-normal text-gray-400">/giờ</span>
-                                        </span>
-                                    @else
-                                        <span class="text-xs text-gray-400 font-medium">Liên hệ</span>
-                                    @endif
-                                </div>
+                                {{-- Footer: Giá & Nút Đặt sân --}}
+                                <div class="pt-3 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                                    @php
+                                        $minCourtPrice = $court->slots->min('price');
+                                    @endphp
+                                    <div>
+                                        <span class="text-[11px] text-gray-400 block">Giá thuê từ</span>
+                                        @if($minCourtPrice)
+                                            <span class="text-base font-extrabold text-green-600 dark:text-green-400">
+                                                {{ number_format($minCourtPrice, 0, ',', '.') }}đ <span class="text-[11px] font-normal text-gray-400">/giờ</span>
+                                            </span>
+                                        @else
+                                            <span class="text-xs text-gray-400 font-medium">Liên hệ</span>
+                                        @endif
+                                    </div>
 
-                                <a href="{{ route('customer.bookings.create', $court->id) }}"
-                                   class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl transition shadow-sm hover:shadow-md">
-                                    Đặt sân này
-                                </a>
+                                    <a href="{{ route('customer.bookings.create', $court->id) }}"
+                                       class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl transition shadow-sm hover:shadow-md">
+                                        Đặt sân này
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     @endforeach
