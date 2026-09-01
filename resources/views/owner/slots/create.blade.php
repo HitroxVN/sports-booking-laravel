@@ -1,26 +1,25 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-            Thiết lập Khung Giờ — {{ $court->name }}
-        </h2>
+        <div>
+            <a href="{{ route('owner.courts.slots.index', $court) }}" class="inline-flex items-center text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition mb-2">
+                &larr; Quay lại danh sách
+            </a>
+            <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+                Thiết lập Khung Giờ - {{ $court->name }}
+            </h1>
+        </div>
     </x-slot>
 
-    <div class="min-h-screen bg-gradient-to-br from-pink-50 via-white to-pink-50 py-10">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <div class="mb-6">
-                <a href="{{ route('owner.courts.slots.index', $court) }}" class="inline-flex items-center text-pink-500 hover:text-pink-700 text-sm font-bold">
-                    &larr; Quay lại danh sách
-                </a>
-            </div>
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-            <div class="bg-white rounded-3xl shadow-sm border border-pink-100 p-8">
+        <div class="card-base">
+            <div class="p-8">
                 <form action="{{ route('owner.courts.slots.store', $court) }}" method="POST" class="space-y-6">
                     @csrf
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Ngày áp dụng <span class="text-red-500">*</span></label>
-                        <select name="day_of_week" required class="w-full border-gray-300 rounded-xl focus:ring-pink-500 focus:border-pink-500 shadow-sm">
+                        <label for="slot-day" class="label-eyebrow block mb-2">Ngày áp dụng <span class="text-red-500">*</span></label>
+                        <select id="slot-day" name="day_of_week" required class="input-base">
                             <option value="1">Thứ Hai</option>
                             <option value="2">Thứ Ba</option>
                             <option value="3">Thứ Tư</option>
@@ -33,21 +32,21 @@
 
                     <div class="grid grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Giờ bắt đầu <span class="text-red-500">*</span></label>
-                            <input type="time" name="start_time" required class="w-full border-gray-300 rounded-xl focus:ring-pink-500 focus:border-pink-500 shadow-sm">
+                            <label for="slot-start" class="label-eyebrow block mb-2">Giờ bắt đầu <span class="text-red-500">*</span></label>
+                            <input id="slot-start" type="time" name="start_time" required class="input-base">
                             @error('start_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Giờ kết thúc <span class="text-red-500">*</span></label>
-                            <input type="time" name="end_time" required class="w-full border-gray-300 rounded-xl focus:ring-pink-500 focus:border-pink-500 shadow-sm">
+                            <label for="slot-end" class="label-eyebrow block mb-2">Giờ kết thúc <span class="text-red-500">*</span></label>
+                            <input id="slot-end" type="time" name="end_time" required class="input-base">
                             @error('end_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-6 items-start">
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Giá thường (VNĐ) <span class="text-red-500">*</span></label>
-                            <input type="number" name="price" required min="0" placeholder="VD: 300000" class="w-full border-gray-300 rounded-xl focus:ring-pink-500 focus:border-pink-500 shadow-sm">
+                            <label for="slot-price" class="label-eyebrow block mb-2">Giá thường (VNĐ) <span class="text-red-500">*</span></label>
+                            <input id="slot-price" type="number" name="price" required min="0" placeholder="VD: 300000" class="input-base">
                             @error('price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
@@ -55,21 +54,22 @@
                             <div class="mb-2 mt-1">
                                 <label class="inline-flex items-center cursor-pointer">
                                     <input type="hidden" name="is_peak" value="0">
-                                    <input type="checkbox" name="is_peak" value="1" x-model="isPeak" class="rounded border-gray-300 text-pink-500 focus:ring-pink-500 w-5 h-5">
-                                    <span class="ml-2 font-bold text-yellow-600">Là Giờ Vàng?</span>
+                                    <input type="checkbox" name="is_peak" value="1" x-model="isPeak" class="rounded border-zinc-300 dark:border-zinc-600 text-primary-600 focus:ring-primary-500 w-5 h-5 bg-white dark:bg-zinc-800">
+                                    <span class="ml-2 font-semibold text-zinc-700 dark:text-zinc-300">Là Giờ Vàng?</span>
                                 </label>
                             </div>
-                            
+
                             <div x-show="isPeak" x-transition>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Giá giờ vàng (VNĐ) <span class="text-red-500">*</span></label>
-                                <input type="number" name="peak_price" min="0" placeholder="VD: 500000" class="w-full border-gray-300 rounded-xl focus:ring-pink-500 focus:border-pink-500 shadow-sm">
+                                <label for="slot-peak-price" class="label-eyebrow block mb-2">Giá giờ vàng (VNĐ) <span class="text-red-500">*</span></label>
+                                <input id="slot-peak-price" type="number" name="peak_price" min="0" placeholder="VD: 500000" class="input-base">
                                 @error('peak_price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                             </div>
                         </div>
                     </div>
 
-                    <div class="pt-6 border-t border-gray-100 flex justify-end">
-                        <button type="submit" class="px-8 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition-all">
+                    <div class="pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3">
+                        <a href="{{ route('owner.courts.slots.index', $court) }}" class="btn-secondary">Hủy bỏ</a>
+                        <button type="submit" class="btn-primary">
                             Lưu Khung Giờ
                         </button>
                     </div>
