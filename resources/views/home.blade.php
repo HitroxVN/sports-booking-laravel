@@ -277,6 +277,11 @@
     </div>
 </section>
 
+{{-- ====================================================
+     CONTACT — dùng chung qua components/contact-section
+==================================================== --}}
+<x-contact-section />
+
 @endsection
 
 @push('scripts')

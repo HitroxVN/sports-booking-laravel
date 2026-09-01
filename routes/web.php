@@ -34,6 +34,7 @@ use App\Http\Controllers\ProfileController;
 // ─── Public ──────────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+Route::get('/lien-he', fn () => view('contact'))->name('contact');
 Route::get('/venues/{slug}', [CustomerVenueController::class, 'show'])->name('venues.show');
 
 // Route trung gian giải quyết lỗi Route [dashboard] not defined của Breeze

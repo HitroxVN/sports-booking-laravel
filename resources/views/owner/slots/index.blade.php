@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-owner-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center gap-4">
             <div>
@@ -71,4 +71,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-owner-layout>

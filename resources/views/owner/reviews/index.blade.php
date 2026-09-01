@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-owner-layout>
     <x-slot name="header">
         <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
             {{ __('Quản Lý Đánh Giá Từ Khách Hàng') }}
@@ -64,4 +64,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-owner-layout>

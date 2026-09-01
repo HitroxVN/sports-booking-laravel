@@ -1,4 +1,4 @@
-<x-app-layout>
+<x-owner-layout>
     <x-slot name="header">
         <div>
             <a href="{{ route('owner.venues.promotions.index', $promotion->venue_id) }}" class="inline-flex items-center text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition mb-2">
@@ -94,4 +94,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-owner-layout>

@@ -1,4 +1,8 @@
-<x-app-layout>
+@extends('layouts.customer')
+
+@section('title', 'Đặt sân: ' . $court->name)
+
+@section('content')
     <div class="container py-8 mx-auto px-4 sm:px-6 lg:px-8" x-data="bookingGrid()">
         <div class="max-w-6xl mx-auto card-base p-6">
             
@@ -352,4 +356,4 @@
             }
         }
     </script>
-</x-app-layout>
+@endsection

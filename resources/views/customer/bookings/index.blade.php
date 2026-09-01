@@ -1,4 +1,8 @@
-<x-app-layout>
+@extends('layouts.customer')
+
+@section('title', 'Lịch sử đặt sân của tôi')
+
+@section('content')
     <div class="container py-8 mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-6xl mx-auto card-base p-6">
             <h2 class="text-2xl font-bold mb-6 text-zinc-900 dark:text-zinc-100">Lịch sử đặt sân của tôi</h2>
@@ -61,4 +65,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+@endsection
