@@ -139,8 +139,8 @@ class CustomerBookingController extends Controller
 
         $avgHourlyRate = ($duration > 0) ? ($totalAmount / ($duration / 60)) : 0;
 
-        Booking::create([
-            'code'           => 'BK-' . strtoupper(Str::random(8)),
+        $booking = Booking::create([
+            'code'           => 'BK' . strtoupper(Str::random(8)), 
             'user_id'        => Auth::id(),
             'court_id'       => $court->id,
             'booking_date'   => $request->booking_date,
@@ -149,10 +149,41 @@ class CustomerBookingController extends Controller
             'duration'       => $duration,
             'price_snapshot' => $avgHourlyRate,
             'total_amount'   => $totalAmount,
+            'payment_method' => 'full_online',
             'status'         => 'pending',
         ]);
 
-        return redirect()->route('customer.bookings.index')->with('success', 'Đặt sân thành công!');
+        return redirect()->route('customer.bookings.pay', $booking)
+            ->with('success', 'Đặt sân thành công! Vui lòng chuyển khoản để hoàn tất.');
+    }
+
+    // 4. Trang thanh toán chuyển khoản (QR VietQR)
+    public function pay(Booking $booking)
+    {
+        abort_unless($booking->user_id === Auth::id(), 403);
+        $booking->load('court.venue');
+
+        // Nếu đơn yêu cầu cọc, QR mặc định sinh ra cho số tiền cọc (khách vẫn có thể chuyển đủ tổng)
+        $amount = $booking->deposit_amount ?? $booking->total_amount;
+
+        $qrUrl = 'https://img.vietqr.io/image/'
+            . config('services.vietqr.bank_id') . '-' . config('services.vietqr.account_no') . '-' . config('services.vietqr.template')
+            . '.png?amount=' . (int) $amount
+            . '&addInfo=' . urlencode($booking->code)
+            . '&accountName=' . urlencode(config('services.vietqr.account_name'));
+
+        return view('customer.bookings.pay', compact('booking', 'qrUrl', 'amount'));
+    }
+
+    // 5. API nhỏ cho polling trạng thái thanh toán trên trang pay
+    public function status(Booking $booking)
+    {
+        abort_unless($booking->user_id === Auth::id(), 403);
+
+        return response()->json([
+            'payment_status' => $booking->payment_status,
+            'status'         => $booking->status,
+        ]);
     }
 
     /**

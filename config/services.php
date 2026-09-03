@@ -35,4 +35,17 @@ return [
         ],
     ],
 
+    // Webhook SePay — xác thực giao dịch chuyển khoản ngân hàng
+    'sepay' => [
+        'webhook_key' => env('SEPAY_WEBHOOK_KEY'),
+    ],
+
+    // VietQR Quick Link — sinh ảnh QR chuyển khoản (img.vietqr.io)
+    'vietqr' => [
+        'bank_id'      => env('VIETQR_BANK_ID', 'mbbank'),
+        'account_no'   => env('VIETQR_ACCOUNT_NO'),
+        'account_name' => env('VIETQR_ACCOUNT_NAME'),
+        'template'     => env('VIETQR_TEMPLATE', 'compact2'),
+    ],
+
 ];
