@@ -22,8 +22,8 @@
 
             {{-- Wordmark --}}
             <a href="/" class="flex items-center gap-2.5 shrink-0 focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg">
-                <img src="{{ asset('storage/logo/logo.jpg') }}" alt="Arena Sports Booking"
-                     class="w-9 h-9 rounded-lg object-cover shrink-0">
+                <img src="{{ asset('images/logo/logo.jpg') }}" alt="Arena Sports Booking"
+                    class="w-9 h-9 rounded-lg object-cover shrink-0">
                 <div class="leading-tight">
                     <span class="block text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Arena</span>
                     <span class="block text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Sports Booking</span>
