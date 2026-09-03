@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -61,6 +63,93 @@ class ProfileTest extends TestCase
         $this->assertNotNull($user->refresh()->email_verified_at);
     }
 
+    public function test_avatar_can_be_uploaded(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => UploadedFile::fake()->image('avatar.jpg'),
+            ]);
+
+        $response->assertSessionHasNoErrors()->assertRedirect('/profile');
+
+        $user->refresh();
+        $this->assertNotNull($user->avatar);
+        Storage::disk('public')->assertExists($user->avatar);
+    }
+
+    public function test_old_avatar_is_replaced_and_deleted(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->patch('/profile', [
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => UploadedFile::fake()->image('first.png'),
+        ]);
+        $first = $user->fresh()->avatar;
+
+        $this->actingAs($user)->patch('/profile', [
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => UploadedFile::fake()->image('second.png'),
+        ]);
+        $second = $user->fresh()->avatar;
+
+        $this->assertNotSame($first, $second);
+        Storage::disk('public')->assertExists($second);
+        Storage::disk('public')->assertMissing($first);
+    }
+
+    public function test_avatar_can_be_removed(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $this->actingAs($user)->patch('/profile', [
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar' => UploadedFile::fake()->image('avatar.jpg'),
+        ]);
+        $avatar = $user->fresh()->avatar;
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'remove_avatar' => '1',
+            ]);
+
+        $response->assertSessionHasNoErrors()->assertRedirect('/profile');
+
+        $this->assertNull($user->fresh()->avatar);
+        Storage::disk('public')->assertMissing($avatar);
+    }
+
+    public function test_invalid_avatar_is_rejected(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+
+        $response = $this
+            ->actingAs($user)
+            ->patch('/profile', [
+                'name' => $user->name,
+                'email' => $user->email,
+                'avatar' => UploadedFile::fake()->create('document.pdf', 100),
+            ]);
+
+        $response->assertSessionHasErrors('avatar');
+        $this->assertNull($user->fresh()->avatar);
+    }
+
     public function test_user_can_delete_their_account(): void
     {
         $user = User::factory()->create();
@@ -76,7 +165,9 @@ class ProfileTest extends TestCase
             ->assertRedirect('/');
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+        // User dùng SoftDeletes: tài khoản chỉ bị đánh dấu xóa (deleted_at),
+        // không bị xóa cứng khỏi bảng users.
+        $this->assertSoftDeleted($user);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void
