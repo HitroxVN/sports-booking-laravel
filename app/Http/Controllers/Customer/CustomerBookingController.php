@@ -26,50 +26,46 @@ class CustomerBookingController extends Controller
     }
 
     // 2. Hiển thị sơ đồ chọn giờ đặt sân
-  // 2. Hiển thị sơ đồ chọn giờ đặt sân
-public function create($courtId)
-{
-    $court = $this->findBookableCourt($courtId);
+    public function create($courtId)
+    {
+        $court = $this->findBookableCourt($courtId);
 
-    $dates = [];
-    for ($i = 0; $i < 7; $i++) {
-        $date = Carbon::today()->addDays($i);
-        $dates[] = [
-            'full_date'  => $date->format('Y-m-d'),
-            'day_name'   => $date->locale('vi')->dayName,
-            'formatted'  => $date->format('d/m'),
-            'is_today'   => $date->isToday(),
-        ];
-    }
+        $dates = [];
+        for ($i = 0; $i < 7; $i++) {
+            $date = Carbon::today()->addDays($i);
+            $dates[] = [
+                'full_date'  => $date->format('Y-m-d'),
+                'day_name'   => $date->locale('vi')->dayName,
+                'formatted'  => $date->format('d/m'),
+                'is_today'   => $date->isToday(),
+            ];
+        }
 
-    // Chuẩn hóa định dạng booking_date (Y-m-d) và start_time/end_time (H:i)
-    $existingBookings = Booking::where('court_id', $courtId)
-        ->where('booking_date', '>=', Carbon::today()->toDateString())
-        ->where('status', '!=', 'cancelled')
-        ->get(['booking_date', 'start_time', 'end_time'])
-        ->map(function ($b) {
-            return [
-                'booking_date' => Carbon::parse($b->booking_date)->format('Y-m-d'),
+        // Chuẩn hóa định dạng booking_date (Y-m-d) và start_time/end_time (H:i)
+        // để JS so sánh string không bị lệch do TIME trả về có giây (H:i:s)
+        $existingBookings = Booking::where('court_id', $courtId)
+            ->where('booking_date', '>=', Carbon::today()->toDateString())
+            ->where('status', '!=', 'cancelled')
+            ->get(['booking_date', 'start_time', 'end_time'])
+            ->map(fn ($b) => [
+                'booking_date' => $b->booking_date->toDateString(),
                 'start_time'   => Carbon::parse($b->start_time)->format('H:i'),
                 'end_time'     => Carbon::parse($b->end_time)->format('H:i'),
-            ];
-        });
+            ]);
 
-    // Chuẩn hóa lịch khóa sân
-    $closures = CourtClosure::where('court_id', $courtId)
-        ->whereDate('date', '>=', Carbon::today()->toDateString())
-        ->whereDate('date', '<=', Carbon::today()->addDays(6)->toDateString())
-        ->get(['date', 'start_time', 'end_time'])
-        ->map(function ($c) {
-            return [
-                'date'       => Carbon::parse($c->date)->format('Y-m-d'),
+        // Lịch khóa của sân (7 ngày tới) — để chặn hiển thị/đặt các khung giờ bị khóa
+        $closures = CourtClosure::where('court_id', $courtId)
+            ->whereDate('date', '>=', Carbon::today()->toDateString())
+            ->whereDate('date', '<=', Carbon::today()->addDays(6)->toDateString())
+            ->get(['date', 'start_time', 'end_time'])
+            ->map(fn ($c) => [
+                'date'       => $c->date->toDateString(),
                 'start_time' => $c->start_time ? Carbon::parse($c->start_time)->format('H:i') : null,
                 'end_time'   => $c->end_time ? Carbon::parse($c->end_time)->format('H:i') : null,
-            ];
-        });
+            ]);
 
-    return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures'));
-}
+        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures'));
+    }
 
     // 3. Xử lý đặt sân + Tính tiền cộng dồn theo khung giờ
     public function store(Request $request)
@@ -164,7 +160,7 @@ public function create($courtId)
      */
     private function findBookableCourt($courtId)
     {
-        $court = Court::with(['venue', 'slots'])
+        $court = Court::with(['venue', 'sport', 'slots'])
             ->whereHas('venue', fn ($q) => $q->where('status', 'active'))
             ->findOrFail($courtId);
 

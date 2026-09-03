@@ -1,129 +1,146 @@
 <!DOCTYPE html>
 <html lang="vi">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ $title ?? config('app.name') }}</title>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/jpeg" href="{{ asset('storage/logo/logo.jpg') }}">
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:400,500,600,700&display=swap" rel="stylesheet" />
+    <title>{{ $title ?? 'Quản lý sân' }} — Arena Sports Booking</title>
 
-        <!-- Alpine.js (CDN) -->
-        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:400,500,600,700&display=swap" rel="stylesheet" />
 
-        <!-- Scripts & Styles -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- Alpine.js (CDN) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-        @stack('styles')
-    </head>
-    <body class="font-sans antialiased bg-gray-100 dark:bg-gray-900">
+    <!-- Scripts & Styles -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-        {{-- Sidebar --}}
-        <div x-data="{ sidebarOpen: false }" class="flex h-screen overflow-hidden">
+    @stack('styles')
+</head>
 
-            {{-- Sidebar overlay mobile --}}
-            <div x-show="sidebarOpen"
-                 @click="sidebarOpen = false"
-                 class="fixed inset-0 z-20 bg-black bg-opacity-50 sm:hidden"></div>
+<body class="font-sans antialiased bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
 
-            {{-- Sidebar --}}
-            <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-                   class="fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700
-                          transform transition-transform duration-200 ease-in-out sm:translate-x-0 sm:static sm:inset-auto">
+    <div x-data="{ sidebarOpen: false }" class="flex h-screen overflow-hidden">
 
-                {{-- Logo --}}
-                <div class="flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-700">
-                    <a href="{{ route('owner.dashboard') }}" class="text-lg font-bold text-green-600 dark:text-green-400">
-                        🏟 Quản lý sân
-                    </a>
-                </div>
+        {{-- Sidebar — component: components/panel-sidebar.blade.php --}}
+        <x-panel-sidebar
+            homeUrl="{{ route('owner.dashboard') }}"
+            alt="Arena Owner"
+            badge="Quản lý sân"
+            :sections="[
+                'Tổng quan' => [
+                    ['owner.dashboard', 'home', 'Dashboard'],
+                ],
+                'Quản lý' => [
+                    ['owner.venues.index', 'building', 'Khu sân'],
+                    ['owner.bookings.index', 'calendar', 'Đơn đặt sân'],
+                    ['owner.schedule.index', 'pin', 'Lịch biểu'],
+                ],
+                'Nâng cao' => [
+                    ['owner.reports.index', 'chart', 'Báo cáo doanh thu'],
+                ],
+            ]" />
 
-                {{-- Nav --}}
-                <nav class="mt-4 px-3 space-y-1">
-                    <a href="{{ route('owner.dashboard') }}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                              {{ request()->routeIs('owner.dashboard') ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                        <span>📊</span> Tổng quan
-                    </a>
-                    <a href="{{ route('owner.venues.index') }}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                              {{ request()->routeIs('owner.venues.*') ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                        <span>🏟</span> Khu sân của tôi
-                    </a>
-                    <a href="{{ route('owner.schedule.index') }}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                              {{ request()->routeIs('owner.schedule.*') ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                        <span>📅</span> Lịch sân
-                    </a>
-                    <a href="{{ route('owner.bookings.index') }}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                              {{ request()->routeIs('owner.bookings.*') ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                        <span>📋</span> Đơn đặt sân
-                    </a>
-                    <a href="{{ route('owner.reports.index') }}"
-                       class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium
-                              {{ request()->routeIs('owner.reports.*') ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700' }}">
-                        <span>📈</span> Báo cáo
-                    </a>
-                </nav>
-            </aside>
+        {{-- Main content --}}
+        <div class="flex flex-col flex-1 min-w-0 overflow-auto">
 
-            {{-- Main content --}}
-            <div class="flex flex-col flex-1 min-w-0 overflow-auto">
-
-                {{-- Top bar --}}
-                <header class="flex items-center justify-between h-16 px-4 sm:px-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                    {{-- Hamburger mobile --}}
+            {{-- Top bar --}}
+            <header class="flex items-center justify-between h-16 px-4 sm:px-6 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-10 shrink-0">
+                <div class="flex items-center gap-3 min-w-0">
+                    {{-- Hamburger mobile/tablet --}}
                     <button @click="sidebarOpen = !sidebarOpen"
-                            class="text-gray-500 dark:text-gray-400 sm:hidden focus:outline-none">
-                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        aria-label="Mở menu"
+                        class="lg:hidden text-zinc-500 dark:text-zinc-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-lg p-1.5">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
 
                     {{-- Page title --}}
-                    <h1 class="text-base font-semibold text-gray-800 dark:text-gray-200">
+                    <h1 class="text-base sm:text-lg font-bold text-zinc-800 dark:text-zinc-200 truncate">
                         {{ $title ?? 'Quản lý sân' }}
                     </h1>
+                </div>
 
-                    {{-- User dropdown --}}
-                    <div x-data="{ open: false }" class="relative">
-                        <button @click="open = !open"
-                                class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
-                            <span class="font-medium">{{ Auth::user()->name }}</span>
-                            <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                {{-- User dropdown --}}
+                <div x-data="{ open: false }" class="relative shrink-0">
+                    <button @click="open = !open"
+                        :aria-expanded="open.toString()"
+                        aria-haspopup="true"
+                        class="flex items-center gap-2.5 text-sm text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xl pl-2 pr-3 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-600 text-white text-xs font-bold shrink-0">
+                            {{ mb_substr(trim(Auth::user()->name), 0, 1) }}
+                        </span>
+                        <span class="hidden sm:block font-medium max-w-32 truncate">{{ Auth::user()->name }}</span>
+                        <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+
+                    <div x-show="open" @click.outside="open = false"
+                        x-transition
+                        class="absolute right-0 mt-2 w-52 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 py-1 z-50">
+                        <a href="{{ route('profile.edit') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-lg mx-1 transition-colors">
+                            <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                        </button>
-
-                        <div x-show="open" @click.outside="open = false"
-                             class="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 py-1 z-50">
-                            <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                👤 Hồ sơ cá nhân
-                            </a>
-                            <a href="{{ route('home') ?? url('/') }}" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                🏠 Về trang chủ
-                            </a>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                    🚪 Đăng xuất
-                                </button>
-                            </form>
-                        </div>
+                            Hồ sơ cá nhân
+                        </a>
+                        <a href="{{ route('home') }}" class="flex items-center gap-2.5 px-4 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700 rounded-lg mx-1 transition-colors">
+                            <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                            Về trang chủ
+                        </a>
+                        <hr class="my-1 border-zinc-200 dark:border-zinc-700 mx-4">
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit" class="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg mx-1 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                Đăng xuất
+                            </button>
+                        </form>
                     </div>
-                </header>
+                </div>
+            </header>
 
-                {{-- Page content --}}
-                <main class="flex-1 p-4 sm:p-6">
-                    {{ $slot }}
-                </main>
-            </div>
+            {{-- Page content --}}
+            <main class="flex-1 p-4 sm:p-6">
+                @isset($header)
+                    <div class="mb-6">
+                        {{ $header }}
+                    </div>
+                @endisset
+
+                @if(session('success'))
+                    <div class="mb-4 px-4 py-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-300 rounded-xl text-sm flex items-start gap-2">
+                        <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {{ session('success') }}
+                    </div>
+                @endif
+                @if(session('error'))
+                    <div class="mb-4 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-300 rounded-xl text-sm flex items-start gap-2">
+                        <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {{ session('error') }}
+                    </div>
+                @endif
+
+                {{ $slot }}
+            </main>
         </div>
+    </div>
 
-        @stack('scripts')
-    </body>
+    @stack('scripts')
+</body>
+
 </html>
