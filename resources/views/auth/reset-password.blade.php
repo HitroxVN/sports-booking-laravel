@@ -1,4 +1,9 @@
 <x-guest-layout>
+    <div class="mb-6">
+        <h1 class="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">{{ __('Reset Password') }}</h1>
+        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{{ __('Choose a new password for your account') }}</p>
+    </div>
+
     <form method="POST" action="{{ route('password.store') }}">
         @csrf
 
@@ -30,8 +35,8 @@
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
+        <div class="mt-6">
+            <x-primary-button class="w-full">
                 {{ __('Reset Password') }}
             </x-primary-button>
         </div>

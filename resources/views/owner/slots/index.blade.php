@@ -1,75 +1,69 @@
-<x-app-layout>
+<x-owner-layout>
     <x-slot name="header">
-        <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-            {{ __('Quản lý Khung Giờ') }} — {{ $court->name }}
-        </h2>
+        <div class="flex justify-between items-center gap-4">
+            <div>
+                <a href="{{ route('owner.venues.courts.index', $court->venue) }}" class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 mb-2 inline-block">
+                    &larr; Quay lại danh sách Sân Con
+                </a>
+                <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+                    {{ __('Quản lý Khung Giờ') }} - {{ $court->name }}
+                </h1>
+            </div>
+            <a href="{{ route('owner.courts.slots.create', $court) }}" class="btn-primary shrink-0">
+                Thêm Khung Giờ
+            </a>
+        </div>
     </x-slot>
 
-    <div class="min-h-screen bg-gradient-to-br from-pink-50 via-white to-pink-50 py-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            @if(session('success'))
-                <div class="mb-6 bg-white border-l-4 border-pink-500 text-gray-700 px-6 py-4 rounded-xl shadow-sm">
-                    {{ session('success') }}
-                </div>
-            @endif
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-            <div class="flex justify-between items-center mb-8">
-                <div>
-                    <a href="{{ route('owner.venues.courts.index', $court->venue) }}" class="text-sm font-bold text-pink-500 hover:text-pink-700 mb-2 inline-block">
-                        &larr; Quay lại danh sách Sân Con
-                    </a>
-                    <h3 class="text-2xl font-extrabold text-gray-800 tracking-tight">Cài đặt giá cho: {{ $court->name }}</h3>
-                </div>
-                <a href="{{ route('owner.courts.slots.create', $court) }}" class="px-6 py-3 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all">
-                    + Thêm Khung Giờ
-                </a>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden">
+        <div class="card-base">
+            <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-pink-50/70 border-b border-pink-100 text-pink-900">
-                            <th class="p-5 font-semibold text-sm">Ngày trong tuần</th>
-                            <th class="p-5 font-semibold text-sm text-center">Thời gian</th>
-                            <th class="p-5 font-semibold text-sm text-right">Giá thường</th>
-                            <th class="p-5 font-semibold text-sm text-center">Giờ vàng?</th>
-                            <th class="p-5 font-semibold text-sm text-right">Giá giờ vàng</th>
-                            <th class="p-5 font-semibold text-sm text-right">Thao tác</th>
+                        <tr class="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800">
+                            <th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Ngày trong tuần</th>
+                            <th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 text-center">Thời gian</th>
+                            <th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 text-right">Giá thường</th>
+                            <th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 text-center">Giờ vàng?</th>
+                            <th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 text-right">Giá giờ vàng</th>
+                            <th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 text-right">Thao tác</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-pink-50">
+                    <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                         @php
                             $days = [0 => 'Chủ Nhật', 1 => 'Thứ Hai', 2 => 'Thứ Ba', 3 => 'Thứ Tư', 4 => 'Thứ Năm', 5 => 'Thứ Sáu', 6 => 'Thứ Bảy'];
                         @endphp
                         @forelse($slots as $slot)
-                        <tr class="hover:bg-pink-50/30 transition-colors">
-                            <td class="p-5 font-bold text-gray-800">{{ $days[$slot->day_of_week] ?? 'Tất cả các ngày / Chưa chọn' }}</td>
-                            <td class="p-5 text-center font-mono text-gray-600">
+                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                            <td class="px-6 py-4 font-semibold text-zinc-900 dark:text-zinc-100">{{ $days[$slot->day_of_week] ?? 'Tất cả các ngày / Chưa chọn' }}</td>
+                            <td class="px-6 py-4 text-center font-mono text-zinc-600 dark:text-zinc-400">
                                 {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
                             </td>
-                            <td class="p-5 text-right font-medium text-gray-700">{{ number_format($slot->price, 0, ',', '.') }} đ</td>
-                            <td class="p-5 text-center">
+                            <td class="px-6 py-4 text-right font-medium text-zinc-700 dark:text-zinc-300">{{ number_format($slot->price, 0, ',', '.') }} đ</td>
+                            <td class="px-6 py-4 text-center">
                                 @if($slot->is_peak)
-                                    <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-semibold">Giờ Vàng</span>
+                                    <x-badge variant="warning">Giờ Vàng</x-badge>
                                 @else
-                                    <span class="text-gray-400">-</span>
+                                    <span class="text-zinc-400 dark:text-zinc-500">-</span>
                                 @endif
                             </td>
-                            <td class="p-5 text-right font-medium text-pink-600">
+                            <td class="px-6 py-4 text-right font-medium text-primary-600 dark:text-primary-400">
                                 {{ $slot->is_peak && $slot->peak_price ? number_format($slot->peak_price, 0, ',', '.') . ' đ' : '-' }}
                             </td>
-                            <td class="p-5 text-right space-x-3 text-sm font-medium">
+                            <td class="px-6 py-4 text-right">
                                 <form action="{{ route('owner.slots.destroy', $slot) }}" method="POST" class="inline-block" onsubmit="return confirm('Xóa khung giờ này?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-gray-400 hover:text-red-500">Xóa</button>
+                                    <button type="submit" class="btn-ghost text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30">Xóa</button>
                                 </form>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="p-12 text-center text-gray-400">Sân này chưa có khung giờ nào được thiết lập.</td>
+                            <td colspan="6" class="p-8">
+                                <x-empty-state icon="⏰" title="Sân này chưa có khung giờ nào" description="Thiết lập khung giờ và giá để khách hàng có thể đặt sân." actionUrl="{{ route('owner.courts.slots.create', $court) }}" actionText="Thêm Khung Giờ" />
+                            </td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -77,4 +71,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+</x-owner-layout>

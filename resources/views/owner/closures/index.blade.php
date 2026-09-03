@@ -1,77 +1,71 @@
-<x-app-layout>
+<x-owner-layout>
     <x-slot name="header">
-        <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-            {{ __('Quản lý Khóa Lịch') }} — {{ $court->name }}
-        </h2>
+        <div class="flex justify-between items-center gap-4">
+            <div>
+                <a href="{{ route('owner.venues.courts.index', $court->venue) }}" class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 mb-2 inline-block">
+                    &larr; Quay lại danh sách Sân Con
+                </a>
+                <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+                    {{ __('Quản lý Khóa Lịch') }} - {{ $court->name }}
+                </h1>
+            </div>
+            <a href="{{ route('owner.courts.closures.create', $court) }}" class="btn-danger shrink-0">
+                Thêm Lịch Khóa
+            </a>
+        </div>
     </x-slot>
 
-    <div class="min-h-screen bg-gradient-to-br from-pink-50 via-white to-pink-50 py-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            @if(session('success'))
-                <div class="mb-6 bg-white border-l-4 border-pink-500 text-gray-700 px-6 py-4 rounded-xl shadow-sm">
-                    {{ session('success') }}
-                </div>
-            @endif
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-            <div class="flex justify-between items-center mb-8">
-                <div>
-                    <a href="{{ route('owner.venues.courts.index', $court->venue) }}" class="text-sm font-bold text-pink-500 hover:text-pink-700 mb-2 inline-block">
-                        &larr; Quay lại danh sách Sân Con
-                    </a>
-                    <h3 class="text-2xl font-extrabold text-gray-800 tracking-tight">Lịch Đóng Cửa / Bảo Trì: {{ $court->name }}</h3>
-                </div>
-                <a href="{{ route('owner.courts.closures.create', $court) }}" class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all">
-                    + Thêm Lịch Khóa
-                </a>
-            </div>
-
-            <div class="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden">
+        <div class="card-base">
+            <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-pink-50/70 border-b border-pink-100 text-pink-900">
-                            <th class="p-5 font-semibold text-sm">Ngày Khóa</th>
-                            <th class="p-5 font-semibold text-sm">Khung Giờ</th>
-                            <th class="p-5 font-semibold text-sm">Lý Do</th>
-                            <th class="p-5 font-semibold text-sm text-right">Thao Tác</th>
+                        <tr class="bg-zinc-50 dark:bg-zinc-800/50 border-b border-zinc-200 dark:border-zinc-800">
+                            <th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Ngày Khóa</th>
+                            <th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Khung Giờ</th>
+                            <th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Lý Do</th>
+                            <th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider text-zinc-500 dark:text-zinc-400 text-right">Thao Tác</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-pink-50">
+                    <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                         @forelse($closures as $closure)
-                        <tr class="hover:bg-pink-50/30 transition-colors">
-                            <td class="p-5 font-bold text-gray-800">
+                        <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                            <td class="px-6 py-4 font-semibold text-zinc-900 dark:text-zinc-100">
                                 {{ \Carbon\Carbon::parse($closure->date)->format('d/m/Y') }}
                             </td>
-                            <td class="p-5 text-gray-700">
+                            <td class="px-6 py-4">
                                 @if($closure->start_time && $closure->end_time)
-                                    <span class="bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs font-mono">
+                                    <span class="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-2 py-1 rounded-xl text-xs font-mono">
                                         {{ \Carbon\Carbon::parse($closure->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($closure->end_time)->format('H:i') }}
                                     </span>
                                 @else
-                                    <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-semibold">Khóa cả ngày</span>
+                                    <x-badge variant="danger">Khóa cả ngày</x-badge>
                                 @endif
                             </td>
-                            <td class="p-5 text-gray-600 italic">{{ $closure->reason }}</td>
-                            <td class="p-5 text-right">
+                            <td class="px-6 py-4 text-zinc-600 dark:text-zinc-400 italic">{{ $closure->reason }}</td>
+                            <td class="px-6 py-4 text-right">
                                 <form action="{{ route('owner.closures.destroy', $closure) }}" method="POST" class="inline-block" onsubmit="return confirm('Mở lại lịch cho ngày này?');">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-sm font-medium text-gray-400 hover:text-green-500">Mở lại sân</button>
+                                    <button type="submit" class="btn-ghost text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30">Mở lại sân</button>
                                 </form>
                             </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="p-12 text-center text-gray-400">Sân này hiện không có lịch khóa đột xuất nào.</td>
+                            <td colspan="4" class="p-8">
+                                <x-empty-state icon="🔒" title="Sân này hiện không có lịch khóa đột xuất nào" description="Khóa lịch khi cần bảo trì hoặc cho thuê mục đích khác." actionUrl="{{ route('owner.courts.closures.create', $court) }}" actionText="Thêm Lịch Khóa" />
+                            </td>
                         </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
+        </div>
 
-            <div class="mt-6">
-                {{ $closures->links() }}
-            </div>
+        <div class="mt-6">
+            {{ $closures->links() }}
         </div>
     </div>
-</x-app-layout>
+</x-owner-layout>
