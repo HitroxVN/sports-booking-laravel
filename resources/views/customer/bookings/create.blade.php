@@ -10,6 +10,7 @@
             'slotCells'        => $slotCells,
             'existingBookings' => $existingBookings,
             'closures'         => $closures,
+            'operatingHours'   => $operatingHours,
         ];
     @endphp
     <div class="container py-8 mx-auto px-4 sm:px-6 lg:px-8" x-data='bookingGrid(@json($bookingConfig))'>
@@ -160,8 +161,14 @@
 
             <!-- 2. Khung Giờ Khả Dụng -->
             <div class="mb-6">
+                <!-- Khu sân nghỉ ngày này (giờ hoạt động của chủ sân) -->
+                <div x-show="!dayOperatingHour || dayOperatingHour.is_closed"
+                     class="p-6 mb-4 text-sm text-center bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-xl">
+                    Khu sân nghỉ ngày này, vui lòng chọn ngày khác.
+                </div>
+
                 <!-- Chủ sân chưa cài khung giờ cho ngày này -->
-                <div x-show="hasNoSlots"
+                <div x-show="dayOperatingHour && !dayOperatingHour.is_closed && hasNoSlots"
                      class="p-8 text-center rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
                     <svg class="w-10 h-10 mx-auto mb-3 text-zinc-400 dark:text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -170,7 +177,7 @@
                     <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Vui lòng chọn ngày khác hoặc liên hệ chủ sân để biết thêm thông tin.</p>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3" x-show="!hasNoSlots">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3" x-show="dayOperatingHour && !dayOperatingHour.is_closed && !hasNoSlots">
                     <template x-for="(timeSlot, index) in availableSlots" :key="timeSlot.start">
                         <button type="button"
                                 :disabled="isSlotBooked(timeSlot)"

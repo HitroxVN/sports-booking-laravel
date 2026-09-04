@@ -5,6 +5,7 @@ namespace Tests\Feature\Customer;
 use App\Models\Booking;
 use App\Models\Court;
 use App\Models\CourtSlot;
+use App\Models\OperatingHour;
 use App\Models\Sport;
 use App\Models\User;
 use App\Models\Venue;
@@ -19,6 +20,12 @@ class CustomerBookingStoreTest extends TestCase
 
     private Court $court;
 
+    // Ngày đặt = 3 ngày tới: luôn nằm trong cửa sổ 7 ngày, không phải hôm nay → né chặn giờ quá khứ
+    private string $bookingDate;
+
+    // day_of_week khớp ngày đặt (slot gắn thứ cụ thể)
+    private int $slotDow;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -32,6 +39,21 @@ class CustomerBookingStoreTest extends TestCase
             'name'     => 'Sân 1',
             'status'   => 'active',
         ]);
+
+        $target = now()->addDays(3);
+        $this->bookingDate = $target->format('Y-m-d');
+        $this->slotDow = $target->dayOfWeek;
+
+        // Giờ hoạt động của khu sân: 5:00 - 22:00 mọi ngày (controller chặn theo operating_hours)
+        for ($d = 0; $d <= 6; $d++) {
+            OperatingHour::create([
+                'venue_id'    => $venue->id,
+                'day_of_week' => $d,
+                'open_time'   => '05:00',
+                'close_time'  => '22:00',
+                'is_closed'   => false,
+            ]);
+        }
     }
 
     private function createStorePayload(string $date, string $start, string $end): array
@@ -49,7 +71,7 @@ class CustomerBookingStoreTest extends TestCase
     {
         // Chủ sân chưa cài khung giờ nào → không được đặt
         $response = $this->actingAs($this->customer)
-            ->post('/bookings', $this->createStorePayload('2026-09-07', '06:00', '07:00'));
+            ->post('/bookings', $this->createStorePayload($this->bookingDate, '06:00', '07:00'));
 
         $response->assertSessionHas("error");
         $this->assertDatabaseMissing('bookings', ['court_id' => $this->court->id]);
@@ -61,14 +83,14 @@ class CustomerBookingStoreTest extends TestCase
         // Chủ sân chỉ mở 6:00 - 8:00; khách đòi đặt 9:00 - 10:00 → từ chối
         CourtSlot::create([
             'court_id'    => $this->court->id,
-            'day_of_week' => 1, // thứ Hai
+            'day_of_week' => $this->slotDow, // khớp ngày đặt
             'start_time'  => '06:00',
             'end_time'    => '08:00',
             'price'       => 200000,
         ]);
 
         $response = $this->actingAs($this->customer)
-            ->post('/bookings', $this->createStorePayload('2026-09-07', '09:00', '10:00'));
+            ->post('/bookings', $this->createStorePayload($this->bookingDate, '09:00', '10:00'));
 
         $response->assertSessionHas("error");
         $this->assertDatabaseMissing('bookings', ['court_id' => $this->court->id]);
@@ -80,14 +102,14 @@ class CustomerBookingStoreTest extends TestCase
         // Mở 6:30 - 8:30 (cắt thành 6:30-7:30 + 7:30-8:30); khách đòi 7:00 - 8:00 → từ chối
         CourtSlot::create([
             'court_id'    => $this->court->id,
-            'day_of_week' => 1,
+            'day_of_week' => $this->slotDow,
             'start_time'  => '06:30',
             'end_time'    => '08:30',
             'price'       => 240000,
         ]);
 
         $response = $this->actingAs($this->customer)
-            ->post('/bookings', $this->createStorePayload('2026-09-07', '07:00', '08:00'));
+            ->post('/bookings', $this->createStorePayload($this->bookingDate, '07:00', '08:00'));
 
         $response->assertSessionHas("error");
         $this->assertDatabaseMissing('bookings', ['court_id' => $this->court->id]);
@@ -99,14 +121,14 @@ class CustomerBookingStoreTest extends TestCase
         // Mở 6:30 - 8:00 giá 250k/h → 6:30-7:30 (250k) + 7:30-8:00 (125k) = 375k
         CourtSlot::create([
             'court_id'    => $this->court->id,
-            'day_of_week' => 1,
+            'day_of_week' => $this->slotDow,
             'start_time'  => '06:30',
             'end_time'    => '08:00',
             'price'       => 250000,
         ]);
 
         $response = $this->actingAs($this->customer)
-            ->post('/bookings', $this->createStorePayload('2026-09-07', '06:30', '08:00'));
+            ->post('/bookings', $this->createStorePayload($this->bookingDate, '06:30', '08:00'));
 
         $response->assertRedirect();
         $booking = Booking::where('court_id', $this->court->id)->first();
@@ -123,7 +145,7 @@ class CustomerBookingStoreTest extends TestCase
         // Đặt 19:00-21:00 = 500k (19-20 giờ vàng) + 200k = 700k
         CourtSlot::create([
             'court_id'    => $this->court->id,
-            'day_of_week' => 1,
+            'day_of_week' => $this->slotDow,
             'start_time'  => '18:00',
             'end_time'    => '20:00',
             'price'       => 200000,
@@ -132,14 +154,14 @@ class CustomerBookingStoreTest extends TestCase
         ]);
         CourtSlot::create([
             'court_id'    => $this->court->id,
-            'day_of_week' => 1,
+            'day_of_week' => $this->slotDow,
             'start_time'  => '20:00',
             'end_time'    => '21:00',
             'price'       => 200000,
         ]);
 
         $response = $this->actingAs($this->customer)
-            ->post('/bookings', $this->createStorePayload('2026-09-07', '19:00', '21:00'));
+            ->post('/bookings', $this->createStorePayload($this->bookingDate, '19:00', '21:00'));
 
         $response->assertRedirect();
         $booking = Booking::where('court_id', $this->court->id)->first();
@@ -152,21 +174,21 @@ class CustomerBookingStoreTest extends TestCase
         // Mở 6:00-7:00 và 8:00-9:00 (trống 7:00-8:00); đặt vắt qua → từ chối
         CourtSlot::create([
             'court_id'    => $this->court->id,
-            'day_of_week' => 1,
+            'day_of_week' => $this->slotDow,
             'start_time'  => '06:00',
             'end_time'    => '07:00',
             'price'       => 150000,
         ]);
         CourtSlot::create([
             'court_id'    => $this->court->id,
-            'day_of_week' => 1,
+            'day_of_week' => $this->slotDow,
             'start_time'  => '08:00',
             'end_time'    => '09:00',
             'price'       => 150000,
         ]);
 
         $response = $this->actingAs($this->customer)
-            ->post('/bookings', $this->createStorePayload('2026-09-07', '06:00', '09:00'));
+            ->post('/bookings', $this->createStorePayload($this->bookingDate, '06:00', '09:00'));
 
         $response->assertSessionHas("error");
         $this->assertDatabaseMissing('bookings', ['court_id' => $this->court->id]);
@@ -177,7 +199,7 @@ class CustomerBookingStoreTest extends TestCase
     {
         CourtSlot::create([
             'court_id'    => $this->court->id,
-            'day_of_week' => 1,
+            'day_of_week' => $this->slotDow,
             'start_time'  => '06:30',
             'end_time'    => '08:00',
             'price'       => 250000,
@@ -215,5 +237,18 @@ class CustomerBookingStoreTest extends TestCase
         $response->assertOk();
         // hasNoSlots phải có trong DOM (Alpine sẽ hiện thông báo)
         $response->assertSee('hasNoSlots');
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function create_page_config_contains_operating_hours(): void
+    {
+        // View dùng dayOperatingHour để phân biệt "khu sân nghỉ" và "chưa cài khung giờ"
+        // → config Alpine phải mang operatingHours từ server
+        $response = $this->actingAs($this->customer)
+            ->get('/courts/' . $this->court->id . '/book');
+
+        $response->assertOk();
+        $response->assertSee('"operatingHours"', false);
+        $response->assertSee('is_closed', false);
     }
 }

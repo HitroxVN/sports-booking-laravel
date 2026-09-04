@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/jpeg" href="{{ asset('storage/logo/logo.jpg') }}">
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/logo/logo.jpg') }}">
 
     <title>{{ config('app.name', 'Arena Sports Booking') }}</title>
 
@@ -25,7 +25,7 @@
         {{-- Logo top — đồng bộ wordmark với x-site-header --}}
         <header class="pt-8 pb-4 flex justify-center">
             <a href="/" class="flex items-center gap-2.5">
-                <img src="{{ asset('storage/logo/logo.jpg') }}" alt="Arena Sports Booking"
+                <img src="{{ asset('images/logo/logo.jpg') }}" alt="Arena Sports Booking"
                     class="w-9 h-9 rounded-lg object-cover shrink-0">
                 <div class="leading-tight">
                     <span class="block text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Arena</span>

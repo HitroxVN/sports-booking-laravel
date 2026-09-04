@@ -9,6 +9,8 @@ function initBookingGrid() {
         slotCells: (config.slotCells && typeof config.slotCells === 'object') ? config.slotCells : {},
         existingBookings: Array.isArray(config.existingBookings) ? config.existingBookings : [],
         closures: Array.isArray(config.closures) ? config.closures : [],
+        // Giờ hoạt động của khu sân theo ngày trong tuần (0 = CN ... 6 = Thứ 7)
+        operatingHours: Array.isArray(config.operatingHours) ? config.operatingHours : [],
 
         // Ô giờ của ngày đang chọn — chủ sân chưa cài khung giờ thì ngày đó không có ô nào
         get availableSlots() {
@@ -17,6 +19,13 @@ function initBookingGrid() {
 
         get hasNoSlots() {
             return this.availableSlots.length === 0;
+        },
+
+        // Giờ hoạt động của ngày đang chọn (null nếu khu sân không cài ngày đó)
+        get dayOperatingHour() {
+            if (!this.selectedDate) return null;
+            let dow = new Date(this.selectedDate + 'T00:00:00').getDay(); // 0 = CN ... 6 = Thứ 7
+            return this.operatingHours.find(h => h && Number(h.day_of_week) === dow) || null;
         },
 
         isSlotBooked(cell) {

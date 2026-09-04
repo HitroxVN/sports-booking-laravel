@@ -129,6 +129,21 @@ class CourtSlotBuildTimeCellsTest extends TestCase
     }
 
     #[Test]
+    public function day_specific_slot_wins_over_everyday_slot(): void
+    {
+        // Slot "mọi ngày" 05-17 @80k + slot riêng Thứ Hai 05-17 @50k
+        // → trong ngày Thứ Hai phải dùng slot riêng 50k (không phải 80k)
+        $everyday = $this->makeSlot('05:00', '17:00', 80000, dayOfWeek: null);
+        $mondayOnly = $this->makeSlot('05:00', '17:00', 50000, dayOfWeek: 1);
+
+        $cells = CourtSlot::buildTimeCells(collect([$everyday, $mondayOnly]), self::DATE_MONDAY);
+
+        $this->assertCount(12, $cells);
+        $this->assertEquals(50000.0, $cells[0]['price']); // 05:00-06:00
+        $this->assertEquals(50000.0, $cells[6]['price']); // 11:00-12:00
+    }
+
+    #[Test]
     public function returns_empty_for_no_matching_slots(): void
     {
         $cells = CourtSlot::buildTimeCells(collect([]), self::DATE_MONDAY);

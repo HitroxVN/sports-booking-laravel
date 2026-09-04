@@ -101,9 +101,16 @@ class VenueController extends Controller
             'phone'       => 'required|string|max:20',
             'email'       => 'nullable|email|max:255',
             'description' => 'nullable|string',
-            'status'      => 'required|in:active,pending,closed',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
+
+        // Trạng thái sân chỉ admin được quyết định (duyệt/từ chối).
+        // Chủ sân chỉ có thể tạm đóng/mở lại sân đang hoạt động — không tự "duyệt" sân pending/rejected.
+        $validated['status'] = match ($venue->status) {
+            'active', 'closed' => $request->boolean('temporarily_closed') ? 'closed' : 'active',
+            default            => $venue->status, // pending/rejected: chờ admin
+        };
+        unset($validated['temporarily_closed']);
 
         // Cập nhật thông tin cơ bản
         $venue->update($validated);

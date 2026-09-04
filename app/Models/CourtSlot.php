@@ -32,6 +32,7 @@ class CourtSlot extends Model
      * Cắt danh sách khung giờ của một ngày thành các ô chọn giờ cho khách đặt.
      *
      * - Lọc slot theo thứ của ngày ($date) — slot có day_of_week = null áp dụng mọi ngày.
+     *   Slot gắn thứ cụ thể được ưu tiên hơn slot "mọi ngày" khi trùng mốc giờ.
      * - Sắp xếp theo giờ bắt đầu, cắt mỗi khung thành các ô 1 tiếng tính từ mốc bắt đầu,
      *   phần lẻ cuối cùng thành ô nhỏ hơn (VD: 6:30-9:00 → 6:30-7:30, 7:30-8:30, 8:30-9:00).
      * - Giá ô lẻ = giá hiệu dụng × số phút / 60.
@@ -47,45 +48,53 @@ class CourtSlot extends Model
         // 0 = Chủ Nhật ... 6 = Thứ Bảy (khớp quy ước day_of_week trong form chủ sân)
         $dayOfWeek = (int) Carbon::parse($date)->dayOfWeek;
 
-        // Lọc slot khớp thứ, sắp xếp theo giờ bắt đầu
-        $matching = collect($slots)
-            ->filter(fn ($slot) => $slot->day_of_week === null || (int) $slot->day_of_week === $dayOfWeek)
+        // Slot gắn thứ cụ thể ưu tiên hơn slot "mọi ngày" (day_of_week = null)
+        $specific = collect($slots)
+            ->filter(fn ($slot) => $slot->day_of_week !== null && (int) $slot->day_of_week === $dayOfWeek)
+            ->sortBy('start_time')
+            ->values();
+        $everyday = collect($slots)
+            ->filter(fn ($slot) => $slot->day_of_week === null)
             ->sortBy('start_time')
             ->values();
 
-        if ($matching->isEmpty()) {
+        if ($specific->isEmpty() && $everyday->isEmpty()) {
             return [];
         }
 
         // Cắt từng khung thành các ô 1 tiếng tính từ mốc bắt đầu của khung,
         // phần lẻ cuối cùng thành ô nhỏ hơn (VD: 6:30-8:00 → 6:30-7:30 + 7:30-8:00)
         $cells = collect();
-        foreach ($matching as $slot) {
-            $slotStart = self::toMinutes($slot->start_time);
-            $slotEnd = self::toMinutes($slot->end_time);
-            $hourlyPrice = $slot->effective_price;
+        foreach ([[$specific, 1], [$everyday, 0]] as [$tier, $priority]) {
+            foreach ($tier as $slot) {
+                $slotStart = self::toMinutes($slot->start_time);
+                $slotEnd = self::toMinutes($slot->end_time);
+                $hourlyPrice = $slot->effective_price;
 
-            $current = $slotStart;
-            while ($current < $slotEnd) {
-                $cellEnd = min($current + 60, $slotEnd);
-                $minutes = $cellEnd - $current;
+                $current = $slotStart;
+                while ($current < $slotEnd) {
+                    $cellEnd = min($current + 60, $slotEnd);
+                    $minutes = $cellEnd - $current;
 
-                $cells->push([
-                    'start'        => self::toTimeString($current),
-                    'end'          => self::toTimeString($cellEnd),
-                    'price'        => round($hourlyPrice * $minutes / 60),
-                    'is_full_hour' => $minutes === 60,
-                    'is_open'      => true,
-                    '_start_min'   => $current,
-                    '_end_min'     => $cellEnd,
-                ]);
+                    $cells->push([
+                        'start'        => self::toTimeString($current),
+                        'end'          => self::toTimeString($cellEnd),
+                        'price'        => round($hourlyPrice * $minutes / 60),
+                        'is_full_hour' => $minutes === 60,
+                        'is_open'      => true,
+                        '_start_min'   => $current,
+                        '_end_min'     => $cellEnd,
+                        '_priority'    => $priority,
+                    ]);
 
-                $current = $cellEnd;
+                    $current = $cellEnd;
+                }
             }
         }
 
-        // Sắp xếp theo giờ bắt đầu, bỏ ô trùng lặp (khi slot "mọi ngày" và slot theo thứ chạm nhau)
-        $cells = $cells->sortBy('_start_min')->values()
+        // Sắp xếp theo giờ bắt đầu (trùng mốc thì ưu tiên slot theo thứ cụ thể),
+        // bỏ ô trùng lặp (khi slot "mọi ngày" và slot theo thứ chạm nhau)
+        $cells = $cells->sortBy([['_start_min', 'asc'], ['_priority', 'desc']])->values()
             ->unique(fn ($cell) => $cell['_start_min'])
             ->values();
 
@@ -108,7 +117,7 @@ class CourtSlot extends Model
         }
 
         return $filled
-            ->map(fn ($cell) => collect($cell)->except(['_start_min', '_end_min'])->all())
+            ->map(fn ($cell) => collect($cell)->except(['_start_min', '_end_min', '_priority'])->all())
             ->all();
     }
 
