@@ -11,6 +11,8 @@ function initBookingGrid() {
         closures: Array.isArray(config.closures) ? config.closures : [],
         // Giờ hoạt động của khu sân theo ngày trong tuần (0 = CN ... 6 = Thứ 7)
         operatingHours: Array.isArray(config.operatingHours) ? config.operatingHours : [],
+        // Khu sân có cài giờ hoạt động không — chưa cài thì không chặn theo giờ hoạt động
+        venueHasOperatingHours: !!config.venueHasOperatingHours,
 
         // Ô giờ của ngày đang chọn — chủ sân chưa cài khung giờ thì ngày đó không có ô nào
         get availableSlots() {

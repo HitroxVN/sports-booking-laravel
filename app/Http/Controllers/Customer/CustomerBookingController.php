@@ -89,7 +89,10 @@ class CustomerBookingController extends Controller
                 'is_closed'   => (bool) $h->is_closed,
             ]);
 
-        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures', 'slotCells', 'operatingHours'));
+        // Khu sân có cài giờ hoạt động không — chưa cài thì UI không chặn theo giờ hoạt động
+        $venueHasOperatingHours = $operatingHours->isNotEmpty();
+
+        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures', 'slotCells', 'operatingHours', 'venueHasOperatingHours'));
     }
 
     // 3. Xử lý đặt sân + Tính tiền theo các ô giờ được chủ sân cấu hình
@@ -115,16 +118,21 @@ class CustomerBookingController extends Controller
         }
 
         // ─── Giờ hoạt động của khu sân trong ngày này ───
-        $operatingHour = OperatingHour::where('venue_id', $court->venue_id)->where('day_of_week', $dow)->first();
+        // Khu sân chưa cài giờ hoạt động nào ≠ "nghỉ" — chỉ chặn khi ĐÃ cài mà ngày đó nghỉ/ngoài giờ
+        $hasOperatingHours = OperatingHour::where('venue_id', $court->venue_id)->exists();
 
-        if (!$operatingHour || $operatingHour->is_closed) {
-            return back()->with('error', 'Khu sân nghỉ ngày này, vui lòng chọn ngày khác!');
-        }
+        if ($hasOperatingHours) {
+            $operatingHour = OperatingHour::where('venue_id', $court->venue_id)->where('day_of_week', $dow)->first();
 
-        $openTime  = Carbon::parse($operatingHour->open_time);
-        $closeTime = Carbon::parse($operatingHour->close_time);
-        if ($startTime->lt($openTime) || $endTime->gt($closeTime)) {
-            return back()->with('error', 'Thời gian đặt phải nằm trong giờ hoạt động (' . $openTime->format('H:i') . ' - ' . $closeTime->format('H:i') . ')!');
+            if (!$operatingHour || $operatingHour->is_closed) {
+                return back()->with('error', 'Khu sân nghỉ ngày này, vui lòng chọn ngày khác!');
+            }
+
+            $openTime  = Carbon::parse($operatingHour->open_time);
+            $closeTime = Carbon::parse($operatingHour->close_time);
+            if ($startTime->lt($openTime) || $endTime->gt($closeTime)) {
+                return back()->with('error', 'Thời gian đặt phải nằm trong giờ hoạt động (' . $openTime->format('H:i') . ' - ' . $closeTime->format('H:i') . ')!');
+            }
         }
 
         // ─── Cắt ô giờ theo cấu hình của chủ sân cho ngày đặt ───

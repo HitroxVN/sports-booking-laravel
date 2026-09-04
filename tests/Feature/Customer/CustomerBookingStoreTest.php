@@ -240,6 +240,42 @@ class CustomerBookingStoreTest extends TestCase
     }
 
     #[\PHPUnit\Framework\Attributes\Test]
+    public function accepts_booking_when_venue_has_no_operating_hours_configured(): void
+    {
+        // Khu sân chưa cài giờ hoạt động nào (bảng operating_hours rỗng)
+        // ≠ "khu sân nghỉ" → chỉ cần có slot là được đặt
+        OperatingHour::where('venue_id', $this->court->venue_id)->delete();
+        CourtSlot::create([
+            'court_id'    => $this->court->id,
+            'day_of_week' => $this->slotDow,
+            'start_time'  => '06:00',
+            'end_time'    => '08:00',
+            'price'       => 200000,
+        ]);
+
+        $response = $this->actingAs($this->customer)
+            ->post('/bookings', $this->createStorePayload($this->bookingDate, '06:00', '07:00'));
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('bookings', ['court_id' => $this->court->id]);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    public function create_page_does_not_flag_venue_without_operating_hours_as_closed(): void
+    {
+        // UI phải phân biệt "chưa cài giờ hoạt động" (không chặn, hiện lưới giờ)
+        // với "đã cài mà ngày đó nghỉ" (banner nghỉ)
+        OperatingHour::where('venue_id', $this->court->venue_id)->delete();
+
+        $response = $this->actingAs($this->customer)
+            ->get('/courts/' . $this->court->id . '/book');
+
+        $response->assertOk();
+        $response->assertSee('"operatingHours":[]', false);
+        $response->assertSee('venueHasOperatingHours', false);
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
     public function create_page_config_contains_operating_hours(): void
     {
         // View dùng dayOperatingHour để phân biệt "khu sân nghỉ" và "chưa cài khung giờ"
