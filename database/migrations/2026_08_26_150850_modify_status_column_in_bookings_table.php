@@ -11,7 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-       DB::statement("ALTER TABLE bookings MODIFY COLUMN status VARCHAR(20) DEFAULT 'pending'");
+        // Nới cột status từ enum sang VARCHAR(20) để linh hoạt thêm trạng thái.
+        // MySQL cần ALTER riêng; sqlite (dùng cho test) lưu enum dạng TEXT nên không cần làm gì.
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE bookings MODIFY COLUMN status VARCHAR(20) DEFAULT 'pending'");
+        }
     }
 
     /**

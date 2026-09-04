@@ -3,7 +3,16 @@
 @section('title', 'Đặt sân: ' . $court->name)
 
 @section('content')
-    <div class="container py-8 mx-auto px-4 sm:px-6 lg:px-8" x-data="bookingGrid()">
+    @php
+        // Cấu hình truyền vào Alpine component bookingGrid (resources/js/CustomerBooking.js)
+        $bookingConfig = [
+            'initialDate'      => $dates[0]['full_date'],
+            'slotCells'        => $slotCells,
+            'existingBookings' => $existingBookings,
+            'closures'         => $closures,
+        ];
+    @endphp
+    <div class="container py-8 mx-auto px-4 sm:px-6 lg:px-8" x-data='bookingGrid(@json($bookingConfig))'>
         <div class="max-w-6xl mx-auto card-base p-6">
             
             <!-- Header Sân -->
@@ -151,12 +160,22 @@
 
             <!-- 2. Khung Giờ Khả Dụng -->
             <div class="mb-6">
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                <!-- Chủ sân chưa cài khung giờ cho ngày này -->
+                <div x-show="hasNoSlots"
+                     class="p-8 text-center rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50">
+                    <svg class="w-10 h-10 mx-auto mb-3 text-zinc-400 dark:text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="font-semibold text-zinc-700 dark:text-zinc-300">Sân chưa mở bán khung giờ nào cho ngày này</p>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Vui lòng chọn ngày khác hoặc liên hệ chủ sân để biết thêm thông tin.</p>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3" x-show="!hasNoSlots">
                     <template x-for="(timeSlot, index) in availableSlots" :key="timeSlot.start">
                         <button type="button"
-                                :disabled="timeSlot.isBooked"
+                                :disabled="isSlotBooked(timeSlot)"
                                 @click="selectSlot(index)"
-                                :class="timeSlot.isBooked
+                                :class="isSlotBooked(timeSlot)
                                     ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-400 dark:text-red-500 cursor-not-allowed'
                                     : (isSlotSelected(index)
                                         ? 'bg-primary-600 border-primary-600 text-white'
@@ -165,7 +184,7 @@
 
                             <!-- Giờ bắt đầu - Giờ kết thúc -->
                             <span class="text-sm font-bold"
-                                  :class="timeSlot.isBooked
+                                  :class="isSlotBooked(timeSlot)
                                       ? 'text-red-400 dark:text-red-500'
                                       : (isSlotSelected(index)
                                           ? 'text-white'
@@ -174,12 +193,12 @@
 
                             <!-- Giá tiền / Trạng thái -->
                             <span class="text-xs font-semibold"
-                                  :class="timeSlot.isBooked
+                                  :class="isSlotBooked(timeSlot)
                                       ? 'text-red-400 dark:text-red-500'
                                       : (isSlotSelected(index)
                                           ? 'text-primary-100'
                                           : 'text-primary-600 dark:text-primary-400')"
-                                  x-text="timeSlot.isClosed ? 'Đã khóa' : (timeSlot.isBooked ? 'Đã đặt' : formatMoney(timeSlot.price) + '/h')"></span>
+                                  x-text="slotBlockedReason(timeSlot) === 'closed' ? 'Ngoài khung' : (slotBlockedReason(timeSlot) === 'closure' ? 'Đã khóa' : (slotBlockedReason(timeSlot) === 'booked' ? 'Đã đặt' : (timeSlot.is_full_hour ? formatMoney(timeSlot.price) + '/h' : formatMoney(timeSlot.price))))"></span>
                         </button>
                     </template>
                 </div>
@@ -221,139 +240,4 @@
 
         </div>
     </div>
-
-    <!-- Alpine.js xử lý chọn khoảng giờ -->
-    <script>
-        function bookingGrid() {
-            return {
-                selectedDate: '{{ $dates[0]["full_date"] }}',
-                startSlotIdx: null,
-                endSlotIdx: null,
-                courtSlots: JSON.parse('{!! json_encode($court->slots) !!}'),
-                existingBookings: JSON.parse('{!! json_encode($existingBookings) !!}'),
-                closures: JSON.parse('{!! json_encode($closures) !!}'),
-                
-                get availableSlots() {
-                    let slots = [];
-                    for (let hour = 5; hour < 22; hour++) {
-                        let startStr = (hour < 10 ? '0' : '') + hour + ':00';
-                        let endStr = (hour + 1 < 10 ? '0' : '') + (hour + 1) + ':00';
-
-                        let isBooked = this.existingBookings.some(b => {
-                            if (b.booking_date !== this.selectedDate) return false;
-                            let bStart = b.start_time.substring(0, 5);
-                            let bEnd = b.end_time.substring(0, 5);
-                            return (startStr < bEnd && endStr > bStart);
-                        });
-
-                        // Sân bị khóa lịch trong ngày này: khóa cả ngày (start_time null) hoặc trùng khung giờ
-                        let isClosed = this.closures.some(c => {
-                            if (c.date !== this.selectedDate) return false;
-                            if (!c.start_time) return true; // khóa cả ngày
-                            let cStart = c.start_time.substring(0, 5);
-                            let cEnd = c.end_time.substring(0, 5);
-                            return (startStr < cEnd && endStr > cStart);
-                        });
-
-                        let matchingSlot = this.courtSlots.find(s => {
-                            let sStart = s.start_time.substring(0, 5);
-                            let sEnd = s.end_time.substring(0, 5);
-                            return startStr >= sStart && endStr <= sEnd;
-                        });
-
-                        let price = 100000;
-                        if (matchingSlot) {
-                            price = (matchingSlot.is_peak && matchingSlot.peak_price) ? parseFloat(matchingSlot.peak_price) : parseFloat(matchingSlot.price);
-                        }
-
-                        slots.push({
-                            start: startStr,
-                            end: endStr,
-                            price: price,
-                            isBooked: isBooked || isClosed,
-                            isClosed: isClosed
-                        });
-                    }
-                    return slots;
-                },
-
-                selectSlot(idx) {
-                    if (this.availableSlots[idx].isBooked) return;
-
-                    if (this.startSlotIdx === null || (this.startSlotIdx !== null && this.endSlotIdx !== null)) {
-                        this.startSlotIdx = idx;
-                        this.endSlotIdx = null;
-                    } else {
-                        if (idx < this.startSlotIdx) {
-                            this.startSlotIdx = idx;
-                            this.endSlotIdx = null;
-                        } else if (idx === this.startSlotIdx) {
-                            this.endSlotIdx = idx;
-                        } else {
-                            let hasBooked = false;
-                            for (let i = this.startSlotIdx; i <= idx; i++) {
-                                if (this.availableSlots[i].isBooked) {
-                                    hasBooked = true;
-                                    break;
-                                }
-                            }
-
-                            if (hasBooked) {
-                                alert('Không thể chọn khoảng giờ có chứa khung đã được đặt!');
-                                this.startSlotIdx = idx;
-                                this.endSlotIdx = null;
-                            } else {
-                                this.endSlotIdx = idx;
-                            }
-                        }
-                    }
-                },
-
-                isSlotSelected(idx) {
-                    if (this.startSlotIdx === null) return false;
-                    let start = this.startSlotIdx;
-                    let end = this.endSlotIdx !== null ? this.endSlotIdx : this.startSlotIdx;
-                    return idx >= Math.min(start, end) && idx <= Math.max(start, end);
-                },
-
-                resetSelection() {
-                    this.startSlotIdx = null;
-                    this.endSlotIdx = null;
-                },
-
-                selectDate(date) {
-                    this.selectedDate = date;
-                    this.resetSelection();
-                },
-
-                get selectedStart() {
-                    if (this.startSlotIdx === null) return '';
-                    let start = Math.min(this.startSlotIdx, this.endSlotIdx !== null ? this.endSlotIdx : this.startSlotIdx);
-                    return this.availableSlots[start].start;
-                },
-
-                get selectedEnd() {
-                    if (this.startSlotIdx === null) return '';
-                    let end = Math.max(this.startSlotIdx, this.endSlotIdx !== null ? this.endSlotIdx : this.startSlotIdx);
-                    return this.availableSlots[end].end;
-                },
-
-                get calculatedPrice() {
-                    if (this.startSlotIdx === null) return 0;
-                    let start = Math.min(this.startSlotIdx, this.endSlotIdx !== null ? this.endSlotIdx : this.startSlotIdx);
-                    let end = Math.max(this.startSlotIdx, this.endSlotIdx !== null ? this.endSlotIdx : this.startSlotIdx);
-                    
-                    let total = 0;
-                    for (let i = start; i <= end; i++) {
-                        total += this.availableSlots[i].price;
-                    }
-                    return total;
-                },
-
-                formatMoney(amount) {
-                    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-                }
-            }
-        }
-    </script>
 @endsection

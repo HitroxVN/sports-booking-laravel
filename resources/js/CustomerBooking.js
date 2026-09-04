@@ -5,61 +5,74 @@ function initBookingGrid() {
         selectedDate: config.initialDate || '',
         startSlotIdx: null,
         endSlotIdx: null,
-        courtSlots: Array.isArray(config.courtSlots) ? config.courtSlots : [],
+        // Ô giờ đã được server cắt sẵn theo cấu hình khung giờ của chủ sân (theo từng ngày)
+        slotCells: (config.slotCells && typeof config.slotCells === 'object') ? config.slotCells : {},
         existingBookings: Array.isArray(config.existingBookings) ? config.existingBookings : [],
         closures: Array.isArray(config.closures) ? config.closures : [],
 
+        // Ô giờ của ngày đang chọn — chủ sân chưa cài khung giờ thì ngày đó không có ô nào
         get availableSlots() {
-            let slots = [];
-            for (let hour = 5; hour < 22; hour++) {
-                let startStr = (hour < 10 ? '0' : '') + hour + ':00';
-                let endStr = (hour + 1 < 10 ? '0' : '') + (hour + 1) + ':00';
+            return this.slotCells[this.selectedDate] || [];
+        },
 
-                // Bắt lỗi null/undefined cho existingBookings
-                let isBooked = this.existingBookings.some(b => {
-                    if (!b || b.booking_date !== this.selectedDate) return false;
-                    let bStart = b.start_time ? String(b.start_time).substring(0, 5) : '';
-                    let bEnd = b.end_time ? String(b.end_time).substring(0, 5) : '';
-                    return (startStr < bEnd && endStr > bStart);
-                });
+        get hasNoSlots() {
+            return this.availableSlots.length === 0;
+        },
 
-                // Bắt lỗi null/undefined cho closures
-                let isClosed = this.closures.some(c => {
-                    if (!c || c.date !== this.selectedDate) return false;
-                    if (!c.start_time) return true;
-                    let cStart = String(c.start_time).substring(0, 5);
-                    let cEnd = String(c.end_time).substring(0, 5);
-                    return (startStr < cEnd && endStr > cStart);
-                });
+        isSlotBooked(cell) {
+            // Ô ngoài giờ mở bán (khoảng trống giữa 2 khung chủ sân cài)
+            if (!cell.is_open) return true;
 
-                // Bắt lỗi null/undefined cho courtSlots
-                let matchingSlot = this.courtSlots.find(s => {
-                    if (!s || !s.start_time || !s.end_time) return false;
-                    let sStart = String(s.start_time).substring(0, 5);
-                    let sEnd = String(s.end_time).substring(0, 5);
-                    return startStr >= sStart && endStr <= sEnd;
-                });
+            let startStr = cell.start;
+            let endStr = cell.end;
 
-                let price = 100000;
-                if (matchingSlot) {
-                    price = (matchingSlot.is_peak && matchingSlot.peak_price)
-                        ? parseFloat(matchingSlot.peak_price)
-                        : parseFloat(matchingSlot.price || 100000);
-                }
+            // Bắt lỗi null/undefined cho existingBookings
+            let isBooked = this.existingBookings.some(b => {
+                if (!b || b.booking_date !== this.selectedDate) return false;
+                let bStart = b.start_time ? String(b.start_time).substring(0, 5) : '';
+                let bEnd = b.end_time ? String(b.end_time).substring(0, 5) : '';
+                return (startStr < bEnd && endStr > bStart);
+            });
 
-                slots.push({
-                    start: startStr,
-                    end: endStr,
-                    price: price,
-                    isBooked: isBooked || isClosed,
-                    isClosed: isClosed
-                });
-            }
-            return slots;
+            // Bắt lỗi null/undefined cho closures
+            let isClosed = this.closures.some(c => {
+                if (!c || c.date !== this.selectedDate) return false;
+                if (!c.start_time) return true;
+                let cStart = String(c.start_time).substring(0, 5);
+                let cEnd = String(c.end_time).substring(0, 5);
+                return (startStr < cEnd && endStr > cStart);
+            });
+
+            return isBooked || isClosed;
+        },
+
+        // Lý do ô không đặt được: 'closed' (ngoài khung), 'booked', 'closure'
+        slotBlockedReason(cell) {
+            if (!cell.is_open) return 'closed';
+
+            let isClosed = this.closures.some(c => {
+                if (!c || c.date !== this.selectedDate) return false;
+                if (!c.start_time) return true;
+                let cStart = String(c.start_time).substring(0, 5);
+                let cEnd = String(c.end_time).substring(0, 5);
+                return (cell.start < cEnd && cell.end > cStart);
+            });
+            if (isClosed) return 'closure';
+
+            let isBooked = this.existingBookings.some(b => {
+                if (!b || b.booking_date !== this.selectedDate) return false;
+                let bStart = b.start_time ? String(b.start_time).substring(0, 5) : '';
+                let bEnd = b.end_time ? String(b.end_time).substring(0, 5) : '';
+                return (cell.start < bEnd && cell.end > bStart);
+            });
+            if (isBooked) return 'booked';
+
+            return null;
         },
 
         selectSlot(idx) {
-            if (!this.availableSlots[idx] || this.availableSlots[idx].isBooked) return;
+            let cell = this.availableSlots[idx];
+            if (!cell || this.isSlotBooked(cell)) return;
 
             if (this.startSlotIdx === null || (this.startSlotIdx !== null && this.endSlotIdx !== null)) {
                 this.startSlotIdx = idx;
@@ -71,16 +84,16 @@ function initBookingGrid() {
                 } else if (idx === this.startSlotIdx) {
                     this.endSlotIdx = idx;
                 } else {
-                    let hasBooked = false;
+                    let hasBlocked = false;
                     for (let i = this.startSlotIdx; i <= idx; i++) {
-                        if (this.availableSlots[i].isBooked) {
-                            hasBooked = true;
+                        if (this.isSlotBooked(this.availableSlots[i])) {
+                            hasBlocked = true;
                             break;
                         }
                     }
 
-                    if (hasBooked) {
-                        alert('Không thể chọn khoảng giờ có chứa khung đã được đặt!');
+                    if (hasBlocked) {
+                        alert('Không thể chọn khoảng giờ có chứa khung đã được đặt hoặc đã khóa!');
                         this.startSlotIdx = idx;
                         this.endSlotIdx = null;
                     } else {
@@ -127,7 +140,7 @@ function initBookingGrid() {
             let total = 0;
             for (let i = start; i <= end; i++) {
                 if (this.availableSlots[i]) {
-                    total += this.availableSlots[i].price;
+                    total += parseFloat(this.availableSlots[i].price) || 0;
                 }
             }
             return total;

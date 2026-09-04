@@ -41,6 +41,13 @@ class CustomerBookingController extends Controller
             ];
         }
 
+        // Cắt ô giờ theo cấu hình khung giờ của chủ sân cho từng ngày (7 ngày tới)
+        // Ngày nào chủ sân chưa cài khung giờ sẽ có danh sách ô rỗng → phía khách không hiện ô nào.
+        $slotCells = [];
+        foreach ($dates as $d) {
+            $slotCells[$d['full_date']] = CourtSlot::buildTimeCells($court->slots, $d['full_date']);
+        }
+
         // Chuẩn hóa định dạng booking_date (Y-m-d) và start_time/end_time (H:i)
         // để JS so sánh string không bị lệch do TIME trả về có giây (H:i:s)
         $existingBookings = Booking::where('court_id', $courtId)
@@ -64,10 +71,10 @@ class CustomerBookingController extends Controller
                 'end_time'   => $c->end_time ? Carbon::parse($c->end_time)->format('H:i') : null,
             ]);
 
-        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures'));
+        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures', 'slotCells'));
     }
 
-    // 3. Xử lý đặt sân + Tính tiền cộng dồn theo khung giờ
+    // 3. Xử lý đặt sân + Tính tiền theo các ô giờ được chủ sân cấu hình
     public function store(Request $request)
     {
         $request->validate([
@@ -78,6 +85,51 @@ class CustomerBookingController extends Controller
         ]);
 
         $court = $this->findBookableCourt($request->court_id);
+
+        // Cắt ô giờ theo cấu hình của chủ sân cho ngày đặt
+        $cells = CourtSlot::buildTimeCells(
+            $court->slots,
+            $request->booking_date
+        );
+
+        if (empty($cells)) {
+            return back()->with('error', 'Sân này chưa mở bán khung giờ nào cho ngày đã chọn!');
+        }
+
+        // Khoảng giờ khách gửi phải khớp chính xác một dãy ô mở bán liền kề
+        $requestedStart = substr($request->start_time, 0, 5);
+        $requestedEnd   = substr($request->end_time, 0, 5);
+
+        $selectedCells = [];
+        $matching = true;
+        foreach ($cells as $index => $cell) {
+            if ($cell['start'] >= $requestedStart && $cell['end'] <= $requestedEnd) {
+                if (!$cell['is_open']) {
+                    $matching = false;
+                    break;
+                }
+                // Ô đầu phải bắt đầu đúng requestedStart, ô sau liền kề ô trước
+                $prevEnd = $selectedCells
+                    ? end($selectedCells)['end']
+                    : null;
+                if ($prevEnd === null) {
+                    $matching = ($cell['start'] === $requestedStart);
+                } else {
+                    $matching = ($cell['start'] === $prevEnd);
+                }
+                if (!$matching) {
+                    break;
+                }
+                $selectedCells[] = $cell;
+            }
+        }
+
+        if (
+            !$matching || empty($selectedCells)
+            || end($selectedCells)['end'] !== $requestedEnd
+        ) {
+            return back()->with('error', 'Khung giờ này không áp dụng cho sân, vui lòng chọn lại theo các ô giờ hiển thị!');
+        }
 
         $isClosed = CourtClosure::where('court_id', $court->id)
             ->whereDate('date', $request->booking_date)
@@ -114,33 +166,12 @@ class CustomerBookingController extends Controller
         $endTime   = Carbon::parse($request->end_time);
         $duration  = $startTime->diffInMinutes($endTime);
 
-        $courtSlots = CourtSlot::where('court_id', $request->court_id)->get();
-        $totalAmount = 0;
-
-        $current = $startTime->copy();
-        while ($current < $endTime) {
-            $next = $current->copy()->addHour();
-            $cStart = $current->format('H:i:s');
-            $cEnd   = $next->format('H:i:s');
-
-            $matchedSlot = $courtSlots->first(function ($slot) use ($cStart, $cEnd) {
-                return $cStart >= $slot->start_time && $cEnd <= $slot->end_time;
-            });
-
-            if ($matchedSlot) {
-                $rate = ($matchedSlot->is_peak && $matchedSlot->peak_price) ? $matchedSlot->peak_price : $matchedSlot->price;
-            } else {
-                $rate = 100000;
-            }
-
-            $totalAmount += $rate;
-            $current->addHour();
-        }
-
+        // Tổng tiền = cộng giá các ô giờ được chọn
+        $totalAmount = array_sum(array_column($selectedCells, 'price'));
         $avgHourlyRate = ($duration > 0) ? ($totalAmount / ($duration / 60)) : 0;
 
         $booking = Booking::create([
-            'code'           => 'BK' . strtoupper(Str::random(8)), 
+            'code'           => 'BK' . strtoupper(Str::random(8)),
             'user_id'        => Auth::id(),
             'court_id'       => $court->id,
             'booking_date'   => $request->booking_date,
