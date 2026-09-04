@@ -7,10 +7,18 @@ use App\Models\Booking;
 use App\Models\Court;
 use App\Models\CourtClosure;
 use App\Models\CourtSlot;
+use App\Models\OperatingHour;
 use Carbon\Carbon;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+
+// Báo hiệu khung giờ bị chiếm/khóa — bắt ngoài transaction để trả flash message thay vì 500
+class BookingConflictException extends \RuntimeException
+{
+}
 
 class CustomerBookingController extends Controller
 {
@@ -64,7 +72,10 @@ class CustomerBookingController extends Controller
                 'end_time'   => $c->end_time ? Carbon::parse($c->end_time)->format('H:i') : null,
             ]);
 
-        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures'));
+        // Giờ hoạt động theo ngày trong tuần của khu sân — JS dùng để dựng grid giờ đặt
+        $operatingHours = $court->venue->operatingHours;
+
+        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures', 'operatingHours'));
     }
 
     // 3. Xử lý đặt sân + Tính tiền cộng dồn theo khung giờ
@@ -72,86 +83,129 @@ class CustomerBookingController extends Controller
     {
         $request->validate([
             'court_id'     => 'required|exists:courts,id',
-            'booking_date' => 'required|date|after_or_equal:today',
+            'booking_date' => 'required|date|after_or_equal:today|before_or_equal:' . Carbon::today()->addDays(6)->toDateString(),
             'start_time'   => 'required',
             'end_time'     => 'required|after:start_time',
         ]);
 
         $court = $this->findBookableCourt($request->court_id);
 
-        $isClosed = CourtClosure::where('court_id', $court->id)
-            ->whereDate('date', $request->booking_date)
-            ->where(function ($query) use ($request) {
-                // Khóa cả ngày (start_time null)
-                $query->whereNull('start_time')
-                    // Khóa theo khung giờ: trùng lặp khoảng
-                    ->orWhere(function ($q) use ($request) {
-                        $q->whereNotNull('start_time')
-                          ->where('start_time', '<', $request->end_time)
-                          ->where('end_time', '>', $request->start_time);
-                    });
-            })
-            ->exists();
+        $bookingDate = Carbon::parse($request->booking_date);
+        $dow         = $bookingDate->dayOfWeek; // 0 = CN ... 6 = Thứ 7 (đồng bộ operating_hours/court_slots)
+        $startTime   = Carbon::parse($request->start_time);
+        $endTime     = Carbon::parse($request->end_time);
 
-        if ($isClosed) {
-            return back()->with('error', 'Sân đang bị khóa lịch trong khoảng thời gian này, vui lòng chọn thời gian khác!');
+        // Chặn đặt khung giờ đã qua của hôm nay
+        if ($bookingDate->isToday() && $startTime->copy()->setDateFrom($bookingDate)->isPast()) {
+            return back()->with('error', 'Không thể đặt khung giờ đã qua!');
         }
 
-        $isBooked = Booking::where('court_id', $court->id)
-            ->where('booking_date', $request->booking_date)
-            ->where('status', '!=', 'cancelled')
-            ->where(function ($query) use ($request) {
-                $query->where('start_time', '<', $request->end_time)
-                      ->where('end_time', '>', $request->start_time);
-            })
-            ->exists();
+        // ─── Giờ hoạt động của khu sân trong ngày này ───
+        $operatingHour = OperatingHour::where('venue_id', $court->venue_id)->where('day_of_week', $dow)->first();
 
-        if ($isBooked) {
-            return back()->with('error', 'Khung giờ này đã có người đặt, vui lòng chọn giờ khác!');
+        if (!$operatingHour || $operatingHour->is_closed) {
+            return back()->with('error', 'Khu sân nghỉ ngày này, vui lòng chọn ngày khác!');
         }
 
-        $startTime = Carbon::parse($request->start_time);
-        $endTime   = Carbon::parse($request->end_time);
-        $duration  = $startTime->diffInMinutes($endTime);
+        $openTime  = Carbon::parse($operatingHour->open_time);
+        $closeTime = Carbon::parse($operatingHour->close_time);
+        if ($startTime->lt($openTime) || $endTime->gt($closeTime)) {
+            return back()->with('error', 'Thời gian đặt phải nằm trong giờ hoạt động (' . $openTime->format('H:i') . ' - ' . $closeTime->format('H:i') . ')!');
+        }
 
-        $courtSlots = CourtSlot::where('court_id', $request->court_id)->get();
+        // ─── Tính tiền theo slot khớp giờ + ngày trong tuần (không fallback giá ảo) ───
+        $courtSlots = CourtSlot::where('court_id', $court->id)
+            ->where(function ($q) use ($dow) {
+                $q->whereNull('day_of_week')->orWhere('day_of_week', $dow);
+            })
+            ->get();
+
         $totalAmount = 0;
-
         $current = $startTime->copy();
         while ($current < $endTime) {
             $next = $current->copy()->addHour();
-            $cStart = $current->format('H:i:s');
-            $cEnd   = $next->format('H:i:s');
 
-            $matchedSlot = $courtSlots->first(function ($slot) use ($cStart, $cEnd) {
-                return $cStart >= $slot->start_time && $cEnd <= $slot->end_time;
+            // Ưu tiên slot theo ngày cụ thể (day_of_week = dow) hơn slot "mọi ngày" (null)
+            $matchedSlot = $courtSlots->first(function ($slot) use ($current, $next, $dow) {
+                return $current->format('H:i:s') >= $slot->start_time
+                    && $next->format('H:i:s') <= $slot->end_time
+                    && $slot->day_of_week == $dow; // so lỏng: driver có thể trả int hoặc string
+            }) ?? $courtSlots->first(function ($slot) use ($current, $next) {
+                return $current->format('H:i:s') >= $slot->start_time && $next->format('H:i:s') <= $slot->end_time;
             });
 
-            if ($matchedSlot) {
-                $rate = ($matchedSlot->is_peak && $matchedSlot->peak_price) ? $matchedSlot->peak_price : $matchedSlot->price;
-            } else {
-                $rate = 100000;
+            if (!$matchedSlot) {
+                return back()->with('error', 'Sân chưa có giá cho khung ' . $current->format('H:i') . ' - ' . $next->format('H:i') . ', vui lòng chọn khung giờ khác!');
             }
 
-            $totalAmount += $rate;
+            $totalAmount += ($matchedSlot->is_peak && $matchedSlot->peak_price)
+                ? $matchedSlot->peak_price
+                : $matchedSlot->price;
+
             $current->addHour();
         }
 
-        $avgHourlyRate = ($duration > 0) ? ($totalAmount / ($duration / 60)) : 0;
+        // ─── Tạo đơn trong transaction + khóa dòng sân cha (chống đặt trùng khi 2 request song song) ───
+        // Chuẩn hóa H:i:s để so khớp TIME khi so chuỗi (sqlite lưu verbatim, MySQL cast TIME)
+        $startTimeSql = $startTime->format('H:i:s');
+        $endTimeSql   = $endTime->format('H:i:s');
 
-        $booking = Booking::create([
-            'code'           => 'BK' . strtoupper(Str::random(8)), 
-            'user_id'        => Auth::id(),
-            'court_id'       => $court->id,
-            'booking_date'   => $request->booking_date,
-            'start_time'     => $request->start_time,
-            'end_time'       => $request->end_time,
-            'duration'       => $duration,
-            'price_snapshot' => $avgHourlyRate,
-            'total_amount'   => $totalAmount,
-            'payment_method' => 'full_online',
-            'status'         => 'pending',
-        ]);
+        try {
+            $booking = DB::transaction(function () use ($court, $request, $startTime, $endTime, $totalAmount, $startTimeSql, $endTimeSql) {
+                // Khóa dòng court: mọi request đặt sân này phải xếp hàng chờ nhau tại đây
+                Court::whereKey($court->id)->lockForUpdate()->first();
+
+                $isBlocked = CourtClosure::where('court_id', $court->id)
+                    ->whereDate('date', $request->booking_date)
+                    ->where(function ($query) use ($endTimeSql, $startTimeSql) {
+                        // Khóa cả ngày (start_time null)
+                        $query->whereNull('start_time')
+                            // Khóa theo khung giờ: trùng lặp khoảng
+                            ->orWhere(function ($q) use ($endTimeSql, $startTimeSql) {
+                                $q->whereNotNull('start_time')
+                                  ->where('start_time', '<', $endTimeSql)
+                                  ->where('end_time', '>', $startTimeSql);
+                            });
+                    })
+                    ->exists();
+
+                if ($isBlocked) {
+                    throw new BookingConflictException('Sân đang bị khóa lịch trong khoảng thời gian này, vui lòng chọn thời gian khác!');
+                }
+
+                $isBooked = Booking::where('court_id', $court->id)
+                    ->whereDate('booking_date', $request->booking_date)
+                    ->where('status', '!=', 'cancelled')
+                    ->where('start_time', '<', $endTimeSql)
+                    ->where('end_time', '>', $startTimeSql)
+                    ->exists();
+
+                if ($isBooked) {
+                    throw new BookingConflictException('Khung giờ này đã có người đặt, vui lòng chọn giờ khác!');
+                }
+
+                $duration = $startTime->diffInMinutes($endTime);
+
+                return Booking::create([
+                    'code'           => 'BK' . strtoupper(Str::random(8)), // không có "-" vì nhiều ngân hàng xóa ký tự đặc biệt trong nội dung CK
+                    'user_id'        => Auth::id(),
+                    'court_id'       => $court->id,
+                    'booking_date'   => $request->booking_date,
+                    'start_time'     => $startTimeSql,
+                    'end_time'       => $endTimeSql,
+                    'duration'       => $duration,
+                    'price_snapshot' => ($duration > 0) ? ($totalAmount / ($duration / 60)) : 0,
+                    'total_amount'   => $totalAmount,
+                    'payment_method' => 'full_online',
+                    'status'         => 'pending',
+                ]);
+            });
+        } catch (BookingConflictException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (UniqueConstraintViolationException) {
+            // Trùng mã đơn (xác suất cực thấp) — cho khách đặt lại
+            return back()->with('error', 'Đã xảy ra lỗi khi tạo đơn, vui lòng thử lại!');
+        }
 
         return redirect()->route('customer.bookings.pay', $booking)
             ->with('success', 'Đặt sân thành công! Vui lòng chuyển khoản để hoàn tất.');

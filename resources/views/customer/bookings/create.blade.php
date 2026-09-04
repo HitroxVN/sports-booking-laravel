@@ -151,6 +151,10 @@
 
             <!-- 2. Khung Giờ Khả Dụng -->
             <div class="mb-6">
+                <div x-show="!dayOperatingHour || dayOperatingHour.is_closed"
+                     class="p-6 mb-4 text-sm text-center bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-xl">
+                    Khu sân nghỉ ngày này, vui lòng chọn ngày khác.
+                </div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                     <template x-for="(timeSlot, index) in availableSlots" :key="timeSlot.start">
                         <button type="button"
@@ -232,10 +236,31 @@
                 courtSlots: JSON.parse('{!! json_encode($court->slots) !!}'),
                 existingBookings: JSON.parse('{!! json_encode($existingBookings) !!}'),
                 closures: JSON.parse('{!! json_encode($closures) !!}'),
-                
+                operatingHours: JSON.parse('{!! json_encode($operatingHours) !!}'),
+
+                // Giờ hoạt động của ngày đang chọn (day_of_week: 0 = CN ... 6 = T7)
+                get dayOperatingHour() {
+                    let dow = new Date(this.selectedDate + 'T00:00:00').getDay();
+                    return this.operatingHours.find(h => h.day_of_week === dow);
+                },
+
                 get availableSlots() {
+                    let oh = this.dayOperatingHour;
+                    // Khu sân nghỉ hoặc chưa cấu hình giờ → không hiện khung nào
+                    if (!oh || oh.is_closed) return [];
+
+                    let closeHour = parseInt(oh.close_time.substring(0, 2));
+                    let dow = new Date(this.selectedDate + 'T00:00:00').getDay();
+
+                    // Chỉ hiện các khung giờ còn trong tương lai nếu đặt cho hôm nay
+                    let minHour = parseInt(oh.open_time.substring(0, 2));
+                    let isToday = this.selectedDate === new Date().toISOString().substring(0, 10);
+                    if (isToday) {
+                        minHour = Math.max(minHour, new Date().getHours() + 1);
+                    }
+
                     let slots = [];
-                    for (let hour = 5; hour < 22; hour++) {
+                    for (let hour = minHour; hour < closeHour; hour++) {
                         let startStr = (hour < 10 ? '0' : '') + hour + ':00';
                         let endStr = (hour + 1 < 10 ? '0' : '') + (hour + 1) + ':00';
 
@@ -255,22 +280,25 @@
                             return (startStr < cEnd && endStr > cStart);
                         });
 
+                        // Slot giá phải khớp giờ + ngày (day_of_week null = áp dụng mọi ngày)
                         let matchingSlot = this.courtSlots.find(s => {
                             let sStart = s.start_time.substring(0, 5);
                             let sEnd = s.end_time.substring(0, 5);
-                            return startStr >= sStart && endStr <= sEnd;
+                            let dayOk = s.day_of_week === null || s.day_of_week === undefined || s.day_of_week === dow;
+                            return dayOk && startStr >= sStart && endStr <= sEnd;
                         });
 
-                        let price = 100000;
-                        if (matchingSlot) {
-                            price = (matchingSlot.is_peak && matchingSlot.peak_price) ? parseFloat(matchingSlot.peak_price) : parseFloat(matchingSlot.price);
-                        }
+                        // Không có cấu hình giá → khung không đặt được (không fallback giá ảo)
+                        let hasPrice = !!matchingSlot;
+                        let price = hasPrice
+                            ? ((matchingSlot.is_peak && matchingSlot.peak_price) ? parseFloat(matchingSlot.peak_price) : parseFloat(matchingSlot.price))
+                            : 0;
 
                         slots.push({
                             start: startStr,
                             end: endStr,
                             price: price,
-                            isBooked: isBooked || isClosed,
+                            isBooked: isBooked || isClosed || !hasPrice,
                             isClosed: isClosed
                         });
                     }
