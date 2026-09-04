@@ -11,8 +11,8 @@
             {{-- Brand column --}}
             <div class="lg:col-span-1">
                 <a href="/" class="flex items-center gap-2.5 mb-4 group">
-                    <img src="{{ asset('storage/logo/logo.jpg') }}" alt="Arena Sports Booking"
-                         class="w-9 h-9 rounded-lg object-cover shrink-0">
+                    <img src="{{ asset('images/logo/logo.jpg') }}" alt="Arena Sports Booking"
+                        class="w-9 h-9 rounded-lg object-cover shrink-0">
                     <div class="leading-tight">
                         <span class="block text-sm font-bold text-white tracking-tight">Arena</span>
                         <span class="block text-[10px] font-medium text-zinc-500 uppercase tracking-widest">Sports Booking</span>

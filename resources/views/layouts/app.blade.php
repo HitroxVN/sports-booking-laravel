@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/jpeg" href="{{ asset('storage/logo/logo.jpg') }}">
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/logo/logo.jpg') }}">
 
     <title>{{ $title ?? config('app.name') }}</title>
 
@@ -32,7 +32,7 @@
                 {{-- Logo + nav links --}}
                 <div class="flex items-center gap-8">
                     <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-                        <img src="{{ asset('storage/logo/logo.jpg') }}" alt="{{ config('app.name') }}"
+                        <img src="{{ asset('images/logo/logo.jpg') }}" alt="{{ config('app.name') }}"
                             class="w-9 h-9 rounded-lg object-cover shrink-0">
                         <span class="text-lg font-bold text-primary-600 dark:text-primary-400">{{ config('app.name') }}</span>
                     </a>
@@ -171,7 +171,7 @@
                 {{-- Brand column --}}
                 <div class="lg:col-span-1">
                     <a href="/" class="flex items-center gap-2.5 mb-4 group">
-                        <img src="{{ asset('storage/logo/logo.jpg') }}" alt="Arena Sports Booking"
+                        <img src="{{ asset('images/logo/logo.jpg') }}" alt="Arena Sports Booking"
                             class="w-9 h-9 rounded-lg object-cover shrink-0">
                         <div class="leading-tight">
                             <span class="block text-sm font-bold text-white tracking-tight">Arena</span>
