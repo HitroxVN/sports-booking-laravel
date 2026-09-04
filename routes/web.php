@@ -70,7 +70,9 @@ Route::middleware(['auth', 'verified', 'role:customer'])->name('customer.')->gro
     // 1. Đặt sân (Booking)
     Route::get('/courts/{courtId}/book', [CustomerBookingController::class, 'create'])->name('bookings.create');
     Route::post('/bookings', [CustomerBookingController::class, 'store'])->name('bookings.store');
-    
+    Route::get('/bookings/{booking}/pay', [CustomerBookingController::class, 'pay'])->name('bookings.pay');
+    Route::get('/bookings/{booking}/status', [CustomerBookingController::class, 'status'])->name('bookings.status');
+
     // 2. Lịch sử đặt sân của tôi (Trang danh sách)
     Route::get('/my-bookings', [CustomerBookingController::class, 'index'])->name('bookings.index');
 });

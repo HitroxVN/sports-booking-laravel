@@ -45,6 +45,12 @@
                                     <x-badge :variant="$booking->status === 'confirmed' ? 'success' : ($booking->status === 'pending' ? 'warning' : 'danger')">
                                         {{ ucfirst($booking->status) }}
                                     </x-badge>
+                                    @if($booking->payment_status === 'unpaid' && $booking->status === 'pending')
+                                        <a href="{{ route('customer.bookings.pay', $booking) }}"
+                                           class="mt-1 inline-block text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 hover:underline">
+                                            Thanh toán
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
