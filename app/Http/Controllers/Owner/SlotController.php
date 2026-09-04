@@ -38,7 +38,7 @@ class SlotController extends Controller
     /**
      * Lưu khung giờ mới.
      */
-    public function store(Request $request, \App\Models\Court $court)
+    public function store(Request $request, Court $court)
     {
         $this->authorizeCourt($court);
 
@@ -47,9 +47,9 @@ class SlotController extends Controller
             'is_peak' => $request->boolean('is_peak')
         ]);
 
-        // 1. Validate định dạng cơ bản kèm theo quy tắc Giờ Vàng
+        // 1. Validate: day_of_week đổi thành nullable để nhận "Tất cả các ngày"
         $validated = $request->validate([
-            'day_of_week' => 'required|integer|between:0,6',
+            'day_of_week' => 'nullable|integer|between:0,6',
             'start_time'  => 'required|date_format:H:i',
             'end_time'    => 'required|date_format:H:i|after:start_time',
             'price'       => 'required|numeric|min:0',
@@ -60,26 +60,34 @@ class SlotController extends Controller
         ]);
 
         // 2. THUẬT TOÁN CHẶN CHỒNG GIỜ (OVERLAP)
-        $isOverlapping = $court->slots()
-            ->where('day_of_week', $validated['day_of_week'])
+        $overlapQuery = $court->slots()
             ->where(function ($query) use ($validated) {
                 $query->where('start_time', '<', $validated['end_time'])
                       ->where('end_time', '>', $validated['start_time']);
-            })
-            ->exists();
+            });
+
+        // Nếu có chọn thứ cụ thể thì kiểm tra trùng theo thứ đó; nếu áp dụng chung (null) thì kiểm tra các slot chung
+        if (is_null($validated['day_of_week'])) {
+            $overlapQuery->whereNull('day_of_week');
+        } else {
+            $overlapQuery->where('day_of_week', $validated['day_of_week']);
+        }
+
+        $isOverlapping = $overlapQuery->exists();
 
         if ($isOverlapping) {
             return back()
-                ->withErrors(['start_time' => 'Khung giờ này bị trùng hoặc lồng ghép với một khung giờ đã tồn tại trong cùng ngày!'])
+                ->withErrors(['start_time' => 'Khung giờ này bị trùng hoặc lồng ghép với một khung giờ đã tồn tại trong cùng ngày/áp dụng chung!'])
                 ->withInput();
         }
 
-        // 3. Lưu vào Database (bao gồm cả giờ vàng)
+        // 3. Lưu vào Database
         $court->slots()->create($validated);
 
         return redirect()->route('owner.courts.slots.index', $court)
                          ->with('success', 'Đã thêm khung giờ thành công!');
     }
+
     /**
      * Xóa khung giờ.
      */
