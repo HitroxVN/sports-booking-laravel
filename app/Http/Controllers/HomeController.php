@@ -34,7 +34,7 @@ class HomeController extends Controller
                 'subtitle'  => 'Hơn 200 khu sân bóng đá, cầu lông, tennis và pickleball được kiểm định trên toàn quốc.',
                 'cta_label' => 'Tìm sân ngay',
                 'cta_href'  => '/search',
-                'image_url' => asset('storage/banners/banner_3.jpg'),
+                'image_url' => asset('images/banners/banner_3.jpg'),
                 'theme'     => 'cobalt',
             ],
             [
@@ -43,7 +43,7 @@ class HomeController extends Controller
                 'subtitle'  => 'Áp dụng tự động khi đăng ký thành viên Arena và thanh toán trực tuyến.',
                 'cta_label' => 'Đăng ký thành viên',
                 'cta_href'  => '/register',
-                'image_url' => asset('storage/banners/banner_2.jpg'),
+                'image_url' => asset('images/banners/banner_2.jpg'),
                 'theme'     => 'emerald',
             ],
             [
@@ -52,7 +52,7 @@ class HomeController extends Controller
                 'subtitle'  => 'Kết nối với hàng nghìn người chơi, theo dõi công suất sân theo thời gian thực.',
                 'cta_label' => 'Trở thành đối tác',
                 'cta_href'  => '/register',
-                'image_url' => asset('storage/banners/banner_1.jpg'),
+                'image_url' => asset('images/banners/banner_1.jpg'),
                 'theme'     => 'graphite',
             ],
         ];
