@@ -337,5 +337,8 @@
             @endif
         </main>
     </div>
+
+    {{-- Block gợi ý sản phẩm/sân: "Có thể bạn cũng thích" (Thuật toán Apriori) --}}
+    <x-recommendations-block :venue-id="$venue->id" title="Có thể bạn cũng thích" subtitle="Gợi ý các sân thể thao được quan tâm và đặt cùng nhiều nhất" :limit="4" />
 </div>
 @endsection
