@@ -70,13 +70,21 @@
                         </div>
 
                         <div>
-                            <label for="venue-status" class="label-eyebrow block mb-2">Trạng Thái *</label>
-                            <select id="venue-status" name="status" class="input-base">
-                                <option value="active" @selected(old('status', $venue->status) == 'active')>Hoạt động</option>
-                                <option value="pending" @selected(old('status', $venue->status) == 'pending')>Chờ duyệt</option>
-                                <option value="closed" @selected(old('status', $venue->status) == 'closed')>Đóng cửa</option>
-                            </select>
-                            @error('status') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                            <label class="label-eyebrow block mb-2">Trạng Thái</label>
+                            @if(in_array($venue->status, ['active', 'closed']))
+                                {{-- Chủ sân chỉ được tạm đóng/mở lại sân đã duyệt --}}
+                                <label class="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                    <input type="checkbox" name="temporarily_closed" value="1"
+                                           @checked(old('temporarily_closed', $venue->status === 'closed'))
+                                           class="rounded border-zinc-300 dark:border-zinc-600 text-primary-600 focus:ring-primary-500">
+                                    Tạm đóng sân (khách không đặt được)
+                                </label>
+                            @else
+                                {{-- pending/rejected: chỉ admin duyệt --}}
+                                <p class="text-sm {{ $venue->status === 'pending' ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400' }}">
+                                    {{ $venue->status === 'pending' ? 'Chờ quản trị viên duyệt.' : 'Bị từ chối — liên hệ quản trị viên.' }}
+                                </p>
+                            @endif
                         </div>
                     </div>
 

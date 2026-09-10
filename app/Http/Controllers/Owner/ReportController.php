@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
-use App\Models\Booking;
+use App\Models\Payment;
 use App\Models\Venue;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
@@ -14,28 +15,75 @@ class ReportController extends Controller
     {
         $ownerId = auth()->id();
         $venues = Venue::where('owner_id', $ownerId)->get();
-        $venueIds = $venues->pluck('id');
 
-        // Lọc theo khoảng thời gian (Mặc định tháng này)
-        $fromDate = $request->filled('from_date') ? Carbon::parse($request->from_date) : now()->startOfMonth();
-        $toDate = $request->filled('to_date') ? Carbon::parse($request->to_date) : now()->endOfMonth();
+        // Bộ lọc ngày (mặc định 30 ngày gần nhất)
+        $startDate = $request->input('start_date', Carbon::now()->subDays(29)->format('Y-m-d'));
+        $endDate   = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $venueId   = $request->input('venue_id');
 
-        $query = Booking::with(['court.venue'])
-            ->whereHas('court.venue', fn($q) => $q->where('owner_id', $ownerId))
-            ->whereBetween('booking_date', [$fromDate, $toDate])
-            ->whereIn('status', ['confirmed', 'completed']);
+        // Base Query lọc theo chủ sân và khoảng thời gian
+        $basePaymentQuery = Payment::query()
+            ->where('payments.status', 'success')
+            ->whereBetween('payments.created_at', [
+                Carbon::parse($startDate)->startOfDay(),
+                Carbon::parse($endDate)->endOfDay()
+            ])
+            ->whereHas('booking.court.venue', function ($q) use ($ownerId, $venueId) {
+                $q->where('owner_id', $ownerId);
+                if (!empty($venueId)) {
+                    $q->where('id', $venueId);
+                }
+            });
 
-        // Tổng quan thống kê
-        $totalRevenue = $query->sum('total_amount');
-        $totalBookings = $query->count();
-        $totalDeposit = $query->sum('deposit_amount');
+        // 1. Thống kê tổng quan (KPIs)
+        $totalRevenue = (clone $basePaymentQuery)->sum('amount');
+        $successfulTransactions = (clone $basePaymentQuery)->count();
+        $totalBookings = (clone $basePaymentQuery)->distinct('booking_id')->count('booking_id');
 
-        // Lấy danh sách chi tiết các đơn trong kỳ báo cáo để xem
-        $bookings = $query->latest()->paginate(15);
+        // 2. Doanh thu theo phương thức thanh toán (gateway)
+        $revenueByGateway = (clone $basePaymentQuery)
+            ->select('gateway', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
+            ->groupBy('gateway')
+            ->get();
+
+        // 3. Biểu đồ doanh thu từng ngày
+        $dailyData = (clone $basePaymentQuery)
+            ->select(DB::raw('DATE(payments.created_at) as date'), DB::raw('SUM(amount) as total'))
+            ->groupBy('date')
+            ->orderBy('date', 'ASC')
+            ->pluck('total', 'date')
+            ->toArray();
+
+        // Lấp đầy các ngày không có doanh thu bằng 0
+        $chartLabels = [];
+        $chartValues = [];
+        $period = Carbon::parse($startDate)->daysUntil(Carbon::parse($endDate));
+
+        foreach ($period as $dt) {
+            $formattedDate = $dt->format('Y-m-d');
+            $chartLabels[] = $dt->format('d/m');
+            $chartValues[] = $dailyData[$formattedDate] ?? 0;
+        }
+
+        // 4. Lịch sử giao dịch gần nhất
+        $recentPayments = (clone $basePaymentQuery)
+            ->with(['booking.court.venue', 'booking.user'])
+            ->latest('payments.created_at')
+            ->paginate(10)
+            ->withQueryString();
 
         return view('owner.reports.index', compact(
-            'venues', 'totalRevenue', 'totalBookings', 'totalDeposit', 
-            'bookings', 'fromDate', 'toDate'
+            'venues',
+            'startDate',
+            'endDate',
+            'venueId',
+            'totalRevenue',
+            'successfulTransactions',
+            'totalBookings',
+            'revenueByGateway',
+            'chartLabels',
+            'chartValues',
+            'recentPayments'
         ));
     }
 }

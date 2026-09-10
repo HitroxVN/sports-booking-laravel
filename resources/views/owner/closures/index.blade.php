@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center gap-4">
             <div>
-                <a href="{{ route('owner.venues.courts.index', $court->venue) }}" class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 mb-2 inline-block">
+                <a href="{{ route('owner.venues.courts.index', $court->venue->slug) }}" class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 mb-2 inline-block">
                     &larr; Quay lại danh sách Sân Con
                 </a>
                 <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -54,8 +54,23 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="4" class="p-8">
-                                <x-empty-state icon="🔒" title="Sân này hiện không có lịch khóa đột xuất nào" description="Khóa lịch khi cần bảo trì hoặc cho thuê mục đích khác." actionUrl="{{ route('owner.courts.closures.create', $court) }}" actionText="Thêm Lịch Khóa" />
+                            <td colspan="4" class="p-12 text-center">
+                                <div class="flex flex-col items-center justify-center space-y-3">
+                                    <div class="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl">
+                                        🔒
+                                    </div>
+                                    <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                                        Sân này hiện không có lịch khóa đột xuất nào
+                                    </h3>
+                                    <p class="text-sm text-zinc-500 dark:text-zinc-400 max-w-sm">
+                                        Khóa lịch khi cần bảo trì hoặc cho thuê mục đích khác.
+                                    </p>
+                                    <div class="pt-2">
+                                        <a href="{{ route('owner.courts.closures.create', $court) }}" class="btn-primary inline-flex items-center">
+                                            Thêm Lịch Khóa
+                                        </a>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                         @endforelse

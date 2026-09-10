@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex justify-between items-center gap-4">
             <div>
-                <a href="{{ route('owner.venues.courts.index', $court->venue) }}" class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 mb-2 inline-block">
+                <a href="{{ route('owner.venues.courts.index', $court->venue->slug) }}" class="text-sm font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 mb-2 inline-block">
                     &larr; Quay lại danh sách Sân Con
                 </a>
                 <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -36,7 +36,7 @@
                         @endphp
                         @forelse($slots as $slot)
                         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                            <td class="px-6 py-4 font-semibold text-zinc-900 dark:text-zinc-100">{{ $days[$slot->day_of_week] ?? 'Tất cả các ngày / Chưa chọn' }}</td>
+                            <td class="px-6 py-4 font-semibold text-zinc-900 dark:text-zinc-100">{{ $days[$slot->day_of_week] ?? 'Tất cả các ngày' }}</td>
                             <td class="px-6 py-4 text-center font-mono text-zinc-600 dark:text-zinc-400">
                                 {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}
                             </td>
@@ -61,8 +61,23 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="p-8">
-                                <x-empty-state icon="⏰" title="Sân này chưa có khung giờ nào" description="Thiết lập khung giờ và giá để khách hàng có thể đặt sân." actionUrl="{{ route('owner.courts.slots.create', $court) }}" actionText="Thêm Khung Giờ" />
+                            <td colspan="6" class="p-12 text-center">
+                                <div class="flex flex-col items-center justify-center space-y-3">
+                                    <div class="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-2xl">
+                                        ⏰
+                                    </div>
+                                    <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                                        Sân này chưa có khung giờ nào
+                                    </h3>
+                                    <p class="text-sm text-zinc-500 dark:text-zinc-400 max-w-sm">
+                                        Thiết lập khung giờ và giá để khách hàng có thể đặt sân.
+                                    </p>
+                                    <div class="pt-2">
+                                        <a href="{{ route('owner.courts.slots.create', $court) }}" class="btn-primary inline-flex items-center">
+                                            Thêm Khung Giờ
+                                        </a>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                         @endforelse
