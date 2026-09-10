@@ -245,7 +245,11 @@
                     </div>
                 </div>
             </form>
+        </div>
 
+        {{-- Block Gợi ý: Có thể bạn cũng thích (Thuật toán Apriori) --}}
+        <div class="max-w-6xl mx-auto">
+            <x-recommendations-block :court-id="$court->id" title="Có thể bạn cũng thích" subtitle="Khách hàng đặt sân này cũng thường quan tâm và đặt các sân sau" :limit="4" />
         </div>
     </div>
 @endsection

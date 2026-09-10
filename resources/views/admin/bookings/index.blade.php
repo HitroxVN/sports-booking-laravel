@@ -80,6 +80,12 @@
                             @else
                                 <x-badge variant="default">Chưa thanh toán</x-badge>
                             @endif
+                            <div class="mt-1">
+                                <a href="{{ route('admin.payments.index', ['search' => $booking->code]) }}"
+                                   class="text-[11px] text-primary-600 dark:text-primary-400 hover:underline font-medium inline-flex items-center gap-0.5">
+                                    Lịch sử GD &rarr;
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     @empty

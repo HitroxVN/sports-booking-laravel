@@ -36,7 +36,11 @@
                     ['admin.users.index', 'users', 'Người dùng'],
                     ['admin.venues.index', 'building', 'Khu sân'],
                     ['admin.bookings.index', 'calendar', 'Đơn đặt sân'],
+                    ['admin.payments.index', 'card', 'Thanh toán'],
                     ['admin.sports.index', 'squares', 'Môn thể thao'],
+                ],
+                'Hỗ trợ' => [
+                    ['admin.chats.index', 'chat', 'Livechat Hỗ trợ'],
                 ],
                 'Nâng cao' => [
                     ['admin.reports.index', 'chart', 'Báo cáo'],

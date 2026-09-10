@@ -254,6 +254,9 @@
         </div>
     </footer>
 
+    {{-- Livechat Realtime Floating Widget --}}
+    <x-chat-widget />
+
     @stack('scripts')
 </body>
 
