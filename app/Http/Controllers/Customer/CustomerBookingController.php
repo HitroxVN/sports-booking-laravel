@@ -49,6 +49,13 @@ class CustomerBookingController extends Controller
             ];
         }
 
+        // Cắt ô giờ theo cấu hình khung giờ của chủ sân cho từng ngày (7 ngày tới)
+        // Ngày nào chủ sân chưa cài khung giờ sẽ có danh sách ô rỗng → phía khách không hiện ô nào.
+        $slotCells = [];
+        foreach ($dates as $d) {
+            $slotCells[$d['full_date']] = CourtSlot::buildTimeCells($court->slots, $d['full_date']);
+        }
+
         // Chuẩn hóa định dạng booking_date (Y-m-d) và start_time/end_time (H:i)
         // để JS so sánh string không bị lệch do TIME trả về có giây (H:i:s)
         $existingBookings = Booking::where('court_id', $courtId)
@@ -72,13 +79,23 @@ class CustomerBookingController extends Controller
                 'end_time'   => $c->end_time ? Carbon::parse($c->end_time)->format('H:i') : null,
             ]);
 
-        // Giờ hoạt động theo ngày trong tuần của khu sân — JS dùng để dựng grid giờ đặt
-        $operatingHours = $court->venue->operatingHours;
+        // Giờ hoạt động theo ngày trong tuần của khu sân — dùng để chặn ngày nghỉ khi đặt
+        // Map thành mảng gọn (H:i, boolean) để JS so sánh không lệch do TIME trả về có giây
+        $operatingHours = $court->venue->operatingHours
+            ->map(fn ($h) => [
+                'day_of_week' => (int) $h->day_of_week,
+                'open_time'   => $h->open_time ? substr($h->open_time, 0, 5) : null,
+                'close_time'  => $h->close_time ? substr($h->close_time, 0, 5) : null,
+                'is_closed'   => (bool) $h->is_closed,
+            ]);
 
-        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures', 'operatingHours'));
+        // Khu sân có cài giờ hoạt động không — chưa cài thì UI không chặn theo giờ hoạt động
+        $venueHasOperatingHours = $operatingHours->isNotEmpty();
+
+        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures', 'slotCells', 'operatingHours', 'venueHasOperatingHours'));
     }
 
-    // 3. Xử lý đặt sân + Tính tiền cộng dồn theo khung giờ
+    // 3. Xử lý đặt sân + Tính tiền theo các ô giờ được chủ sân cấu hình
     public function store(Request $request)
     {
         $request->validate([
@@ -101,49 +118,71 @@ class CustomerBookingController extends Controller
         }
 
         // ─── Giờ hoạt động của khu sân trong ngày này ───
-        $operatingHour = OperatingHour::where('venue_id', $court->venue_id)->where('day_of_week', $dow)->first();
+        // Khu sân chưa cài giờ hoạt động nào ≠ "nghỉ" — chỉ chặn khi ĐÃ cài mà ngày đó nghỉ/ngoài giờ
+        $hasOperatingHours = OperatingHour::where('venue_id', $court->venue_id)->exists();
 
-        if (!$operatingHour || $operatingHour->is_closed) {
-            return back()->with('error', 'Khu sân nghỉ ngày này, vui lòng chọn ngày khác!');
-        }
+        if ($hasOperatingHours) {
+            $operatingHour = OperatingHour::where('venue_id', $court->venue_id)->where('day_of_week', $dow)->first();
 
-        $openTime  = Carbon::parse($operatingHour->open_time);
-        $closeTime = Carbon::parse($operatingHour->close_time);
-        if ($startTime->lt($openTime) || $endTime->gt($closeTime)) {
-            return back()->with('error', 'Thời gian đặt phải nằm trong giờ hoạt động (' . $openTime->format('H:i') . ' - ' . $closeTime->format('H:i') . ')!');
-        }
-
-        // ─── Tính tiền theo slot khớp giờ + ngày trong tuần (không fallback giá ảo) ───
-        $courtSlots = CourtSlot::where('court_id', $court->id)
-            ->where(function ($q) use ($dow) {
-                $q->whereNull('day_of_week')->orWhere('day_of_week', $dow);
-            })
-            ->get();
-
-        $totalAmount = 0;
-        $current = $startTime->copy();
-        while ($current < $endTime) {
-            $next = $current->copy()->addHour();
-
-            // Ưu tiên slot theo ngày cụ thể (day_of_week = dow) hơn slot "mọi ngày" (null)
-            $matchedSlot = $courtSlots->first(function ($slot) use ($current, $next, $dow) {
-                return $current->format('H:i:s') >= $slot->start_time
-                    && $next->format('H:i:s') <= $slot->end_time
-                    && $slot->day_of_week == $dow; // so lỏng: driver có thể trả int hoặc string
-            }) ?? $courtSlots->first(function ($slot) use ($current, $next) {
-                return $current->format('H:i:s') >= $slot->start_time && $next->format('H:i:s') <= $slot->end_time;
-            });
-
-            if (!$matchedSlot) {
-                return back()->with('error', 'Sân chưa có giá cho khung ' . $current->format('H:i') . ' - ' . $next->format('H:i') . ', vui lòng chọn khung giờ khác!');
+            if (!$operatingHour || $operatingHour->is_closed) {
+                return back()->with('error', 'Khu sân nghỉ ngày này, vui lòng chọn ngày khác!');
             }
 
-            $totalAmount += ($matchedSlot->is_peak && $matchedSlot->peak_price)
-                ? $matchedSlot->peak_price
-                : $matchedSlot->price;
-
-            $current->addHour();
+            $openTime  = Carbon::parse($operatingHour->open_time);
+            $closeTime = Carbon::parse($operatingHour->close_time);
+            if ($startTime->lt($openTime) || $endTime->gt($closeTime)) {
+                return back()->with('error', 'Thời gian đặt phải nằm trong giờ hoạt động (' . $openTime->format('H:i') . ' - ' . $closeTime->format('H:i') . ')!');
+            }
         }
+
+        // ─── Cắt ô giờ theo cấu hình của chủ sân cho ngày đặt ───
+        // (buildTimeCells đã ưu tiên slot gắn thứ cụ thể hơn slot "mọi ngày")
+        $cells = CourtSlot::buildTimeCells(
+            $court->slots,
+            $request->booking_date
+        );
+
+        if (empty($cells)) {
+            return back()->with('error', 'Sân này chưa mở bán khung giờ nào cho ngày đã chọn!');
+        }
+
+        // Khoảng giờ khách gửi phải khớp chính xác một dãy ô mở bán liền kề
+        $requestedStart = substr($request->start_time, 0, 5);
+        $requestedEnd   = substr($request->end_time, 0, 5);
+
+        $selectedCells = [];
+        $matching = true;
+        foreach ($cells as $index => $cell) {
+            if ($cell['start'] >= $requestedStart && $cell['end'] <= $requestedEnd) {
+                if (!$cell['is_open']) {
+                    $matching = false;
+                    break;
+                }
+                // Ô đầu phải bắt đầu đúng requestedStart, ô sau liền kề ô trước
+                $prevEnd = $selectedCells
+                    ? end($selectedCells)['end']
+                    : null;
+                if ($prevEnd === null) {
+                    $matching = ($cell['start'] === $requestedStart);
+                } else {
+                    $matching = ($cell['start'] === $prevEnd);
+                }
+                if (!$matching) {
+                    break;
+                }
+                $selectedCells[] = $cell;
+            }
+        }
+
+        if (
+            !$matching || empty($selectedCells)
+            || end($selectedCells)['end'] !== $requestedEnd
+        ) {
+            return back()->with('error', 'Khung giờ này không áp dụng cho sân, vui lòng chọn lại theo các ô giờ hiển thị!');
+        }
+
+        // Tổng tiền = cộng giá các ô giờ được chọn
+        $totalAmount = array_sum(array_column($selectedCells, 'price'));
 
         // ─── Tạo đơn trong transaction + khóa dòng sân cha (chống đặt trùng khi 2 request song song) ───
         // Chuẩn hóa H:i:s để so khớp TIME khi so chuỗi (sqlite lưu verbatim, MySQL cast TIME)

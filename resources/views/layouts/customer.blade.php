@@ -15,9 +15,7 @@
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
-    <!-- Alpine.js -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
+    <!-- Alpine.js được bundle cùng app.js (Vite) — đăng ký component bookingGrid trước khi Alpine start -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
