@@ -59,6 +59,9 @@
     {{-- Footer dùng chung — component: components/site-footer.blade.php --}}
     <x-site-footer />
 
+    {{-- Livechat Realtime Floating Widget --}}
+    <x-chat-widget />
+
     @stack('scripts')
 </body>
 

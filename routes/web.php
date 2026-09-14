@@ -15,13 +15,16 @@ use App\Http\Controllers\Owner\SlotController;
 use App\Http\Controllers\Owner\VenueController;
 
 // Customer
+use App\Http\Controllers\Customer\ChatController as CustomerChatController;
 use App\Http\Controllers\Customer\CustomerBookingController;
 use App\Http\Controllers\Customer\SearchController;
 use App\Http\Controllers\Customer\VenueController as CustomerVenueController;
 
 // Admin
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
+use App\Http\Controllers\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\SportController as AdminSportController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -36,6 +39,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/lien-he', fn () => view('contact'))->name('contact');
 Route::get('/venues/{slug}', [CustomerVenueController::class, 'show'])->name('venues.show');
+
+// ─── Livechat Khách Hàng (WebSockets Realtime) ───────────────────────────────
+Route::post('/chat/initiate',                  [CustomerChatController::class, 'initiate'])->name('chat.initiate');
+Route::get('/chat/{conversation}/messages',   [CustomerChatController::class, 'getMessages'])->name('chat.messages');
+Route::post('/chat/{conversation}/messages',  [CustomerChatController::class, 'sendMessage'])->name('chat.send');
 
 // Route trung gian giải quyết lỗi Route [dashboard] not defined của Breeze
 Route::get('/dashboard', function () {
@@ -133,6 +141,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     // Reports + export CSV
     Route::get('/reports',        [AdminReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
+
+    // Payments: Quản lý chi tiết lịch sử thanh toán đơn hàng
+    Route::get('/payments',           [AdminPaymentController::class, 'index'])->name('payments.index');
+    Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
+
+    // Livechat: Quản trị tin nhắn thời gian thực
+    Route::get('/chats',                         [AdminChatController::class, 'index'])->name('chats.index');
+    Route::get('/chats/{conversation}',          [AdminChatController::class, 'show'])->name('chats.show');
+    Route::post('/chats/{conversation}/reply',   [AdminChatController::class, 'reply'])->name('chats.reply');
+    Route::patch('/chats/{conversation}/status', [AdminChatController::class, 'toggleStatus'])->name('chats.status');
 });
 
 require __DIR__ . '/auth.php';
