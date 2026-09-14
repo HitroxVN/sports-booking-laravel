@@ -21,7 +21,9 @@
         "@laravel/multiplex": "^0.4.1"
     },
     "dependencies": {
+        "laravel-echo": "^2.5.0",
         "lucide-react": "^1.38.0",
+        "pusher-js": "^8.6.0",
         "swiper": "^14.2.0"
     }
 }
