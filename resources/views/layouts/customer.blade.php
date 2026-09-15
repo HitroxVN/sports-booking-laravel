@@ -6,11 +6,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? config('app.name') }}</title>
+
+    {{-- Khởi tạo theme (sáng/tối) trước khi render để tránh nhấp nháy FOUC --}}
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem('color-mode');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) { /* bỏ qua nếu localStorage bị chặn */ }
+        })();
+    </script>
     <link rel="icon" type="image/jpeg" href="{{ asset('images/logo/logo.jpg') }}">
 
-    <!-- Fonts -->
+    <!-- Fonts: Inter — hệ typography Long Châu -->
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:400,500,600,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
 
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
@@ -25,29 +37,7 @@
     {{-- Header dùng chung (utility bar + navbar) — component: components/site-header.blade.php --}}
     <x-site-header />
 
-    {{-- ================================================
-         FLASH MESSAGES
-    ================================================= --}}
-    @if(session('success'))
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
-        <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 text-green-800 dark:text-green-300 px-4 py-3 rounded-xl text-sm flex items-start gap-2">
-            <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {{ session('success') }}
-        </div>
-    </div>
-    @endif
-    @if(session('error'))
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
-        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 text-red-800 dark:text-red-300 px-4 py-3 rounded-xl text-sm flex items-start gap-2">
-            <svg class="w-4 h-4 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {{ session('error') }}
-        </div>
-    </div>
-    @endif
+    {{-- Flash messages giờ do <x-lc-toast /> (góc trên phải) hiển thị — xem components/lc-toast.blade.php --}}
 
     {{-- ================================================
          PAGE CONTENT
@@ -59,8 +49,14 @@
     {{-- Footer dùng chung — component: components/site-footer.blade.php --}}
     <x-site-footer />
 
+    {{-- Dòng chữ khẩu hiệu chạy ngang, cố định dưới cùng màn hình --}}
+    <x-lc-marquee />
+
     {{-- Livechat Realtime Floating Widget --}}
     <x-chat-widget />
+
+    {{-- Toast/Snackbar: flash session + thông báo JS (window.toast) — góc trên phải --}}
+    <x-lc-toast />
 
     @stack('scripts')
 </body>

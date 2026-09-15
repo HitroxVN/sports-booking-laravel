@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
 
@@ -40,6 +41,27 @@ class Venue extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    // --- Helpers ---
+
+    /**
+     * Số lượt đặt hợp lệ (không hủy) theo từng khu sân — đếm qua sân con.
+     * Trả về mảng [venue_id => total]. Dùng chung cho home + bảng xếp hạng.
+     * Chú ý soft deletes trên cả bookings lẫn courts.
+     */
+    public static function bookingCountsByVenue(): array
+    {
+        return DB::table('bookings')
+            ->join('courts', fn ($join) => $join
+                ->on('bookings.court_id', '=', 'courts.id')
+                ->whereNull('courts.deleted_at'))
+            ->whereNull('bookings.deleted_at')
+            ->where('bookings.status', '!=', 'cancelled')
+            ->groupBy('courts.venue_id')
+            ->selectRaw('courts.venue_id as venue_id, count(*) as total')
+            ->pluck('total', 'venue_id')
+            ->all();
     }
 
     // --- Relationships ---

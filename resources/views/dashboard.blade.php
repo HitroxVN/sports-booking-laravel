@@ -10,10 +10,10 @@
                 Bạn đã đăng nhập thành công. Bắt đầu tìm kiếm và đặt sân thể thao ngay thôi.
             </p>
             <div class="flex items-center justify-center gap-3">
-                <a href="/search" class="inline-flex items-center px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors">
+                <a href="/search" class="inline-flex items-center px-5 py-2.5 bg-cta-400 hover:bg-cta-600 text-zinc-900 text-sm font-semibold rounded-lg shadow-sm transition-colors">
                     Tìm sân ngay
                 </a>
-                <a href="/my-bookings" class="inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                <a href="/my-bookings" class="inline-flex items-center px-5 py-2.5 text-sm font-semibold rounded-lg border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-tint-sky dark:hover:bg-zinc-800 transition-colors">
                     Đơn đặt sân của tôi
                 </a>
             </div>

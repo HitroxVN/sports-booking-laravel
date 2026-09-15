@@ -9,9 +9,21 @@
 
     <title>{{ config('app.name', 'Arena Sports Booking') }}</title>
 
-    <!-- Fonts -->
+    {{-- Khởi tạo theme (sáng/tối) trước khi render để tránh nhấp nháy FOUC --}}
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem('color-mode');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) { /* bỏ qua nếu localStorage bị chặn */ }
+        })();
+    </script>
+
+    <!-- Fonts: Inter — hệ typography Long Châu -->
     <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:400,500,600,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])

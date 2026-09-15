@@ -35,7 +35,7 @@
             </p>
         </div>
         <span class="text-xs text-zinc-400 dark:text-zinc-500 self-start sm:self-auto flex items-center gap-1">
-            <svg class="w-3.5 h-3.5 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="w-3.5 h-3.5 text-accent-moss" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
             </svg>
             Tự động phân tích theo đơn hàng
@@ -61,7 +61,7 @@
                     <div class="absolute top-2.5 left-2.5">
                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold backdrop-blur-md {{ $isFrequentPair ? 'bg-primary-600/90 text-white shadow-sm' : 'bg-zinc-900/80 text-zinc-100 border border-white/10' }}">
                             @if($isFrequentPair)
-                                <svg class="w-3 h-3 text-amber-300" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-3 h-3 text-cta-300" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                 </svg>
                             @endif
@@ -113,7 +113,7 @@
                         </div>
 
                         <a href="{{ route('customer.bookings.create', $court->id) }}"
-                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary-600 hover:bg-primary-700 text-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary-500">
+                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-cta-400 hover:bg-cta-600 text-zinc-900 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-cta-500">
                             Đặt ngay
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>

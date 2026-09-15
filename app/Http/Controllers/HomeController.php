@@ -19,12 +19,24 @@ class HomeController extends Controller
         // Lấy danh sách các môn thể thao đang hoạt động
         $sports = Sport::where('is_active', true)->get();
 
-        // Lấy danh sách các khu sân nổi bật (đã được kích hoạt/duyệt)
+        // Khu sân nổi bật — xếp hạng theo lượt đặt thật (trừ đơn hủy), phụ trợ điểm đánh giá
+        $bookingCounts = Venue::bookingCountsByVenue();
+
         $featuredVenues = Venue::whereIn('status', ['active', 'approved'])
-            ->with(['images', 'courts.sport', 'courts.slots', 'reviews'])
-            ->inRandomOrder()
-            ->limit(8)
-            ->get();
+            ->with(['courts' => fn ($q) => $q->where('status', 'active')->with(['sport', 'slots']), 'reviews'])
+            ->withCount([
+                'courts as courts_count' => fn ($q) => $q->where('status', 'active'),
+                'reviews as reviews_count',
+            ])
+            ->get()
+            ->each(fn ($v) => $v->bookings_count = $bookingCounts[$v->id] ?? 0)
+            ->sortBy([
+                fn ($a, $b) => $b->bookings_count <=> $a->bookings_count,
+                fn ($a, $b) => (float) $b->rating_avg <=> (float) $a->rating_avg,
+                fn ($a, $b) => $b->reviews_count <=> $a->reviews_count,
+            ])
+            ->values()
+            ->take(5);
 
         // Banner cho hero carousel — admin có thể thay ảnh sau bằng cách cập nhật `image_url`
         $banners = [
