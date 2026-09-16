@@ -29,10 +29,13 @@
 
             {{-- Badges nổi đè trên banner --}}
             <div class="absolute bottom-4 left-6 flex flex-wrap gap-2">
-                <span class="bg-primary-600/90 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
-                    ✓ Đã xác minh & Duyệt
+                <span class="inline-flex items-center gap-1.5 bg-primary-600/90 backdrop-blur-md text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lc">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Đã xác minh & Duyệt
                 </span>
-                <span class="bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm">
+                <span class="bg-black/60 backdrop-blur-md text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lc">
                     {{ $venue->courts->count() }} sân con
                 </span>
             </div>
@@ -110,8 +113,11 @@
                     <h3 class="text-xs font-bold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-3">Tiện ích sân</h3>
                     <div class="flex flex-wrap gap-2">
                         @foreach($venue->amenities as $amenity)
-                            <span class="inline-flex items-center gap-1.5 text-xs bg-zinc-100 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-600">
-                                ✨ {{ $amenity }}
+                            <span class="inline-flex items-center gap-1.5 text-xs bg-tint-lavender/60 dark:bg-zinc-700 text-accent-violet dark:text-zinc-200 px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-600">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                                </svg>
+                                {{ $amenity }}
                             </span>
                         @endforeach
                     </div>
@@ -205,7 +211,7 @@
                                 class="input-base">
                             <option value="name" {{ request('sort', 'name') == 'name' ? 'selected' : '' }}>Tên sân A → Z</option>
                             <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Giá: Thấp đến Cao</option>
-                            <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Gá: Cao đến Thấp</option>
+                            <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Giá: Cao đến Thấp</option>
                             <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Mới nhất</option>
                         </select>
                     </div>
@@ -250,7 +256,7 @@
 
                                 {{-- Badge trạng thái nổi trên ảnh --}}
                                 @if($court->status === 'active')
-                                    <span class="absolute top-3 right-3 bg-emerald-500/90 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-full border border-white/20">
+                                    <span class="absolute top-3 right-3 bg-accent-moss/90 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-full border border-white/20">
                                         Hoạt động
                                     </span>
                                 @else
@@ -277,7 +283,7 @@
 
                                 {{-- Mô tả ngắn (luôn render, min-h để đồng nhất chiều cao) --}}
                                 <p class="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mb-3 min-h-[2rem]">
-                                    {{ $court->description ?: 'Sân cầu lông chất lượng, không có mô tả chi tiết.' }}
+                                    {{ $court->description ?: 'Sân đạt chuẩn, được duyệt chất lượng bởi đội ngũ Arena.' }}
                                 </p>
 
                                 {{-- Chi tiết thông số: Mặt sân, sức chứa --}}
@@ -322,7 +328,9 @@
                 </div>
             @else
                 <div class="card-base p-12 text-center flex flex-col items-center justify-center">
-                    <div class="text-5xl mb-3"></div>
+                    <svg class="w-16 h-16 mb-3 text-zinc-300 dark:text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
                     <h3 class="text-base font-bold text-zinc-800 dark:text-zinc-200 mb-1">
                         Không tìm thấy sân con nào phù hợp
                     </h3>
@@ -341,4 +349,33 @@
     {{-- Block gợi ý sản phẩm/sân: "Có thể bạn cũng thích" (Thuật toán Apriori) --}}
     <x-recommendations-block :venue-id="$venue->id" title="Có thể bạn cũng thích" subtitle="Gợi ý các sân thể thao được quan tâm và đặt cùng nhiều nhất" :limit="4" />
 </div>
+
+{{-- ── MOBILE STICKY BOOKING BAR ──
+     Giữ nút đặt sân luôn trong tầm ngón tay khi lướt trang trên mobile.
+     Ẩn trên desktop (lg:); chừa safe-area cho iPhone có notch. --}}
+@php $minVenuePrice = $venue->courts->flatMap(fn($c) => $c->slots)->min('price'); @endphp
+<div class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 shadow-[0_-4px_16px_-4px_rgba(0,17,45,0.1)] px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            @if($minVenuePrice)
+                <span class="block text-[10px] text-zinc-400 dark:text-zinc-500">Giá thuê từ</span>
+                <span class="block text-base font-extrabold text-primary-600 dark:text-primary-400 leading-tight">
+                    {{ number_format($minVenuePrice, 0, ',', '.') }}đ<span class="text-xs font-normal text-zinc-400">/giờ</span>
+                </span>
+            @else
+                <span class="block text-sm font-bold text-zinc-900 dark:text-zinc-100">Đặt sân ngay hôm nay</span>
+                <span class="block text-[10px] text-zinc-400 dark:text-zinc-500">Giá: Liên hệ khu sân</span>
+            @endif
+        </div>
+        @php $firstActiveCourt = $venue->courts->where('status','active')->first(); @endphp
+        @if($firstActiveCourt)
+            <a href="{{ route('customer.bookings.create', $firstActiveCourt->id) }}"
+               class="btn-cta text-sm shrink-0">
+                Đặt sân ngay
+            </a>
+        @endif
+    </div>
+</div>
+{{-- Chừa khoảng trống cuối trang để sticky bar không che nội dung --}}
+<div class="lg:hidden h-20"></div>
 @endsection

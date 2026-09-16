@@ -38,6 +38,7 @@ use App\Http\Controllers\ProfileController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/lien-he', fn () => view('contact'))->name('contact');
+Route::get('/venues/popular', [CustomerVenueController::class, 'popular'])->name('venues.popular');
 Route::get('/venues/{slug}', [CustomerVenueController::class, 'show'])->name('venues.show');
 
 // ─── Livechat Khách Hàng (WebSockets Realtime) ───────────────────────────────

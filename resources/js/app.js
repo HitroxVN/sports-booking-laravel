@@ -1,5 +1,6 @@
 import Alpine from 'alpinejs';
 import './CustomerBooking';
+import './Toast';
 
 window.Alpine = Alpine;
 
