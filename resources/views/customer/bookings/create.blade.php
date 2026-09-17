@@ -213,7 +213,9 @@
             </div>
 
             <!-- Form Đặt Sân -->
-            <form action="{{ route('customer.bookings.store') }}" method="POST" class="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-xl border border-zinc-200 dark:border-zinc-700 mt-6">
+            <form action="{{ route('customer.bookings.store') }}" method="POST"
+                  class="bg-zinc-50 dark:bg-zinc-800/50 p-6 rounded-xl border border-zinc-200 dark:border-zinc-700 mt-6"
+                  onsubmit="var b = this.querySelector('button[type=submit]'); if (b.disabled) return false; b.disabled = true; b.classList.add('opacity-50','cursor-not-allowed');">
                 @csrf
                 <input type="hidden" name="court_id" value="{{ $court->id }}">
                 <input type="hidden" name="booking_date" :value="selectedDate">
@@ -238,8 +240,8 @@
                                 :disabled="!selectedStart"
                                 :class="!selectedStart
                                     ? 'bg-zinc-300 dark:bg-zinc-700 text-zinc-500 cursor-not-allowed'
-                                    : 'btn-primary'"
-                                class="w-full py-3 px-4 font-bold rounded-xl transition-all shadow">
+                                    : 'btn-cta'"
+                                class="w-full py-3 px-4 font-bold rounded-xl transition-all">
                             Xác nhận đặt sân
                         </button>
                     </div>

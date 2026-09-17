@@ -148,7 +148,7 @@
             box.scrollTop = box.scrollHeight;
         }
     }
-}" class="fixed bottom-6 right-6 z-50">
+}" class="arena-chat-fab fixed bottom-6 right-6 z-50 transition-all duration-300">
 
     {{-- Floating Toggle Button --}}
     <button @click="toggleChat()"
@@ -174,8 +174,8 @@
 
         {{-- Online Pulse Ping --}}
         <span class="absolute top-0 right-0 -mt-0.5 -mr-0.5 flex h-3.5 w-3.5">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white dark:border-zinc-900"></span>
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-olive opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-accent-moss border-2 border-white dark:border-zinc-900"></span>
         </span>
     </button>
 
@@ -197,12 +197,12 @@
                     <div class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-white font-bold text-sm">
                         AS
                     </div>
-                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white"></span>
+                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-accent-olive border border-white"></span>
                 </div>
                 <div>
                     <h4 class="font-bold text-sm leading-tight">Hỗ trợ Arena Sports</h4>
                     <p class="text-[11px] text-white/80 flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-300 inline-block animate-pulse"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-accent-olive inline-block animate-pulse"></span>
                         Trực tuyến &middot; Realtime chat
                     </p>
                 </div>
@@ -280,7 +280,7 @@
             </form>
             <div class="mt-1.5 flex items-center justify-between text-[10px] text-zinc-400 px-1">
                 <span>Nhấn Enter để gửi</span>
-                <span class="text-emerald-500 font-medium">&bull; Realtime WebSockets</span>
+                <span class="text-accent-moss font-medium">&bull; Realtime WebSockets</span>
             </div>
         </div>
     </div>

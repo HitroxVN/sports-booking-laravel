@@ -42,13 +42,16 @@
             @if($booking->payment_status !== 'unpaid')
                 {{-- Đã nhận tiền --}}
                 <div class="p-4 mb-4 text-sm bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 rounded-xl">
-                    <p class="font-semibold mb-1">
-                        ✓ Đã nhận thanh toán ({{ $booking->payment_status === 'fully_paid' ? 'đủ tiền' : 'đã cọc' }})
+                    <p class="font-semibold mb-1 flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Đã nhận thanh toán ({{ $booking->payment_status === 'fully_paid' ? 'đủ tiền' : 'đã cọc' }})
                     </p>
                     <p>Đơn của bạn {{ $booking->status === 'confirmed' ? 'đã được xác nhận.' : 'đang chờ chủ sân xác nhận.' }}</p>
                 </div>
                 <a href="{{ route('customer.bookings.index') }}"
-                   class="block w-full text-center bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2.5 rounded-xl">
+                   class="block w-full text-center btn-primary">
                     Xem lịch sử đặt sân
                 </a>
             @elseif($booking->isCancelled())
@@ -58,7 +61,7 @@
                 </div>
             @else
                 {{-- Chờ thanh toán --}}
-                <div class="border border-zinc-200 dark:border-zinc-700 rounded-xl p-6 text-center">
+                <div class="border border-zinc-200 dark:border-zinc-700 bg-tint-sky/50 dark:bg-transparent rounded-xl p-6 text-center">
                     <p class="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
                         Quét QR bằng app ngân hàng
                         @if($booking->deposit_amount)
@@ -66,7 +69,7 @@
                         @endif
                     </p>
 
-                    <img src="{{ $qrUrl }}" alt="Mã QR VietQR" class="w-64 mx-auto rounded-xl border border-zinc-200 dark:border-zinc-700">
+                    <img src="{{ $qrUrl }}" alt="Mã QR VietQR" class="w-64 mx-auto rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white p-2">
 
                     <div class="mt-4 text-sm text-left space-y-2">
                         <div class="flex items-center justify-between gap-2">
@@ -77,7 +80,7 @@
                             <span class="text-zinc-500 dark:text-zinc-400">Nội dung CK</span>
                             <span class="font-mono font-bold text-primary-600 dark:text-primary-400">{{ $booking->code }}</span>
                             <button type="button" @click="navigator.clipboard.writeText('{{ $booking->code }}')"
-                                    class="text-xs bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 px-2 py-1 rounded-lg">
+                                    class="text-xs bg-zinc-100 dark:bg-zinc-800 hover:bg-primary-50 dark:hover:bg-primary-900/30 text-zinc-600 dark:text-zinc-300 px-2 py-1 rounded-lg transition-colors">
                                 Copy
                             </button>
                         </div>

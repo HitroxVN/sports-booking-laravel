@@ -19,7 +19,7 @@
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
-                Xóa bộ lọc tìm kiếm
+                Xóa bộ lọc
             </a>
         @endif
     </div>
@@ -140,7 +140,7 @@
                         @endif
                     @endif
                     @if(request('city'))
-                        <span class="inline-flex items-center gap-1 text-xs bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded-full border border-blue-200 dark:border-blue-800">
+                        <span class="inline-flex items-center gap-1 text-xs bg-tint-aqua dark:bg-primary-900/40 text-primary-700 dark:text-primary-300 px-2.5 py-1 rounded-full border border-primary-200 dark:border-primary-800">
                              {{ request('city') }}
                         </span>
                     @endif
