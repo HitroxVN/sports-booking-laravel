@@ -9,6 +9,18 @@
 
     <title>{{ $title ?? 'Quản lý sân' }} — Arena Sports Booking</title>
 
+    {{-- Khởi tạo theme (sáng/tối) trước khi render để tránh nhấp nháy FOUC --}}
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem('color-mode');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) { /* bỏ qua nếu localStorage bị chặn */ }
+        })();
+    </script>
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=be-vietnam-pro:400,500,600,700&display=swap" rel="stylesheet" />
@@ -63,8 +75,11 @@
                     </h1>
                 </div>
 
-                {{-- User dropdown --}}
-                <div x-data="{ open: false }" class="relative shrink-0">
+                {{-- Theme toggle + User dropdown --}}
+                <div class="flex items-center gap-2 shrink-0">
+                    <x-theme-toggle />
+
+                    <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
                         :aria-expanded="open.toString()"
                         aria-haspopup="true"
@@ -104,6 +119,7 @@
                             </button>
                         </form>
                     </div>
+                </div>
                 </div>
             </header>
 

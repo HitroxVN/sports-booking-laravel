@@ -123,10 +123,18 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Users: index + ban/unban
-    Route::get('/users',               [AdminUserController::class, 'index'])->name('users.index');
-    Route::post('/users/{user}/ban',   [AdminUserController::class, 'ban'])->name('users.ban');
-    Route::post('/users/{user}/unban', [AdminUserController::class, 'unban'])->name('users.unban');
+    // Users: CRUD + ban/unban + reset password
+    Route::get('/users',                  [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/create',           [AdminUserController::class, 'create'])->name('users.create');
+    Route::post('/users',                 [AdminUserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}',           [AdminUserController::class, 'show'])->name('users.show')->withTrashed();
+    Route::get('/users/{user}/edit',      [AdminUserController::class, 'edit'])->name('users.edit');
+    Route::patch('/users/{user}',         [AdminUserController::class, 'update'])->name('users.update');
+    Route::patch('/users/{user}/password',[AdminUserController::class, 'updatePassword'])->name('users.password');
+    Route::delete('/users/{user}',        [AdminUserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/{user}/restore',  [AdminUserController::class, 'restore'])->name('users.restore')->withTrashed();
+    Route::post('/users/{user}/ban',      [AdminUserController::class, 'ban'])->name('users.ban');
+    Route::post('/users/{user}/unban',    [AdminUserController::class, 'unban'])->name('users.unban');
 
     // Venues: index + approve + reject (dùng {venue} — implicit binding theo slug)
     Route::get('/venues',               [AdminVenueController::class, 'index'])->name('venues.index');
