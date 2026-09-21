@@ -18,7 +18,7 @@
                 init() {
                     // Lắng nghe kênh chat.admin để nhận thông báo realtime khi có bất kỳ tin nhắn mới nào từ khách
                     if (window.Echo) {
-                        window.Echo.channel('chat.admin')
+                        window.Echo.private('chat.admin')
                             .listen('.message.sent', (e) => {
                                 this.handleAdminBroadcast(e);
                             });
@@ -89,7 +89,7 @@
                             window.Echo.leave('chat.conversation.' + this.activeChannel);
                         }
                         this.activeChannel = id;
-                        window.Echo.channel('chat.conversation.' + id)
+                        window.Echo.private('chat.conversation.' + id)
                             .listen('.message.sent', (e) => {
                                 if (e.sender_type === 'customer' && this.activeConversationId === id) {
                                     if (!this.activeMessages.some(m => m.id === e.id)) {

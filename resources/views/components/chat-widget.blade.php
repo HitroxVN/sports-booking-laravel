@@ -14,7 +14,12 @@
 
     init() {
         if (this.sessionToken && this.conversationId) {
-            this.listenToChannel(this.conversationId);
+            if ('{{ Auth::check() ? 'yes' : 'no' }}' === 'yes') {
+                this.listenToChannel(this.conversationId);
+            } else {
+                // Guest không auth được private channel — polling thay thế
+                this.startPolling();
+            }
         }
     },
 
@@ -55,6 +60,12 @@
             localStorage.setItem('arena_chat_conv_id', data.conversation_id);
             this.messages = data.messages || [];
 
+            @if (Auth::check())
+            this.listenToChannel(data.conversation_id);
+            @else
+            this.startPolling();
+            @endif
+
             this.listenToChannel(data.conversation_id);
             this.$nextTick(() => this.scrollToBottom());
         })
@@ -71,7 +82,7 @@
             window.Echo.leave('chat.conversation.' + convId);
         }
 
-        this.channel = window.Echo.channel('chat.conversation.' + convId)
+        this.channel = window.Echo.private('chat.conversation.' + convId)
             .listen('.message.sent', (e) => {
                 // Nếu tin nhắn từ admin gửi tới khách
                 if (e.sender_type === 'admin') {
@@ -140,6 +151,42 @@
         .catch(() => {
             this.sending = false;
         });
+    },
+
+    startPolling() {
+        if (this.pollTimer || !this.conversationId) return;
+        this.pollTimer = setInterval(() => {
+            if (!this.open) return; // tab đóng thì bỏ qua, đỡ request
+            fetch(`/chat/${this.conversationId}/messages`, {
+                headers: {
+                    'X-Chat-Session': this.sessionToken,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (!data || !Array.isArray(data.messages)) return;
+                // Chỉ append tin nhắn mới (so theo id)
+                const knownIds = new Set(this.messages.map(m => m.id));
+                for (const m of data.messages) {
+                    if (!knownIds.has(m.id)) {
+                        this.messages.push({
+                            id: m.id,
+                            sender_type: m.sender_type,
+                            sender_name: m.sender_name || 'Hỗ trợ viên',
+                            message: m.message,
+                            is_me: m.sender_type === 'customer',
+                            created_at_time: m.created_at_time || 'Vừa xong'
+                        });
+                        if (m.sender_type === 'admin' && !this.open) {
+                            this.unreadCount++;
+                        }
+                        this.$nextTick(() => this.scrollToBottom());
+                    }
+                }
+            })
+            .catch(() => {});
+        }, 5000);
     },
 
     scrollToBottom() {
