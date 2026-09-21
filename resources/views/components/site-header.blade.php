@@ -9,7 +9,7 @@
             <svg class="w-3.5 h-3.5 text-cta-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path d="M2 5a2 2 0 012-2h1.5a1 1 0 01.968.732l1.107 3.857a1 1 0 01-.313 1.047l-1.403 1.194a11.018 11.018 0 005.501 5.501l1.194-1.403a1 1 0 011.047-.313l3.857 1.107A1 1 0 0117 13.5V15a2 2 0 01-2 2h-1C7.72 17 3 12.28 3 6.5V5z" />
             </svg>
-            Hotline: <a href="tel:19001234" class="font-semibold text-white hover:text-cta-300 transition-colors">1900 1234</a>
+            Hotline: <a href="tel:{{ str_replace(' ', '', setting('contact_hotline', '1900 1234')) }}" class="font-semibold text-white hover:text-cta-300 transition-colors">{{ setting('contact_hotline', '1900 1234') }}</a>
         </span>
         <div class="hidden sm:flex items-center gap-3">
             <a href="/search" class="hover:text-cta-300 transition-colors">Tìm sân</a>
@@ -30,8 +30,8 @@
                 <img src="{{ asset('images/logo/logo.jpg') }}" alt="Arena Sports Booking"
                     class="w-9 h-9 rounded-lg object-cover shrink-0">
                 <div class="leading-tight">
-                    <span class="block text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Arena</span>
-                    <span class="block text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Sports Booking</span>
+                    <span class="block text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">{{ setting('site_name', 'Arena') }}</span>
+                    <span class="block text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{{ setting('site_tagline', 'Sports Booking') }}</span>
                 </div>
             </a>
 

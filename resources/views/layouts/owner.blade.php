@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/jpeg" href="{{ asset('images/logo/logo.jpg') }}">
+    <link rel="icon" type="image/jpeg" href="{{ \App\Models\Setting::asset('app_logo', asset('images/logo/logo.jpg')) }}">
 
     <title>{{ $title ?? 'Quản lý sân' }} — Arena Sports Booking</title>
 

@@ -18,7 +18,7 @@
             } catch (e) { /* bỏ qua nếu localStorage bị chặn */ }
         })();
     </script>
-    <link rel="icon" type="image/jpeg" href="{{ asset('images/logo/logo.jpg') }}">
+    <link rel="icon" type="image/jpeg" href="{{ \App\Models\Setting::asset('app_logo', asset('images/logo/logo.jpg')) }}">
 
     <!-- Fonts: Inter — hệ typography Long Châu -->
     <link rel="preconnect" href="https://fonts.bunny.net">

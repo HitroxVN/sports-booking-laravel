@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\SportController as AdminSportController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\VenueController as AdminVenueController;
@@ -151,6 +152,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
 
     // Sports: CRUD (không cần create/edit view riêng — inline modal)
     Route::resource('sports', AdminSportController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    // Settings: cấu hình chung hệ thống (logo, thông tin liên hệ...)
+    Route::get('/settings',    [AdminSettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings',    [AdminSettingController::class, 'update'])->name('settings.update');
 
     // Reports + export CSV
     Route::get('/reports',        [AdminReportController::class, 'index'])->name('reports.index');

@@ -24,10 +24,10 @@
     {{-- Logo --}}
     <div class="flex items-center h-16 px-5 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <a href="{{ $homeUrl }}" class="flex items-center gap-2.5 min-w-0">
-            <img src="{{ asset('images/logo/logo.jpg') }}" alt="{{ $alt }}"
+            <img src="{{ \App\Models\Setting::asset('app_logo', asset('images/logo/logo.jpg')) }}" alt="{{ $alt }}"
                 class="w-9 h-9 rounded-lg object-cover shrink-0 ring-1 ring-zinc-200 dark:ring-zinc-700">
             <div class="leading-tight min-w-0">
-                <span class="block text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Arena</span>
+                <span class="block text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">{{ setting('site_name', 'Arena') }}</span>
                 <span class="block text-[10px] font-medium text-primary-600 dark:text-primary-400 uppercase tracking-widest truncate">{{ $badge }}</span>
             </div>
         </a>

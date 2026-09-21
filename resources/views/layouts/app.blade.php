@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/jpeg" href="{{ asset('images/logo/logo.jpg') }}">
+    <link rel="icon" type="image/jpeg" href="{{ \App\Models\Setting::asset('app_logo', asset('images/logo/logo.jpg')) }}">
 
     <title>{{ $title ?? config('app.name') }}</title>
 
@@ -29,7 +29,7 @@
                 {{-- Logo + nav links --}}
                 <div class="flex items-center gap-8">
                     <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-                        <img src="{{ asset('images/logo/logo.jpg') }}" alt="{{ config('app.name') }}"
+                        <img src="{{ \App\Models\Setting::asset('app_logo', asset('images/logo/logo.jpg')) }}" alt="{{ config('app.name') }}"
                             class="w-9 h-9 rounded-lg object-cover shrink-0">
                         <span class="text-lg font-bold text-primary-600 dark:text-primary-400">{{ config('app.name') }}</span>
                     </a>
@@ -168,11 +168,11 @@
                 {{-- Brand column --}}
                 <div class="lg:col-span-1">
                     <a href="/" class="flex items-center gap-2.5 mb-4 group">
-                        <img src="{{ asset('images/logo/logo.jpg') }}" alt="Arena Sports Booking"
+                        <img src="{{ \App\Models\Setting::asset('app_logo', asset('images/logo/logo.jpg')) }}" alt="Arena Sports Booking"
                             class="w-9 h-9 rounded-lg object-cover shrink-0">
                         <div class="leading-tight">
-                            <span class="block text-sm font-bold text-white tracking-tight">Arena</span>
-                            <span class="block text-[10px] font-medium text-zinc-500 uppercase tracking-widest">Sports Booking</span>
+                            <span class="block text-sm font-bold text-white tracking-tight">{{ setting('site_name', 'Arena') }}</span>
+                            <span class="block text-[10px] font-medium text-zinc-500 uppercase tracking-widest">{{ setting('site_tagline', 'Sports Booking') }}</span>
                         </div>
                     </a>
                     <p class="text-sm leading-relaxed text-zinc-500 mb-5 max-w-xs">
@@ -245,10 +245,10 @@
                 </p>
                 <div class="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-600">
                     <span>Hotline:</span>
-                    <a href="tel:19001234" class="hover:text-zinc-400 transition-colors">1900 1234</a>
+                    <a href="tel:{{ str_replace(' ', '', setting('contact_hotline', '1900 1234')) }}" class="hover:text-zinc-400 transition-colors">{{ setting('contact_hotline', '1900 1234') }}</a>
                     <span class="select-none">&middot;</span>
                     <span>Email:</span>
-                    <a href="mailto:hotro@arenasports.vn" class="hover:text-zinc-400 transition-colors">hotro@arenasports.vn</a>
+                    <a href="mailto:{{ setting('contact_email', 'hotro@arenasports.vn') }}" class="hover:text-zinc-400 transition-colors">{{ setting('contact_email', 'hotro@arenasports.vn') }}</a>
                 </div>
             </div>
         </div>
