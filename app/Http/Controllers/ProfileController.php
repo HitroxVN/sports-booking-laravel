@@ -14,10 +14,17 @@ class ProfileController extends Controller
 {
     /**
      * Display the user's profile form.
+     * Shell layout theo role: admin/owner giữ sidebar riêng, customer dùng layout web.
      */
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
+        $view = match ($request->user()->role) {
+            'admin'  => 'profile.edit-admin',
+            'owner'  => 'profile.edit-owner',
+            default  => 'profile.edit',
+        };
+
+        return view($view, [
             'user' => $request->user(),
         ]);
     }

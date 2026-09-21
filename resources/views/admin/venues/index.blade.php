@@ -13,6 +13,7 @@
             ['label' => 'Chờ duyệt', 'value' => 'pending'],
             ['label' => 'Đã duyệt', 'value' => 'active'],
             ['label' => 'Đã từ chối', 'value' => 'rejected'],
+            ['label' => 'Đã xóa', 'value' => 'deleted'],
         ];
     @endphp
 
@@ -56,7 +57,9 @@
                             <td class="p-4 text-zinc-600 dark:text-zinc-300">{{ $venue->owner->name ?? '—' }}</td>
                             <td class="p-4 text-zinc-600 dark:text-zinc-300 text-sm">{{ $venue->district }}, {{ $venue->city }}</td>
                             <td class="p-4">
-                                @if($venue->status === 'pending')
+                                @if($venue->trashed())
+                                    <x-badge variant="danger">Đã xóa</x-badge>
+                                @elseif($venue->status === 'pending')
                                     <x-badge variant="warning">Chờ duyệt</x-badge>
                                 @elseif($venue->status === 'active')
                                     <x-badge variant="success">Đã duyệt</x-badge>
@@ -75,7 +78,12 @@
                                 @endif
                             </td>
                             <td class="p-4 text-center">
-                                @if($venue->status === 'pending')
+                                @if($venue->trashed())
+                                    <form method="POST" action="{{ route('admin.venues.restore', $venue) }}" class="inline">
+                                        @csrf
+                                        <button type="submit" class="px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-xl text-xs font-semibold transition">Khôi phục</button>
+                                    </form>
+                                @elseif($venue->status === 'pending')
                                     <div class="flex justify-center gap-2">
                                         <form method="POST" action="{{ route('admin.venues.approve', $venue) }}">
                                             @csrf
@@ -85,6 +93,15 @@
                                                 @click="open = true; venueSlug = @js($venue->slug); venueName = @js($venue->name)"
                                                 class="px-3 py-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl text-xs font-semibold transition">Từ chối</button>
                                     </div>
+                                @elseif($venue->status === 'active')
+                                    <form method="POST" action="{{ route('admin.venues.destroy', $venue) }}" class="inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                @click="if(!confirm(`Xóa khu sân ${@js($venue->name)}? Các đơn đặt sân chưa diễn ra sẽ bị hủy tự động.`)) $event.preventDefault()"
+                                                class="px-3 py-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl text-xs font-semibold transition"
+                                                x-data="">Xóa</button>
+                                    </form>
                                 @else
                                     <span class="text-zinc-300 dark:text-zinc-600 text-xs">—</span>
                                 @endif

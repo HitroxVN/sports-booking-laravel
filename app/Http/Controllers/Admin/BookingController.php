@@ -17,4 +17,11 @@ class BookingController extends Controller
         $bookings = $query->paginate(20)->withQueryString();
         return view('admin.bookings.index', compact('bookings'));
     }
+
+    // show — chi tiết đơn, read-only (admin không can thiệp vận hành đơn)
+    public function show(Booking $booking)
+    {
+        $booking->load(['user', 'court.venue', 'payments']);
+        return view('admin.bookings.show', compact('booking'));
+    }
 }

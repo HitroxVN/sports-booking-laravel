@@ -93,6 +93,8 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
 
     // 1. Quản lý Khu Sân (Venues)
     Route::resource('venues', VenueController::class);
+    Route::put('/venues/{venue}/operating-hours', [VenueController::class, 'updateOperatingHours'])
+        ->name('venues.operating-hours.update');
 
     // 2. Quản lý Sân Con (Courts)
     Route::resource('venues.courts', CourtController::class)->shallow()->except(['show']);
@@ -136,13 +138,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::post('/users/{user}/ban',      [AdminUserController::class, 'ban'])->name('users.ban');
     Route::post('/users/{user}/unban',    [AdminUserController::class, 'unban'])->name('users.unban');
 
-    // Venues: index + approve + reject (dùng {venue} — implicit binding theo slug)
+    // Venues: index + approve + reject + destroy (dùng {venue} — implicit binding theo slug)
     Route::get('/venues',               [AdminVenueController::class, 'index'])->name('venues.index');
     Route::post('/venues/{venue}/approve', [AdminVenueController::class, 'approve'])->name('venues.approve');
     Route::post('/venues/{venue}/reject',  [AdminVenueController::class, 'reject'])->name('venues.reject');
+    Route::delete('/venues/{venue}',       [AdminVenueController::class, 'destroy'])->name('venues.destroy');
+    Route::post('/venues/{venue}/restore', [AdminVenueController::class, 'restore'])->name('venues.restore')->withTrashed();
 
     // Bookings: read-only
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
 
     // Sports: CRUD (không cần create/edit view riêng — inline modal)
     Route::resource('sports', AdminSportController::class)->only(['index', 'store', 'update', 'destroy']);

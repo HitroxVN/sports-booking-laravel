@@ -72,6 +72,47 @@
                 </div>
             </div>
 
+            {{-- Giờ hoạt động theo tuần --}}
+            @php
+                $dayNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+                // Map giờ hiện có theo day_of_week; ngày chưa có row = chưa cài (mặc định mở 06:00-22:00)
+                $hoursByDay = $venue->operatingHours->keyBy('day_of_week');
+            @endphp
+            <div class="px-6 pb-6 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+                <h4 class="label-eyebrow mb-1">Giờ hoạt động theo tuần</h4>
+                <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-4">Khách đặt sân sẽ bị chặn ngoài các khung giờ này. Ngày chưa cài đặt được mặc định là mở 06:00 - 22:00.</p>
+                <form method="POST" action="{{ route('owner.venues.operating-hours.update', $venue) }}" x-data>
+                    @csrf
+                    @method('PUT')
+                    <div class="space-y-2">
+                        @foreach($dayNames as $day => $name)
+                            @php $h = $hoursByDay->get($day); @endphp
+                            <div class="flex flex-wrap items-center gap-3 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/50"
+                                 x-data="{ closed: {{ $h?->is_closed ? 'true' : ($h ? 'false' : 'false') }} }">
+                                <label class="inline-flex items-center gap-2 w-32 font-semibold text-sm text-zinc-900 dark:text-zinc-100">
+                                    <input type="hidden" name="hours[{{ $day }}][is_closed]" value="0">
+                                    <input type="checkbox" name="hours[{{ $day }}][is_closed]" value="1"
+                                           @checked($h?->is_closed) @change="closed = $event.target.checked"
+                                           class="rounded border-zinc-300 dark:border-zinc-600 text-primary-600 focus:ring-primary-500">
+                                    {{ $name }}
+                                </label>
+                                <template x-if="closed">
+                                    <span class="text-sm text-zinc-400 dark:text-zinc-500 italic w-40">Nghỉ — không mở cửa</span>
+                                </template>
+                                <div x-show="!closed" class="flex items-center gap-2">
+                                    <input type="time" name="hours[{{ $day }}][open_time]" value="{{ $h ? substr($h->open_time, 0, 5) : '06:00' }}"
+                                           class="input-base w-auto text-sm" x-bind:required="!closed">
+                                    <span class="text-zinc-400">–</span>
+                                    <input type="time" name="hours[{{ $day }}][close_time]" value="{{ $h ? substr($h->close_time, 0, 5) : '22:00' }}"
+                                           class="input-base w-auto text-sm" x-bind:required="!closed">
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <button type="submit" class="btn-primary text-sm mt-4">Lưu giờ hoạt động</button>
+                </form>
+            </div>
+
             <div class="px-6 pb-6 pt-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-wrap gap-3">
                 <a href="{{ route('owner.venues.edit', $venue) }}" class="btn-primary text-sm">
                     Chỉnh sửa thông tin
