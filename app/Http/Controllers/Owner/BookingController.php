@@ -69,9 +69,13 @@ class BookingController extends Controller
             return back()->with('error', "Không thể chuyển trạng thái từ \"{$booking->status}\" sang \"{$newStatus}\".");
         }
 
-        // Nếu là hủy đơn, tự động lưu thời gian hủy
+        // Nếu là hủy đơn, tự động lưu thời gian hủy + hoàn tiền nếu khách đã trả
         if ($newStatus === 'cancelled') {
             $validated['cancelled_at'] = now();
+
+            if (\App\Services\BookingRefund::refund($booking, $validated['cancel_reason'] ?? 'Chủ sân hủy đơn')) {
+                return back()->with('success', 'Đã hủy đơn và ghi nhận hoàn tiền ' . number_format($booking->payments()->where('type', 'refund')->sum('amount'), 0, ',', '.') . 'đ cho khách.');
+            }
         } else {
             // Nếu chuyển trạng thái khác, xóa lý do hủy cũ đi (nếu có)
             $validated['cancel_reason'] = null;

@@ -14,6 +14,7 @@ class Booking extends Model
         'code', 'user_id', 'court_id', 'booking_date',
         'start_time', 'end_time', 'duration',
         'price_snapshot', 'total_amount', 'deposit_amount',
+        'promotion_id', 'discount_amount',
         'status', 'payment_method', 'payment_status',
         'cancelled_at', 'cancel_reason', 'notes',
     ];

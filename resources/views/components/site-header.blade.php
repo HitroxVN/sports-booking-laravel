@@ -15,8 +15,6 @@
             <a href="/search" class="hover:text-cta-300 transition-colors">Tìm sân</a>
             <span class="text-white/30 select-none" aria-hidden="true">|</span>
             <a href="/lien-he" class="hover:text-cta-300 transition-colors">Hỗ trợ</a>
-            <span class="text-white/30 select-none" aria-hidden="true">|</span>
-            <a href="/register" class="hover:text-cta-300 transition-colors">Đăng ký</a>
         </div>
     </div>
 </div>

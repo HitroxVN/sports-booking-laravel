@@ -8,6 +8,7 @@ use App\Models\Court;
 use App\Models\CourtClosure;
 use App\Models\CourtSlot;
 use App\Models\OperatingHour;
+use App\Models\Promotion;
 use Carbon\Carbon;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -92,7 +93,15 @@ class CustomerBookingController extends Controller
         // Khu sân có cài giờ hoạt động không — chưa cài thì UI không chặn theo giờ hoạt động
         $venueHasOperatingHours = $operatingHours->isNotEmpty();
 
-        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures', 'slotCells', 'operatingHours', 'venueHasOperatingHours'));
+        // Mã giảm giá đang chạy của khu sân — JS dùng để ước lượng giá sau giảm
+        $promotions = Promotion::where('venue_id', $court->venue_id)
+            ->where('is_active', true)
+            ->where('starts_at', '<=', now())
+            ->where('expires_at', '>=', now())
+            ->get(['code', 'discount_type', 'discount_value', 'min_amount'])
+            ->keyBy(fn ($p) => strtoupper($p->code));
+
+        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures', 'slotCells', 'operatingHours', 'venueHasOperatingHours', 'promotions'));
     }
 
     // 3. Xử lý đặt sân + Tính tiền theo các ô giờ được chủ sân cấu hình
@@ -181,16 +190,32 @@ class CustomerBookingController extends Controller
             return back()->with('error', 'Khung giờ này không áp dụng cho sân, vui lòng chọn lại theo các ô giờ hiển thị!');
         }
 
-        // Tổng tiền = cộng giá các ô giờ được chọn
+        // Tổng tiền trước giảm = cộng giá các ô giờ được chọn
         $totalAmount = array_sum(array_column($selectedCells, 'price'));
 
-        // ─── Tạo đơn trong transaction + khóa dòng sân cha (chống đặt trùng khi 2 request song song) ───
+        // ─── Mã giảm giá (nếu có) ───
+        $promotion   = null;
+        $discountAmount = 0;
+
+        if ($request->filled('promotion_code')) {
+            $promotion = Promotion::where('code', strtoupper(trim($request->input('promotion_code'))))
+                ->where('venue_id', $court->venue_id)
+                ->first();
+
+            if (!$promotion || !$promotion->isValid()
+                || ($promotion->min_amount !== null && $totalAmount < $promotion->min_amount)) {
+                return back()->with('error', 'Mã giảm giá không hợp lệ hoặc không áp dụng cho đơn này!');
+            }
+            $discountAmount = $promotion->discount_type === 'percent'
+                ? round($totalAmount * (float) $promotion->discount_value / 100)
+                : min((float) $promotion->discount_value, $totalAmount);
+        }
         // Chuẩn hóa H:i:s để so khớp TIME khi so chuỗi (sqlite lưu verbatim, MySQL cast TIME)
         $startTimeSql = $startTime->format('H:i:s');
         $endTimeSql   = $endTime->format('H:i:s');
 
         try {
-            $booking = DB::transaction(function () use ($court, $request, $startTime, $endTime, $totalAmount, $startTimeSql, $endTimeSql) {
+            $booking = DB::transaction(function () use ($court, $request, $startTime, $endTime, $totalAmount, $startTimeSql, $endTimeSql, $promotion, $discountAmount) {
                 // Khóa dòng court: mọi request đặt sân này phải xếp hàng chờ nhau tại đây
                 Court::whereKey($court->id)->lockForUpdate()->first();
 
@@ -212,9 +237,14 @@ class CustomerBookingController extends Controller
                     throw new BookingConflictException('Sân đang bị khóa lịch trong khoảng thời gian này, vui lòng chọn thời gian khác!');
                 }
 
+                // Đơn pending quá 15 phút coi như hết hạn (command app:cancel-expired-pending-bookings
+                // sẽ hủy) — không tính là chiếm slot để người khác đặt được ngay.
                 $isBooked = Booking::where('court_id', $court->id)
                     ->whereDate('booking_date', $request->booking_date)
-                    ->where('status', '!=', 'cancelled')
+                    ->where(function ($q) {
+                        $q->where('status', '!=', 'pending')
+                            ->orWhere('created_at', '>=', now()->subMinutes(15));
+                    })
                     ->where('start_time', '<', $endTimeSql)
                     ->where('end_time', '>', $startTimeSql)
                     ->exists();
@@ -225,6 +255,11 @@ class CustomerBookingController extends Controller
 
                 $duration = $startTime->diffInMinutes($endTime);
 
+                // Dùng mã giảm giá thì tăng used_count ngay trong transaction (promotion đã được fetch trước, increment atomic)
+                if ($promotion) {
+                    $promotion->increment('used_count');
+                }
+
                 return Booking::create([
                     'code'           => 'BK' . strtoupper(Str::random(8)), // không có "-" vì nhiều ngân hàng xóa ký tự đặc biệt trong nội dung CK
                     'user_id'        => Auth::id(),
@@ -234,7 +269,9 @@ class CustomerBookingController extends Controller
                     'end_time'       => $endTimeSql,
                     'duration'       => $duration,
                     'price_snapshot' => ($duration > 0) ? ($totalAmount / ($duration / 60)) : 0,
-                    'total_amount'   => $totalAmount,
+                    'total_amount'   => $totalAmount - $discountAmount,
+                    'promotion_id'   => $promotion?->id,
+                    'discount_amount'=> $discountAmount,
                     'payment_method' => 'full_online',
                     'status'         => 'pending',
                 ]);

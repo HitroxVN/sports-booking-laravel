@@ -13,6 +13,8 @@ function initBookingGrid() {
         operatingHours: Array.isArray(config.operatingHours) ? config.operatingHours : [],
         // Khu sân có cài giờ hoạt động không — chưa cài thì không chặn theo giờ hoạt động
         venueHasOperatingHours: !!config.venueHasOperatingHours,
+        // Mã giảm giá đang chạy của khu sân (key = mã in hoa) — để ước lượng giá sau giảm
+        promotions: (config.promotions && typeof config.promotions === 'object') ? config.promotions : {},
 
         // Ô giờ của ngày đang chọn — chủ sân chưa cài khung giờ thì ngày đó không có ô nào
         get availableSlots() {
@@ -155,6 +157,20 @@ function initBookingGrid() {
                 }
             }
             return total;
+        },
+
+        // Ước lượng giảm giá từ mã nhập vào (chỉ hiển thị — server tính lại khi submit)
+        get estimatedDiscount() {
+            let input = document.getElementById('promotion_code');
+            let code = (input?.value || '').trim().toUpperCase();
+            if (!code || !this.promotions[code]) return 0;
+            let promo = this.promotions[code];
+            let total = this.calculatedPrice;
+            if (promo.min_amount && total < parseFloat(promo.min_amount)) return 0;
+            let d = promo.discount_type === 'percent'
+                ? Math.round(total * parseFloat(promo.discount_value) / 100)
+                : parseFloat(promo.discount_value);
+            return Math.min(d, total);
         },
 
         formatMoney(amount) {

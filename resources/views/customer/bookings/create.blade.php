@@ -233,7 +233,17 @@
                     </div>
                     <div>
                         <span class="text-xs text-zinc-500 dark:text-zinc-400 block">Tổng tiền tạm tính:</span>
-                        <span class="text-xl font-extrabold text-primary-600 dark:text-primary-400" x-text="formatMoney(calculatedPrice)"></span>
+                        <span class="text-xl font-extrabold text-primary-600 dark:text-primary-400"
+                            x-text="formatMoney(estimatedDiscount > 0 ? calculatedPrice - estimatedDiscount : calculatedPrice)"></span>
+                        <span class="block text-xs text-zinc-400 line-through" x-show="estimatedDiscount > 0"
+                            x-text="formatMoney(calculatedPrice)"></span>
+                    </div>
+                    <div class="md:col-span-4 border-t border-zinc-200 dark:border-zinc-700 pt-4">
+                        <label for="promotion_code" class="text-xs text-zinc-500 dark:text-zinc-400 block mb-1.5">Mã giảm giá (nếu có)</label>
+                        <input type="text" id="promotion_code" name="promotion_code"
+                            class="w-full md:w-64 px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="Nhập mã...">
+                        <p class="mt-1 text-xs text-zinc-400">Mã áp dụng theo khu sân — xem mã đang chạy ở trang sân.</p>
                     </div>
                     <div class="text-right">
                         <button type="submit"
