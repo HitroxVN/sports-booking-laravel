@@ -40,7 +40,7 @@
                     <h3 class="text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 mb-4">{{ $venue->name }}</h3>
 
                     <div class="space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
-                        <p><strong class="text-zinc-900 dark:text-zinc-100">Địa chỉ:</strong> {{ $venue->address }} {{ $venue->district ? '- ' . $venue->district : '' }} {{ $venue->city ? '(' . $venue->city . ')' : '' }}</p>
+                        <p><strong class="text-zinc-900 dark:text-zinc-100">Địa chỉ:</strong> {{ $venue->address_line }}</p>
                         <p><strong class="text-zinc-900 dark:text-zinc-100">Điện thoại:</strong> {{ $venue->phone ?? 'Chưa cập nhật' }}</p>
                         <p><strong class="text-zinc-900 dark:text-zinc-100">Email:</strong> {{ $venue->email ?? 'Chưa cập nhật' }}</p>
                         <p class="flex items-center">

@@ -30,6 +30,23 @@ class Venue extends Model
         ];
     }
 
+    /** Nhãn tiếng Việt cho tiện ích — dùng chung form owner + hiển thị khách */
+    public const AMENITY_LABELS = [
+        'wifi'            => 'Wifi miễn phí',
+        'parking'         => 'Bãi đỗ xe',
+        'canteen'         => 'Căng tin/Nước',
+        'changing_room'   => 'Phòng thay đồ',
+        'shower'          => 'Phòng tắm/vệ sinh',
+        'air_conditioner' => 'Máy lạnh',
+    ];
+
+    /** Dòng địa chỉ hiển thị: số nhà + phường/xã (mới, ưu tiên hơn quận cũ) + tỉnh/TP */
+    public function getAddressLineAttribute(): string
+    {
+        return collect([$this->address, $this->ward ?: $this->district, $this->city])
+            ->filter()->implode(', ');
+    }
+
     // Auto-generate slug từ name
     public function getSlugOptions(): SlugOptions
     {

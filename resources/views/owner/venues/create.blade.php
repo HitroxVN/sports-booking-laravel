@@ -50,22 +50,7 @@
                 <!-- Vị trí -->
                 <div>
                     <h4 class="label-eyebrow mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">2. Địa chỉ chi tiết</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <div>
-                            <label for="venue-city" class="label-eyebrow block mb-2">Tỉnh/Thành phố <span class="text-red-500">*</span></label>
-                            <input id="venue-city" type="text" name="city" value="{{ old('city') }}" class="input-base" placeholder="VD: Hà Nội">
-                            @error('city') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label for="venue-district" class="label-eyebrow block mb-2">Quận/Huyện <span class="text-red-500">*</span></label>
-                            <input id="venue-district" type="text" name="district" value="{{ old('district') }}" class="input-base" placeholder="VD: Đông Anh">
-                            @error('district') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label for="venue-ward" class="label-eyebrow block mb-2">Phường/Xã</label>
-                            <input id="venue-ward" type="text" name="ward" value="{{ old('ward') }}" class="input-base">
-                        </div>
-                    </div>
+                    @include('owner.venues.partials.address')
 
                     <div class="mb-6">
                         <label for="venue-address" class="label-eyebrow block mb-2">Số nhà, Tên đường <span class="text-red-500">*</span></label>
@@ -89,28 +74,7 @@
                 <div>
                     <h4 class="label-eyebrow mb-4 border-b border-zinc-200 dark:border-zinc-800 pb-2">3. Hình ảnh & Tiện ích</h4>
 
-                    <div class="mb-6">
-                        <label class="label-eyebrow block mb-3">Tiện ích tại sân</label>
-                        <div class="flex flex-wrap gap-6 p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl border border-zinc-200 dark:border-zinc-800">
-                            @php $oldAmenities = old('amenities', []); @endphp
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="amenities[]" value="wifi" @checked(in_array('wifi', $oldAmenities)) class="rounded border-zinc-300 dark:border-zinc-600 text-primary-600 focus:ring-primary-500 w-5 h-5 bg-white dark:bg-zinc-800">
-                                <span class="ml-2 font-medium text-zinc-700 dark:text-zinc-300">Wifi miễn phí</span>
-                            </label>
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="amenities[]" value="parking" @checked(in_array('parking', $oldAmenities)) class="rounded border-zinc-300 dark:border-zinc-600 text-primary-600 focus:ring-primary-500 w-5 h-5 bg-white dark:bg-zinc-800">
-                                <span class="ml-2 font-medium text-zinc-700 dark:text-zinc-300">Bãi đỗ xe</span>
-                            </label>
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="amenities[]" value="canteen" @checked(in_array('canteen', $oldAmenities)) class="rounded border-zinc-300 dark:border-zinc-600 text-primary-600 focus:ring-primary-500 w-5 h-5 bg-white dark:bg-zinc-800">
-                                <span class="ml-2 font-medium text-zinc-700 dark:text-zinc-300">Căng tin/Nước</span>
-                            </label>
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="amenities[]" value="changing_room" @checked(in_array('changing_room', $oldAmenities)) class="rounded border-zinc-300 dark:border-zinc-600 text-primary-600 focus:ring-primary-500 w-5 h-5 bg-white dark:bg-zinc-800">
-                                <span class="ml-2 font-medium text-zinc-700 dark:text-zinc-300">Phòng thay đồ</span>
-                            </label>
-                        </div>
-                    </div>
+                    @include('owner.venues.partials.amenities', ['selected' => old('amenities', [])])
 
                     <div class="mb-6">
                         <label class="label-eyebrow block mb-2">Mô tả giới thiệu</label>

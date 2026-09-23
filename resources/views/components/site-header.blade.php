@@ -1,24 +1,8 @@
 {{-- ================================================================
      SITE HEADER — dùng chung mọi trang khách (layouts/customer)
-     Phong cách: Nhà thuốc Long Châu (top bar xanh brand + CTA vàng)
+     Phong cách: Nhà thuốc Long Châu (CTA vàng)
      Được dùng qua: <x-site-header />
 ================================================================= --}}
-<div class="bg-primary-600 dark:bg-primary-800 text-white/90 text-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-4">
-        <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-cta-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path d="M2 5a2 2 0 012-2h1.5a1 1 0 01.968.732l1.107 3.857a1 1 0 01-.313 1.047l-1.403 1.194a11.018 11.018 0 005.501 5.501l1.194-1.403a1 1 0 011.047-.313l3.857 1.107A1 1 0 0117 13.5V15a2 2 0 01-2 2h-1C7.72 17 3 12.28 3 6.5V5z" />
-            </svg>
-            Hotline: <a href="tel:{{ str_replace(' ', '', setting('contact_hotline', '1900 1234')) }}" class="font-semibold text-white hover:text-cta-300 transition-colors">{{ setting('contact_hotline', '1900 1234') }}</a>
-        </span>
-        <div class="hidden sm:flex items-center gap-3">
-            <a href="/search" class="hover:text-cta-300 transition-colors">Tìm sân</a>
-            <span class="text-white/30 select-none" aria-hidden="true">|</span>
-            <a href="/lien-he" class="hover:text-cta-300 transition-colors">Hỗ trợ</a>
-        </div>
-    </div>
-</div>
-
 <header x-data="{ mobileOpen: false }" class="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-50 shadow-lc">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16 gap-6">

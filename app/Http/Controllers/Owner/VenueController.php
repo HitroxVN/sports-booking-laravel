@@ -44,8 +44,7 @@ class VenueController extends Controller
             'phone'       => 'required|string|max:20',
             'email'       => 'nullable|email|max:255',
             'city'        => 'required|string|max:100',
-            'district'    => 'required|string|max:100',
-            'ward'        => 'nullable|string|max:100',
+            'ward'        => 'required|string|max:100',
             'address'     => 'required|string|max:255',
             'description' => 'nullable|string',
             'latitude'    => 'nullable|numeric|between:-90,90',
@@ -100,13 +99,18 @@ class VenueController extends Controller
         $validated = $request->validate([
             'name'        => 'required|string|max:255',
             'address'     => 'required|string|max:255',
-            'district'    => 'required|string|max:100',
             'city'        => 'required|string|max:100',
+            'ward'        => 'required|string|max:100',
             'phone'       => 'required|string|max:20',
             'email'       => 'nullable|email|max:255',
             'description' => 'nullable|string',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'amenities'   => 'nullable|array',
+            'amenities.*' => 'in:wifi,parking,canteen,changing_room,shower,air_conditioner',
         ]);
+
+        // Checkbox bỏ tick hết = không có key amenities → ép về mảng rỗng để xoá tiện ích cũ
+        $validated['amenities'] = $request->input('amenities', []);
 
         // Trạng thái sân chỉ admin được quyết định (duyệt/từ chối).
         // Chủ sân chỉ có thể tạm đóng/mở lại sân đang hoạt động — không tự "duyệt" sân pending/rejected.

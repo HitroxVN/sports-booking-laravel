@@ -43,22 +43,14 @@
                         @error('image') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <!-- Cụm Địa Chỉ 3 cột: Số nhà, Quận/Huyện, Tỉnh/Thành phố -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Địa chỉ: dropdown Tỉnh/TP → Phường/Xã (API v2 sau sáp nhập) + số nhà, đường -->
+                    <div class="space-y-6">
+                        @include('owner.venues.partials.address')
+
                         <div>
                             <label for="venue-address" class="label-eyebrow block mb-2">Số nhà, Đường *</label>
                             <input id="venue-address" type="text" name="address" value="{{ old('address', $venue->address) }}" required placeholder="VD: Số 1 Võ Văn Ngân" class="input-base">
                             @error('address') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label for="venue-district" class="label-eyebrow block mb-2">Quận/Huyện *</label>
-                            <input id="venue-district" type="text" name="district" value="{{ old('district', $venue->district) }}" required placeholder="VD: TP Thủ Đức" class="input-base">
-                            @error('district') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label for="venue-city" class="label-eyebrow block mb-2">Tỉnh/Thành phố *</label>
-                            <input id="venue-city" type="text" name="city" value="{{ old('city', $venue->city) }}" required placeholder="VD: TP.HCM" class="input-base">
-                            @error('city') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>
 
@@ -87,6 +79,8 @@
                             @endif
                         </div>
                     </div>
+
+                    @include('owner.venues.partials.amenities', ['selected' => old('amenities', $venue->amenities ?? [])])
 
                     <div>
                         <label class="label-eyebrow block mb-2">Mô Tả / Giới Thiệu</label>

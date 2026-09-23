@@ -55,7 +55,7 @@
                         <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
                             <td class="p-4 font-semibold text-zinc-900 dark:text-zinc-50">{{ $venue->name }}</td>
                             <td class="p-4 text-zinc-600 dark:text-zinc-300">{{ $venue->owner->name ?? '—' }}</td>
-                            <td class="p-4 text-zinc-600 dark:text-zinc-300 text-sm">{{ $venue->district }}, {{ $venue->city }}</td>
+                            <td class="p-4 text-zinc-600 dark:text-zinc-300 text-sm">{{ $venue->address_line }}</td>
                             <td class="p-4">
                                 @if($venue->trashed())
                                     <x-badge variant="danger">Đã xóa</x-badge>

@@ -1,8 +1,8 @@
 <x-guest-layout>
     <div class="mb-6">
-        <h1 class="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">{{ __('Forgot password') }}</h1>
+        <h1 class="text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">{{ __('Quên mật khẩu') }}</h1>
         <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
+            {{ __('Quên mật khẩu? Không vấn đề gì. Chỉ cần cho chúng tôi biết địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn một liên kết đặt lại mật khẩu qua email, cho phép bạn chọn mật khẩu mới.') }}
         </p>
     </div>
 
@@ -21,7 +21,7 @@
 
         <div class="mt-6">
             <x-primary-button class="w-full">
-                {{ __('Email Password Reset Link') }}
+                {{ __('Gửi link đặt lại mật khẩu email') }}
             </x-primary-button>
         </div>
     </form>

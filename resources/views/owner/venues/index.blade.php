@@ -42,8 +42,7 @@
                                 <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 font-mono">ID: #{{ $venue->id }}</div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="text-zinc-700 dark:text-zinc-300 text-sm truncate max-w-xs">{{ $venue->address }}</div>
-                                <div class="text-zinc-500 dark:text-zinc-400 text-xs mt-1">{{ $venue->district }}, {{ $venue->city }}</div>
+                                <div class="text-zinc-700 dark:text-zinc-300 text-sm truncate max-w-xs">{{ $venue->address_line }}</div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="text-zinc-700 dark:text-zinc-300 text-sm font-medium">{{ $venue->phone }}</div>
