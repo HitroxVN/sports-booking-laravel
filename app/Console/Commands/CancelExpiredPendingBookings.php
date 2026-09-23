@@ -7,13 +7,14 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 
-#[Signature('app:cancel-expired-pending-bookings {--minutes=15 : Số phút giữ đơn pending trước khi hủy}')]
+#[Signature('app:cancel-expired-pending-bookings {--minutes= : Số phút giữ đơn pending trước khi hủy (mặc định = Booking::PAYMENT_EXPIRY_MINUTES)}')]
 #[Description('Hủy các đơn đặt sân pending quá hạn chưa thanh toán để giải phóng khung giờ')]
 class CancelExpiredPendingBookings extends Command
 {
     public function handle(): int
     {
-        $minutes = max(5, (int) $this->option('minutes'));
+        $minutes = (int) ($this->option('minutes') ?: Booking::PAYMENT_EXPIRY_MINUTES);
+        $minutes = max(1, $minutes);
 
         // Chỉ hủy đơn online chưa xác nhận: pending quá X phút kể từ khi tạo
         // (webhook SePay sẽ không bao giờ xác nhận đơn đã hủy — xem SePayWebhookController).

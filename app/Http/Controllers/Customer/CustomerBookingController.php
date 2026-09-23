@@ -9,6 +9,7 @@ use App\Models\CourtClosure;
 use App\Models\CourtSlot;
 use App\Models\OperatingHour;
 use App\Models\Promotion;
+use App\Models\Review;
 use Carbon\Carbon;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ class CustomerBookingController extends Controller
     // 1. Hiển thị lịch sử đặt sân của tôi (/my-bookings)
     public function index()
     {
-        $bookings = Booking::with(['court.venue'])
+        $bookings = Booking::with(['court.venue', 'review'])
             ->where('user_id', Auth::id())
             ->latest()
             ->paginate(10);
@@ -34,23 +35,65 @@ class CustomerBookingController extends Controller
         return view('customer.bookings.index', compact('bookings'));
     }
 
+    // 1.1. Chi tiết đơn của khách (click mã đơn ở lịch sử)
+    public function show(Booking $booking)
+    {
+        abort_unless($booking->user_id === Auth::id(), 403);
+        $booking->load(['court.venue', 'review', 'promotion', 'payments']);
+
+        return view('customer.bookings.show', compact('booking'));
+    }
+
+    // 1.2. Lưu đánh giá sau khi chơi xong (đơn đã hoàn tất)
+    public function storeReview(Request $request, Booking $booking)
+    {
+        abort_unless($booking->user_id === Auth::id(), 403);
+
+        // Chỉ đơn completed mới được đánh giá, mỗi đơn 1 review duy nhất
+        if (! $booking->isCompleted()) {
+            return back()->with('error', 'Chỉ đơn đã hoàn tất mới có thể đánh giá!');
+        }
+        if ($booking->review) {
+            return back()->with('error', 'Bạn đã đánh giá đơn này rồi!');
+        }
+
+        $validated = $request->validate([
+            'rating'  => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:1000',
+        ], [
+            'rating.required' => 'Vui lòng chọn số sao đánh giá!',
+        ]);
+
+        Review::create([
+            'booking_id' => $booking->id,
+            'user_id'    => Auth::id(),
+            'venue_id'   => $booking->court->venue_id,
+            'rating'     => $validated['rating'],
+            'comment'    => $validated['comment'] ?? null,
+        ]);
+
+        return back()->with('success', 'Cảm ơn bạn đã đánh giá khu sân!');
+    }
+
     // 2. Hiển thị sơ đồ chọn giờ đặt sân
     public function create($courtId)
     {
         $court = $this->findBookableCourt($courtId);
 
+        // Cửa sổ đặt sân: từ hôm nay đến hết tháng sau (tháng này + tháng sau)
+        $windowEnd = Carbon::today()->addMonthNoOverflow()->endOfMonth();
+        $maxDate   = $windowEnd->toDateString();
+
         $dates = [];
-        for ($i = 0; $i < 7; $i++) {
-            $date = Carbon::today()->addDays($i);
+        for ($date = Carbon::today(); $date->lte($windowEnd); $date->addDay()) {
             $dates[] = [
                 'full_date'  => $date->format('Y-m-d'),
                 'day_name'   => $date->locale('vi')->dayName,
                 'formatted'  => $date->format('d/m'),
-                'is_today'   => $date->isToday(),
             ];
         }
 
-        // Cắt ô giờ theo cấu hình khung giờ của chủ sân cho từng ngày (7 ngày tới)
+        // Cắt ô giờ theo cấu hình khung giờ của chủ sân cho từng ngày (từ hôm nay đến hết tháng sau)
         // Ngày nào chủ sân chưa cài khung giờ sẽ có danh sách ô rỗng → phía khách không hiện ô nào.
         $slotCells = [];
         foreach ($dates as $d) {
@@ -69,10 +112,10 @@ class CustomerBookingController extends Controller
                 'end_time'     => Carbon::parse($b->end_time)->format('H:i'),
             ]);
 
-        // Lịch khóa của sân (7 ngày tới) — để chặn hiển thị/đặt các khung giờ bị khóa
+        // Lịch khóa của sân (cùng cửa sổ đặt: đến hết tháng sau) — để chặn hiển thị/đặt các khung giờ bị khóa
         $closures = CourtClosure::where('court_id', $courtId)
             ->whereDate('date', '>=', Carbon::today()->toDateString())
-            ->whereDate('date', '<=', Carbon::today()->addDays(6)->toDateString())
+            ->whereDate('date', '<=', $windowEnd->toDateString())
             ->get(['date', 'start_time', 'end_time'])
             ->map(fn ($c) => [
                 'date'       => $c->date->toDateString(),
@@ -101,7 +144,7 @@ class CustomerBookingController extends Controller
             ->get(['code', 'discount_type', 'discount_value', 'min_amount'])
             ->keyBy(fn ($p) => strtoupper($p->code));
 
-        return view('customer.bookings.create', compact('court', 'dates', 'existingBookings', 'closures', 'slotCells', 'operatingHours', 'venueHasOperatingHours', 'promotions'));
+        return view('customer.bookings.create', compact('court', 'dates', 'maxDate', 'existingBookings', 'closures', 'slotCells', 'operatingHours', 'venueHasOperatingHours', 'promotions'));
     }
 
     // 3. Xử lý đặt sân + Tính tiền theo các ô giờ được chủ sân cấu hình
@@ -109,7 +152,7 @@ class CustomerBookingController extends Controller
     {
         $request->validate([
             'court_id'     => 'required|exists:courts,id',
-            'booking_date' => 'required|date|after_or_equal:today|before_or_equal:' . Carbon::today()->addDays(6)->toDateString(),
+            'booking_date' => 'required|date|after_or_equal:today|before_or_equal:' . Carbon::today()->addMonthNoOverflow()->endOfMonth()->toDateString(),
             'start_time'   => 'required',
             'end_time'     => 'required|after:start_time',
         ]);
@@ -237,13 +280,13 @@ class CustomerBookingController extends Controller
                     throw new BookingConflictException('Sân đang bị khóa lịch trong khoảng thời gian này, vui lòng chọn thời gian khác!');
                 }
 
-                // Đơn pending quá 15 phút coi như hết hạn (command app:cancel-expired-pending-bookings
+                // Đơn pending quá hạn coi như hết hạn (command app:cancel-expired-pending-bookings
                 // sẽ hủy) — không tính là chiếm slot để người khác đặt được ngay.
                 $isBooked = Booking::where('court_id', $court->id)
                     ->whereDate('booking_date', $request->booking_date)
                     ->where(function ($q) {
                         $q->where('status', '!=', 'pending')
-                            ->orWhere('created_at', '>=', now()->subMinutes(15));
+                            ->orWhere('created_at', '>=', now()->subMinutes(Booking::PAYMENT_EXPIRY_MINUTES));
                     })
                     ->where('start_time', '<', $endTimeSql)
                     ->where('end_time', '>', $startTimeSql)

@@ -9,4 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Hủy đơn pending quá hạn chưa thanh toán — giải phóng khung giờ bị chặn
-Schedule::command('app:cancel-expired-pending-bookings')->everyFiveMinutes();
+Schedule::command('app:cancel-expired-pending-bookings')->everyMinute();

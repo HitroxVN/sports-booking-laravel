@@ -12,6 +12,8 @@
             'closures'         => $closures,
             'operatingHours'   => $operatingHours,
             'venueHasOperatingHours' => $venueHasOperatingHours,
+            'promotions'       => $promotions,
+            'maxDate'          => $maxDate,
         ];
     @endphp
     <div class="container py-8 mx-auto px-4 sm:px-6 lg:px-8" x-data='bookingGrid(@json($bookingConfig))'>
@@ -26,6 +28,7 @@
                 <!-- Chú thích -->
                 <div class="flex items-center space-x-4 mt-3 md:mt-0 text-xs font-semibold">
                     <div class="flex items-center"><span class="w-3 h-3 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-600 inline-block mr-1 rounded"></span> Trống</div>
+                    <div class="flex items-center"><span class="w-3 h-3 bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-300 dark:border-zinc-700 inline-block mr-1 rounded"></span> Đã qua</div>
                     <div class="flex items-center"><span class="w-3 h-3 bg-red-50 dark:bg-red-900/20 border border-red-300 dark:border-red-700 inline-block mr-1 rounded"></span> Đã đặt</div>
                     <div class="flex items-center"><span class="w-3 h-3 bg-primary-600 inline-block mr-1 rounded"></span> Đang chọn</div>
                 </div>
@@ -125,30 +128,64 @@
                 </div>
             @endif
 
-            <!-- 1. Thanh chọn Ngày trong tuần -->
-            <div class="mb-6">
+            <!-- 1. Chọn ngày: nút mở popup lịch tháng — đặt được từ hôm nay đến hết tháng sau -->
+            <div class="mb-6" @click.outside="showCalendar = false">
                 <label class="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">1. Chọn ngày đá:</label>
-                <div class="flex space-x-3 overflow-x-auto pb-3 pt-1 scrollbar-thin">
-                    @foreach($dates as $d)
-                        <button type="button"
-                                @click="selectDate('{{ $d['full_date'] }}')"
-                                :class="selectedDate === '{{ $d['full_date'] }}'
-                                    ? 'bg-primary-600 border-primary-600 text-white'
-                                    : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 hover:border-primary-400'"
-                                class="flex-1 min-w-[110px] flex-shrink-0 p-3 border rounded-xl text-center transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500 shadow-sm">
 
-                            <!-- Tên Thứ -->
-                            <div class="text-xs uppercase font-bold tracking-wide"
-                                 :class="selectedDate === '{{ $d['full_date'] }}' ? 'text-primary-100' : 'text-zinc-500 dark:text-zinc-400'">
-                                {{ $d['day_name'] }}
-                            </div>
+                <div class="relative inline-block">
+                    {{-- Nút hiển thị ngày đang chọn — bấm để mở/đóng popup lịch --}}
+                    <button type="button" @click="showCalendar = !showCalendar"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:border-primary-400 shadow-sm font-bold text-zinc-900 dark:text-zinc-100 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500">
+                        <svg class="w-4 h-4 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <span x-text="selectedDateLabel"></span>
+                        <svg class="w-3.5 h-3.5 text-zinc-400 transition-transform" :class="showCalendar && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
 
-                            <!-- Ngày/Tháng -->
-                            <div class="text-base font-extrabold mt-1">
-                                {{ $d['formatted'] }}
-                            </div>
-                        </button>
-                    @endforeach
+                    {{-- Popup lịch tháng --}}
+                    <div x-show="showCalendar" x-transition.opacity.duration.150ms
+                         class="absolute z-20 mt-2 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 shadow-lg w-[320px] max-w-[90vw]">
+                        {{-- Header: nút ‹ › + tên tháng --}}
+                        <div class="flex items-center justify-between gap-6 mb-3">
+                            <button type="button" @click="prevMonth()"
+                                    class="w-8 h-8 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold cursor-pointer"
+                                    :class="!canPrevMonth && 'opacity-30 cursor-not-allowed'">&larr;</button>
+                            <span class="font-bold text-zinc-900 dark:text-zinc-100" x-text="calendarLabel"></span>
+                            <button type="button" @click="nextMonth()"
+                                    class="w-8 h-8 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 font-bold cursor-pointer"
+                                    :class="!canNextMonth && 'opacity-30 cursor-not-allowed'">&rarr;</button>
+                        </div>
+
+                        {{-- Tên thứ T2 → CN --}}
+                        <div class="grid grid-cols-7 gap-1 mb-1">
+                            <template x-for="d in ['T2','T3','T4','T5','T6','T7','CN']" :key="d">
+                                <div class="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-500 text-center py-1" x-text="d"></div>
+                            </template>
+                        </div>
+
+                        {{-- Lưới ngày: đệm ô trống đầu tháng, ngày ngoài cửa sổ đặt bị mờ/không bấm được --}}
+                        <div class="grid grid-cols-7 gap-1">
+                            <template x-for="n in firstDayOffset" :key="'pad' + n">
+                                <div></div>
+                            </template>
+                            <template x-for="d in calendarDays" :key="d.date">
+                                <button type="button" @click="!d.disabled && selectDate(d.date)"
+                                        :disabled="d.disabled"
+                                        :class="d.date === selectedDate
+                                            ? 'bg-primary-600 text-white font-extrabold'
+                                            : (d.disabled
+                                                ? 'text-zinc-300 dark:text-zinc-600 cursor-not-allowed'
+                                                : 'text-zinc-700 dark:text-zinc-200 hover:bg-primary-50 dark:hover:bg-primary-900/20 font-semibold')"
+                                        class="w-10 h-10 rounded-lg text-sm transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500">
+                                    <span x-text="d.day"></span>
+                                    <span class="block text-[10px] leading-none" x-show="d.date === todayStr">&bull;</span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -183,30 +220,36 @@
                         <button type="button"
                                 :disabled="isSlotBooked(timeSlot)"
                                 @click="selectSlot(index)"
-                                :class="isSlotBooked(timeSlot)
-                                    ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-400 dark:text-red-500 cursor-not-allowed'
-                                    : (isSlotSelected(index)
-                                        ? 'bg-primary-600 border-primary-600 text-white'
-                                        : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-primary-500 text-zinc-900 dark:text-zinc-100')"
+                                :class="slotBlockedReason(timeSlot) === 'past'
+                                    ? 'bg-zinc-100 dark:bg-zinc-800/60 border-zinc-200 dark:border-zinc-700 text-zinc-400 dark:text-zinc-600 cursor-not-allowed opacity-60'
+                                    : (isSlotBooked(timeSlot)
+                                        ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-400 dark:text-red-500 cursor-not-allowed'
+                                        : (isSlotSelected(index)
+                                            ? 'bg-primary-600 border-primary-600 text-white'
+                                            : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-primary-500 text-zinc-900 dark:text-zinc-100'))"
                                 class="p-3 border rounded-xl flex flex-col justify-between items-center transition-all h-20 focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer">
 
                             <!-- Giờ bắt đầu - Giờ kết thúc -->
                             <span class="text-sm font-bold"
-                                  :class="isSlotBooked(timeSlot)
-                                      ? 'text-red-400 dark:text-red-500'
-                                      : (isSlotSelected(index)
-                                          ? 'text-white'
-                                          : 'text-zinc-900 dark:text-zinc-100')"
+                                  :class="slotBlockedReason(timeSlot) === 'past'
+                                      ? 'text-zinc-400 dark:text-zinc-600'
+                                      : (isSlotBooked(timeSlot)
+                                          ? 'text-red-400 dark:text-red-500'
+                                          : (isSlotSelected(index)
+                                              ? 'text-white'
+                                              : 'text-zinc-900 dark:text-zinc-100'))"
                                   x-text="timeSlot.start + ' - ' + timeSlot.end"></span>
 
                             <!-- Giá tiền / Trạng thái -->
                             <span class="text-xs font-semibold"
-                                  :class="isSlotBooked(timeSlot)
-                                      ? 'text-red-400 dark:text-red-500'
-                                      : (isSlotSelected(index)
-                                          ? 'text-primary-100'
-                                          : 'text-primary-600 dark:text-primary-400')"
-                                  x-text="slotBlockedReason(timeSlot) === 'closed' ? 'Ngoài khung' : (slotBlockedReason(timeSlot) === 'closure' ? 'Đã khóa' : (slotBlockedReason(timeSlot) === 'booked' ? 'Đã đặt' : (timeSlot.is_full_hour ? formatMoney(timeSlot.price) + '/h' : formatMoney(timeSlot.price))))"></span>
+                                  :class="slotBlockedReason(timeSlot) === 'past'
+                                      ? 'text-zinc-400 dark:text-zinc-600'
+                                      : (isSlotBooked(timeSlot)
+                                          ? 'text-red-400 dark:text-red-500'
+                                          : (isSlotSelected(index)
+                                              ? 'text-primary-100'
+                                              : 'text-primary-600 dark:text-primary-400'))"
+                                  x-text="slotBlockedReason(timeSlot) === 'past' ? 'Đã qua' : (slotBlockedReason(timeSlot) === 'closed' ? 'Ngoài khung' : (slotBlockedReason(timeSlot) === 'closure' ? 'Đã khóa' : (slotBlockedReason(timeSlot) === 'booked' ? 'Đã đặt' : (timeSlot.is_full_hour ? formatMoney(timeSlot.price) + '/h' : formatMoney(timeSlot.price)))))"></span>
                         </button>
                     </template>
                 </div>
@@ -237,12 +280,21 @@
                             x-text="formatMoney(estimatedDiscount > 0 ? calculatedPrice - estimatedDiscount : calculatedPrice)"></span>
                         <span class="block text-xs text-zinc-400 line-through" x-show="estimatedDiscount > 0"
                             x-text="formatMoney(calculatedPrice)"></span>
+                        <span class="block text-xs text-emerald-600 dark:text-emerald-400 font-semibold" x-show="estimatedDiscount > 0"
+                            x-text="'Giảm ' + formatMoney(estimatedDiscount) + ' (mã ' + promoCode.trim().toUpperCase() + ')'"></span>
                     </div>
                     <div class="md:col-span-4 border-t border-zinc-200 dark:border-zinc-700 pt-4">
                         <label for="promotion_code" class="text-xs text-zinc-500 dark:text-zinc-400 block mb-1.5">Mã giảm giá (nếu có)</label>
-                        <input type="text" id="promotion_code" name="promotion_code"
-                            class="w-full md:w-64 px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="Nhập mã...">
+                        <div class="flex gap-2 items-start">
+                            <input type="text" id="promotion_code" name="promotion_code" x-model="promoCode"
+                                class="w-full md:w-64 px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="Nhập mã...">
+                            <button type="button" @click="checkPromo()"
+                                class="btn-secondary text-sm shrink-0">Kiểm tra</button>
+                        </div>
+                        <p x-show="promoMessage" x-text="promoMessage"
+                           class="mt-1.5 text-xs"
+                           :class="promoValid === false ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'"></p>
                         <p class="mt-1 text-xs text-zinc-400">Mã áp dụng theo khu sân — xem mã đang chạy ở trang sân.</p>
                     </div>
                     <div class="text-right">

@@ -5,7 +5,7 @@
                 &larr; Quay lại danh sách
             </a>
             <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-                Thiết lập Khung Giờ - {{ $court->name }}
+                Sửa Khung Giờ - {{ $court->name }}
             </h1>
         </div>
     </x-slot>
@@ -14,20 +14,21 @@
 
         <div class="card-base">
             <div class="p-8">
-                <form action="{{ route('owner.courts.slots.store', $court) }}" method="POST" class="space-y-6">
+                <form action="{{ route('owner.slots.update', $slot) }}" method="POST" class="space-y-6">
                     @csrf
+                    @method('PUT')
 
                     <div>
                         <label for="slot-day" class="label-eyebrow block mb-2">Ngày áp dụng</label>
                         <select id="slot-day" name="day_of_week" class="input-base">
-                            <option value="" @selected(old('day_of_week') === '' || old('day_of_week') === null)>-- Tất cả các ngày --</option>
-                            <option value="1" @selected(old('day_of_week') === '1')>Thứ Hai</option>
-                            <option value="2" @selected(old('day_of_week') === '2')>Thứ Ba</option>
-                            <option value="3" @selected(old('day_of_week') === '3')>Thứ Tư</option>
-                            <option value="4" @selected(old('day_of_week') === '4')>Thứ Năm</option>
-                            <option value="5" @selected(old('day_of_week') === '5')>Thứ Sáu</option>
-                            <option value="6" @selected(old('day_of_week') === '6')>Thứ Bảy</option>
-                            <option value="0" @selected(old('day_of_week') === '0')>Chủ Nhật</option>
+                            <option value="" @selected(old('day_of_week', $slot->day_of_week) === '' || old('day_of_week', $slot->day_of_week) === null)>-- Tất cả các ngày --</option>
+                            <option value="1" @selected((string) old('day_of_week', $slot->day_of_week) === '1')>Thứ Hai</option>
+                            <option value="2" @selected((string) old('day_of_week', $slot->day_of_week) === '2')>Thứ Ba</option>
+                            <option value="3" @selected((string) old('day_of_week', $slot->day_of_week) === '3')>Thứ Tư</option>
+                            <option value="4" @selected((string) old('day_of_week', $slot->day_of_week) === '4')>Thứ Năm</option>
+                            <option value="5" @selected((string) old('day_of_week', $slot->day_of_week) === '5')>Thứ Sáu</option>
+                            <option value="6" @selected((string) old('day_of_week', $slot->day_of_week) === '6')>Thứ Bảy</option>
+                            <option value="0" @selected((string) old('day_of_week', $slot->day_of_week) === '0')>Chủ Nhật</option>
                         </select>
                         @error('day_of_week') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
@@ -36,10 +37,11 @@
                         <div>
                             <label for="slot-start" class="label-eyebrow block mb-2">Giờ bắt đầu <span class="text-red-500">*</span></label>
                             <select id="slot-start" name="start_time" required class="input-base">
-                                <option value="" disabled @selected(old('start_time') === null)>-- Chọn giờ --</option>
+                                @php($oldStart = old('start_time', substr($slot->start_time, 0, 5)))
+                                <option value="" disabled @selected(! $oldStart)>-- Chọn giờ --</option>
                                 @for ($h = 0; $h <= 23; $h++)
                                     @php($t = sprintf('%02d:00', $h))
-                                    <option value="{{ $t }}" @selected(old('start_time') === $t)>{{ $t }}</option>
+                                    <option value="{{ $t }}" @selected($oldStart === $t)>{{ $t }}</option>
                                 @endfor
                             </select>
                             @error('start_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
@@ -47,10 +49,11 @@
                         <div>
                             <label for="slot-end" class="label-eyebrow block mb-2">Giờ kết thúc <span class="text-red-500">*</span></label>
                             <select id="slot-end" name="end_time" required class="input-base">
-                                <option value="" disabled @selected(old('end_time') === null)>-- Chọn giờ --</option>
+                                @php($oldEnd = old('end_time', substr($slot->end_time, 0, 5)))
+                                <option value="" disabled @selected(! $oldEnd)>-- Chọn giờ --</option>
                                 @for ($h = 1; $h <= 23; $h++)
                                     @php($t = sprintf('%02d:00', $h))
-                                    <option value="{{ $t }}" @selected(old('end_time') === $t)>{{ $t }}</option>
+                                    <option value="{{ $t }}" @selected($oldEnd === $t)>{{ $t }}</option>
                                 @endfor
                             </select>
                             @error('end_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
@@ -60,11 +63,11 @@
                     <div class="grid grid-cols-2 gap-6 items-start">
                         <div>
                             <label for="slot-price" class="label-eyebrow block mb-2">Giá thường (VNĐ) <span class="text-red-500">*</span></label>
-                            <input id="slot-price" type="number" name="price" value="{{ old('price') }}" required min="0" placeholder="VD: 300000" class="input-base">
+                            <input id="slot-price" type="number" name="price" value="{{ old('price', $slot->price) }}" required min="0" placeholder="VD: 300000" class="input-base">
                             @error('price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
 
-                        <div x-data="{ isPeak: {{ old('is_peak') ? 'true' : 'false' }} }">
+                        <div x-data="{ isPeak: {{ old('is_peak', $slot->is_peak) ? 'true' : 'false' }} }">
                             <div class="mb-2 mt-1">
                                 <label class="inline-flex items-center cursor-pointer">
                                     <input type="hidden" name="is_peak" value="0">
@@ -75,7 +78,7 @@
 
                             <div x-show="isPeak" x-transition>
                                 <label for="slot-peak-price" class="label-eyebrow block mb-2">Giá giờ vàng (VNĐ) <span class="text-red-500">*</span></label>
-                                <input id="slot-peak-price" type="number" name="peak_price" value="{{ old('peak_price') }}" min="0" placeholder="VD: 500000" class="input-base">
+                                <input id="slot-peak-price" type="number" name="peak_price" value="{{ old('peak_price', $slot->peak_price) }}" min="0" placeholder="VD: 500000" class="input-base">
                                 @error('peak_price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                             </div>
                         </div>
@@ -84,7 +87,7 @@
                     <div class="pt-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3">
                         <a href="{{ route('owner.courts.slots.index', $court) }}" class="btn-secondary">Hủy bỏ</a>
                         <button type="submit" class="btn-primary">
-                            Lưu Khung Giờ
+                            Cập Nhật Khung Giờ
                         </button>
                     </div>
                 </form>

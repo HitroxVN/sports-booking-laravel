@@ -166,9 +166,10 @@ class BookingStoreTest extends TestCase
 
     public function test_chan_dat_quá_7_ngay(): void
     {
+        // Cửa sổ đặt: hôm nay → hết tháng sau — ngày đầu tháng kế tiếp phải bị chặn
         $response = $this->actingAs($this->customer)
             ->post(route('customer.bookings.store'), $this->validPayload([
-                'booking_date' => now()->addDays(8)->format('Y-m-d'),
+                'booking_date' => now()->addMonthNoOverflow()->endOfMonth()->addDay()->format('Y-m-d'),
             ]));
 
         $response->assertSessionHasErrors('booking_date');

@@ -82,9 +82,11 @@ Route::middleware(['auth', 'verified', 'role:customer'])->name('customer.')->gro
     Route::post('/bookings', [CustomerBookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/{booking}/pay', [CustomerBookingController::class, 'pay'])->name('bookings.pay');
     Route::get('/bookings/{booking}/status', [CustomerBookingController::class, 'status'])->name('bookings.status');
+    Route::post('/bookings/{booking}/review', [CustomerBookingController::class, 'storeReview'])->name('bookings.review');
 
-    // 2. Lịch sử đặt sân của tôi (Trang danh sách)
+    // 2. Lịch sử đặt sân của tôi (Trang danh sách + chi tiết đơn)
     Route::get('/my-bookings', [CustomerBookingController::class, 'index'])->name('bookings.index');
+    Route::get('/my-bookings/{booking}', [CustomerBookingController::class, 'show'])->name('bookings.show');
 });
 
 // ─── Chủ sân ─────────────────────────────────────────────────────────────────
@@ -103,8 +105,8 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     // 3. Quản lý Khuyến Mãi (Promotions) - Đã giữ nguyên shallow để khớp với logic Controller
     Route::resource('venues.promotions', PromotionController::class)->shallow();
 
-    // 4. Quản lý Khung Giờ (Slots) - Vá Bug #4: Chặn các route rác không dùng
-    Route::resource('courts.slots', SlotController::class)->shallow()->except(['show', 'edit', 'update']);
+    // 4. Quản lý Khung Giờ (Slots) - thêm/sửa/xóa (chặn show không dùng)
+    Route::resource('courts.slots', SlotController::class)->shallow()->except(['show']);
 
     // 5. Quản lý Khóa Lịch (Closures) - Vá Bug #4: Chặn các route rác không dùng
     Route::resource('courts.closures', ClosureController::class)->shallow()->except(['show', 'edit', 'update']);

@@ -28,7 +28,10 @@
                 <tbody>
                     @forelse($bookings as $booking)
                     <tr class="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                        <td class="px-6 py-4 font-bold text-primary-600 dark:text-primary-400">{{ $booking->code }}</td>
+                        <td class="px-6 py-4 font-bold">
+                            <a href="{{ route('customer.bookings.show', $booking) }}"
+                               class="text-primary-600 dark:text-primary-400 hover:underline">#{{ $booking->code }}</a>
+                        </td>
                         <td class="px-6 py-4 text-zinc-900 dark:text-zinc-100">
                             {{ $booking->court->name ?? 'N/A' }}
                             <div class="text-xs text-zinc-400 dark:text-zinc-500">{{ $booking->court->venue->name ?? '' }}</div>
@@ -42,7 +45,7 @@
                             {{ number_format($booking->total_amount) }} VNĐ
                         </td>
                         <td class="px-6 py-4">
-                            <x-badge :variant="$booking->status === 'confirmed' ? 'success' : ($booking->status === 'pending' ? 'warning' : 'danger')">
+                            <x-badge :variant="$booking->status === 'completed' ? 'success' : ($booking->status === 'confirmed' ? 'info' : ($booking->status === 'pending' ? 'warning' : 'danger'))">
                                 {{ ucfirst($booking->status) }}
                             </x-badge>
                         </td>

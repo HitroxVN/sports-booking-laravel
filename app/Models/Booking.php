@@ -56,11 +56,34 @@ class Booking extends Model
         return $this->hasOne(Review::class);
     }
 
+    // Mã giảm giá áp dụng cho đơn (nếu có)
+    public function promotion()
+    {
+        return $this->belongsTo(Promotion::class);
+    }
+
     // --- Helpers ---
+    // Số phút giữ đơn pending trước khi tự hủy
+    public const PAYMENT_EXPIRY_MINUTES = 10;
+
     public function isPending(): bool    { return $this->status === 'pending'; }
     public function isConfirmed(): bool  { return $this->status === 'confirmed'; }
     public function isCancelled(): bool  { return $this->status === 'cancelled'; }
     public function isCompleted(): bool  { return $this->status === 'completed'; }
     public function isPaid(): bool       { return $this->payment_status === 'fully_paid'; }
     public function hasDeposit(): bool   { return $this->payment_status === 'deposit_paid'; }
+
+    /**
+     * Hạn chót thanh toán: đơn pending quá PAYMENT_EXPIRY_MINUTES phút bị hủy tự động
+     * (khớp lệnh app:cancel-expired-pending-bookings).
+     */
+    public function paymentExpiresAt(): \Carbon\CarbonInterface
+    {
+        return $this->created_at->copy()->addMinutes(self::PAYMENT_EXPIRY_MINUTES);
+    }
+
+    public function isPaymentExpired(): bool
+    {
+        return $this->isPending() && $this->paymentExpiresAt()->isPast();
+    }
 }
