@@ -52,6 +52,8 @@
                             <input id="venue-address" type="text" name="address" value="{{ old('address', $venue->address) }}" required placeholder="VD: Số 1 Võ Văn Ngân" class="input-base">
                             @error('address') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
+
+                        @include('owner.venues.partials.map-picker')
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

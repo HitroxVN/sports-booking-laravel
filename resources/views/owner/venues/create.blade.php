@@ -58,16 +58,7 @@
                         @error('address') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="venue-latitude" class="label-eyebrow block mb-2">Vĩ độ (Latitude)</label>
-                            <input id="venue-latitude" type="number" step="any" name="latitude" value="{{ old('latitude') }}" class="input-base bg-zinc-50 dark:bg-zinc-900">
-                        </div>
-                        <div>
-                            <label for="venue-longitude" class="label-eyebrow block mb-2">Kinh độ (Longitude)</label>
-                            <input id="venue-longitude" type="number" step="any" name="longitude" value="{{ old('longitude') }}" class="input-base bg-zinc-50 dark:bg-zinc-900">
-                        </div>
-                    </div>
+                    @include('owner.venues.partials.map-picker')
                 </div>
 
                 <!-- Bổ sung -->

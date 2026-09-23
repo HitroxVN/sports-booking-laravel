@@ -105,6 +105,8 @@ class VenueController extends Controller
             'email'       => 'nullable|email|max:255',
             'description' => 'nullable|string',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'latitude'    => 'nullable|numeric|between:-90,90',
+            'longitude'   => 'nullable|numeric|between:-180,180',
             'amenities'   => 'nullable|array',
             'amenities.*' => 'in:wifi,parking,canteen,changing_room,shower,air_conditioner',
         ]);
