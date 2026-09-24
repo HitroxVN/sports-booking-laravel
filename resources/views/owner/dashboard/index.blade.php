@@ -49,26 +49,6 @@
             </div>
         </div>
 
-        <!-- Phím tắt nhanh chức năng -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <a href="{{ route('owner.venues.index') }}" class="card-base card-hover p-5 group">
-                <h4 class="font-bold text-zinc-900 dark:text-zinc-50 text-base group-hover:text-primary-600 dark:group-hover:text-primary-400 transition">Quản lý Khu Sân &rarr;</h4>
-                <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Thêm sửa xóa thông tin cơ sở và sân.</p>
-            </a>
-            <a href="{{ route('owner.bookings.index') }}" class="card-base card-hover p-5 group">
-                <h4 class="font-bold text-zinc-900 dark:text-zinc-50 text-base group-hover:text-primary-600 dark:group-hover:text-primary-400 transition">Đơn Đặt Sân &rarr;</h4>
-                <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Xác nhận đơn, kiểm tra thanh toán.</p>
-            </a>
-            <a href="{{ route('owner.schedule.index') }}" class="card-base card-hover p-5 group">
-                <h4 class="font-bold text-zinc-900 dark:text-zinc-50 text-base group-hover:text-primary-600 dark:group-hover:text-primary-400 transition">Lịch Biểu &rarr;</h4>
-                <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Kiểm tra khung giờ trống và lịch đá.</p>
-            </a>
-            <a href="{{ route('owner.reports.index') }}" class="card-base card-hover p-5 group">
-                <h4 class="font-bold text-zinc-900 dark:text-zinc-50 text-base group-hover:text-primary-600 dark:group-hover:text-primary-400 transition">Báo Cáo &rarr;</h4>
-                <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Xem biểu đồ doanh thu và tình hình.</p>
-            </a>
-        </div>
-
         <!-- Bảng danh sách đơn đặt sân gần đây -->
         <div class="card-base">
             <div class="flex justify-between items-center px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">

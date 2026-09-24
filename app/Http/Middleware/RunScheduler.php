@@ -18,7 +18,11 @@ class RunScheduler
     {
         // Cache lock 55s — chỉ request đầu tiên trong mỗi phút kích hoạt schedule:run
         if (Cache::lock('schedule-run', 55)->get()) {
-            Artisan::call('schedule:run');
+            if (PHP_OS_FAMILY === 'Windows') {
+                pclose(popen('start /B "" "' . PHP_BINARY . '" "' . base_path('artisan') . '" schedule:run > NUL 2>&1', 'r'));
+            } else {
+                Artisan::call('schedule:run');
+            }
         }
 
         return $next($request);

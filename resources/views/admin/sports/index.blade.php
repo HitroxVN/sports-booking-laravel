@@ -82,8 +82,11 @@
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="name" value="{{ $sport->name }}">
-                                <input type="hidden" name="is_active" value="0">
-                                <button type="submit" name="is_active" value="{{ $sport->is_active ? 0 : 1 }}"
+                                {{-- Giá trị MỚI nằm ở hidden input — nút bấm không đặt name vì
+                                     Alpine disable nút ngay trong sự kiện submit, value của nút
+                                     sẽ bị trình duyệt bỏ qua khi dựng form data --}}
+                                <input type="hidden" name="is_active" value="{{ $sport->is_active ? 0 : 1 }}">
+                                <button type="submit"
                                         :disabled="submitting"
                                         class="px-3 py-1.5 rounded-full text-xs font-semibold transition
                                                {{ $sport->is_active ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50' : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700' }}

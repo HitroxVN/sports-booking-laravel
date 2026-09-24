@@ -7,9 +7,6 @@
                 </h1>
                 <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Xem lịch đặt theo khung giờ của từng sân con</p>
             </div>
-            <a href="{{ route('owner.dashboard') }}" class="btn-secondary text-xs shrink-0">
-                &larr; Trở về trang chủ
-            </a>
         </div>
     </x-slot>
 
@@ -86,6 +83,8 @@
                                                     <div>
                                                         @if($matchedBooking->isConfirmed())
                                                             <span class="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold">Đã xác nhận</span>
+                                                        @elseif($matchedBooking->isCompleted())
+                                                            <span class="bg-white/20 px-2 py-0.5 rounded text-[10px] font-bold">Hoàn thành</span>
                                                         @else
                                                             <span class="bg-amber-400 text-zinc-900 px-2 py-0.5 rounded text-[10px] font-bold">Chờ xử lý</span>
                                                         @endif

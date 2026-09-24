@@ -282,11 +282,15 @@ class CustomerBookingController extends Controller
 
                 // Đơn pending quá hạn coi như hết hạn (command app:cancel-expired-pending-bookings
                 // sẽ hủy) — không tính là chiếm slot để người khác đặt được ngay.
+                // Đơn cancelled không chiếm slot.
                 $isBooked = Booking::where('court_id', $court->id)
                     ->whereDate('booking_date', $request->booking_date)
                     ->where(function ($q) {
-                        $q->where('status', '!=', 'pending')
-                            ->orWhere('created_at', '>=', now()->subMinutes(Booking::PAYMENT_EXPIRY_MINUTES));
+                        $q->whereIn('status', ['confirmed', 'completed'])
+                            ->orWhere(function ($q2) {
+                                $q2->where('status', 'pending')
+                                    ->where('created_at', '>=', now()->subMinutes(Booking::PAYMENT_EXPIRY_MINUTES));
+                            });
                     })
                     ->where('start_time', '<', $endTimeSql)
                     ->where('end_time', '>', $startTimeSql)

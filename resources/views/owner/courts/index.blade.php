@@ -8,9 +8,6 @@
                 <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Quản lý các sân thể thao thuộc khu vực này</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <a href="{{ route('owner.venues.index') }}" class="btn-secondary text-xs">
-                    &larr; Trở về Khu Sân
-                </a>
                 <a href="{{ route('owner.venues.courts.create', $venue) }}" class="btn-primary">
                     Thêm sân con mới
                 </a>

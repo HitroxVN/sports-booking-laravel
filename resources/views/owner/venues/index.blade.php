@@ -8,9 +8,6 @@
                 <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Quản lý tất cả cơ sở và sân thể thao của bạn tại đây</p>
             </div>
             <div class="flex items-center gap-2 shrink-0">
-                <a href="{{ route('owner.dashboard') }}" class="btn-secondary text-xs">
-                    &larr; Trở về trang chủ
-                </a>
                 <a href="{{ route('owner.venues.create') }}" class="btn-primary">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                     Thêm khu sân
@@ -58,23 +55,31 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <div class="inline-flex items-center gap-1">
-                                    <!-- Nút quản lý Sân Con -->
+                                <div class="inline-flex items-center gap-1" x-data="{ open: false }">
+                                    <!-- Nút chính: quản lý Sân Con -->
                                     <a href="{{ route('owner.venues.courts.index', $venue) }}" class="btn-ghost text-xs">Sân con ({{ $venue->courts_count }})</a>
 
-                                    <!-- Nút quản lý Khuyến Mãi -->
-                                    <a href="{{ route('owner.venues.promotions.index', $venue) }}" class="btn-ghost text-xs">Khuyến mãi</a>
-
-                                    <!-- Nút Xem Chi Tiết -->
-                                    <a href="{{ route('owner.venues.show', $venue) }}" class="btn-ghost text-xs">Chi tiết</a>
-
-                                    <a href="{{ route('owner.venues.edit', $venue) }}" class="btn-ghost text-xs">Sửa</a>
-
-                                    <form action="{{ route('owner.venues.destroy', $venue) }}" method="POST" class="inline-block" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sân này không?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn-ghost text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30">Xóa</button>
-                                    </form>
+                                    <!-- Menu còn lại gọn vào dropdown -->
+                                    <div class="relative">
+                                        <button type="button" @click="open = !open" @click.outside="open = false"
+                                                class="btn-ghost text-xs px-2" aria-label="Thao tác khác">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                                <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM18 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                            </svg>
+                                        </button>
+                                        <div x-show="open" x-cloak x-transition
+                                             class="absolute right-0 mt-1 w-40 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 py-1 z-20 text-left">
+                                            <a href="{{ route('owner.venues.show', $venue) }}" class="block px-4 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700">Chi tiết</a>
+                                            <a href="{{ route('owner.venues.promotions.index', $venue) }}" class="block px-4 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700">Khuyến mãi</a>
+                                            <a href="{{ route('owner.venues.edit', $venue) }}" class="block px-4 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700">Sửa thông tin</a>
+                                            <form action="{{ route('owner.venues.destroy', $venue) }}" method="POST"
+                                                  onsubmit="return confirm('Bạn có chắc chắn muốn xóa sân này không?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="w-full text-left px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">Xóa</button>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
                         </tr>
@@ -89,6 +94,8 @@
                 </table>
             </div>
         </div>
+
+        <style>[x-cloak] { display: none !important; }</style>
 
         <div class="mt-6">
             {{ $venues->links() }}

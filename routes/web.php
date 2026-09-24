@@ -120,8 +120,9 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     // 8. Quản lý Đánh Giá (Reviews) - Chỉ xem và phản hồi
     Route::resource('reviews', ReviewController::class)->only(['index', 'update']);
 
-    // 9. Báo Cáo Doanh Thu (Reports)
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    // 9. Báo Cáo Doanh Thu (Reports) + xuất CSV
+    Route::get('/reports',        [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
 });
 
 // ─── Admin ───────────────────────────────────────────────────────────────────

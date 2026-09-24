@@ -48,6 +48,7 @@
                     ['owner.venues.index', 'building', 'Khu sân'],
                     ['owner.bookings.index', 'calendar', 'Đơn đặt sân'],
                     ['owner.schedule.index', 'pin', 'Lịch biểu'],
+                    ['owner.reviews.index', 'star', 'Đánh giá'],
                 ],
                 'Nâng cao' => [
                     ['owner.reports.index', 'chart', 'Báo cáo doanh thu'],

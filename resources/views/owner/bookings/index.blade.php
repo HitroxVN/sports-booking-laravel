@@ -7,9 +7,6 @@
                 </h1>
                 <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Theo dõi và quản lý các lượt khách đặt sân</p>
             </div>
-            <a href="{{ route('owner.dashboard') }}" class="btn-secondary text-xs shrink-0">
-                &larr; Trở về trang chủ
-            </a>
         </div>
     </x-slot>
 
@@ -20,6 +17,8 @@
             <a href="{{ route('owner.bookings.index') }}" class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors {{ !request('status') ? 'bg-primary-600 text-white shadow-sm' : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700' }}">Tất cả</a>
             <a href="{{ route('owner.bookings.index', ['status' => 'pending']) }}" class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors {{ request('status') == 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700' }}">Chờ xử lý</a>
             <a href="{{ route('owner.bookings.index', ['status' => 'confirmed']) }}" class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors {{ request('status') == 'confirmed' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700' }}">Đã xác nhận</a>
+            <a href="{{ route('owner.bookings.index', ['status' => 'completed']) }}" class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors {{ request('status') == 'completed' ? 'bg-green-600 text-white shadow-sm' : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700' }}">Hoàn thành</a>
+            <a href="{{ route('owner.bookings.index', ['status' => 'cancelled']) }}" class="px-4 py-2 rounded-xl text-sm font-semibold transition-colors {{ request('status') == 'cancelled' ? 'bg-red-600 text-white shadow-sm' : 'bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700' }}">Đã hủy</a>
         </div>
 
         <div class="card-base">
