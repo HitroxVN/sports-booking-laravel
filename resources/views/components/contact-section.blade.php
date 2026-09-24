@@ -6,11 +6,11 @@
 --}}
 @php
     $contact = [
-        'address' => 'Đại học Tài nguyên và Môi trường Hà Nội',
-        'phone' => '0999 986 866',
-        'phoneRaw' => '0999986866',
-        'email' => 'hotro@arenasports.vn',
-        'hours' => 'Thứ 2 – Chủ nhật, 8:00 – 23:00',
+        'address'  => setting('contact_address', 'Đại học Tài nguyên và Môi trường Hà Nội'),
+        'phone'    => setting('contact_hotline', '0999 986 866'),
+        'phoneRaw' => str_replace(' ', '', setting('contact_hotline', '0999 986 866')),
+        'email'    => setting('contact_email', 'hotro@arenasports.vn'),
+        'hours'    => format_contact_hours(setting('contact_hours')),
     ];
 @endphp
 

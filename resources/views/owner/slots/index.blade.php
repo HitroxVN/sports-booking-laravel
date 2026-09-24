@@ -52,11 +52,14 @@
                                 {{ $slot->is_peak && $slot->peak_price ? number_format($slot->peak_price, 0, ',', '.') . ' đ' : '-' }}
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <form action="{{ route('owner.slots.destroy', $slot) }}" method="POST" class="inline-block" onsubmit="return confirm('Xóa khung giờ này?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn-ghost text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30">Xóa</button>
-                                </form>
+                                <div class="flex justify-end gap-1">
+                                    <a href="{{ route('owner.slots.edit', $slot) }}" class="btn-ghost text-xs text-zinc-600 dark:text-zinc-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30">Sửa</a>
+                                    <form action="{{ route('owner.slots.destroy', $slot) }}" method="POST" class="inline-block" onsubmit="return confirm('Xóa khung giờ này?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn-ghost text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30">Xóa</button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         @empty

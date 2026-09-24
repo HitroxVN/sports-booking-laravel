@@ -11,19 +11,19 @@
             {{-- Brand column --}}
             <div class="lg:col-span-1">
                 <a href="/" class="flex items-center gap-2.5 mb-4 group">
-                    <img src="{{ asset('images/logo/logo.jpg') }}" alt="Arena Sports Booking"
+                    <img src="{{ \App\Models\Setting::asset('app_logo', asset('images/logo/logo.jpg')) }}" alt="Arena Sports Booking"
                         class="w-9 h-9 rounded-lg object-cover shrink-0">
                     <div class="leading-tight">
-                        <span class="block text-sm font-bold text-white tracking-tight">Arena</span>
-                        <span class="block text-[10px] font-medium text-white uppercase tracking-widest">Sports Booking</span>
+                        <span class="block text-sm font-bold text-white tracking-tight">{{ setting('site_name', 'Arena') }}</span>
+                        <span class="block text-[10px] font-medium text-white uppercase tracking-widest">{{ setting('site_tagline', 'Sports Booking') }}</span>
                     </div>
                 </a>
                 <p class="text-sm leading-relaxed text-white/60 mb-5 max-w-xs">
-                    Nền tảng đặt sân thể thao trực tuyến hàng đầu Việt Nam. Kết nối người chơi với hơn 200 khu sân chất lượng.
+                    {{ setting('footer_description', 'Nền tảng đặt sân thể thao trực tuyến hàng đầu Việt Nam. Kết nối người chơi với hơn 200 khu sân chất lượng.') }}
                 </p>
                 {{-- Social links --}}
                 <div class="flex items-center gap-3">
-                    <a href="#" aria-label="Facebook" class="w-8 h-8 bg-white/10 hover:bg-cta-400 hover:text-zinc-900 rounded-lg flex items-center justify-center transition-colors">
+                    <a href="{{ setting('social_facebook') ?: '#' }}" aria-label="Facebook" class="w-8 h-8 bg-white/10 hover:bg-cta-400 hover:text-zinc-900 rounded-lg flex items-center justify-center transition-colors">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                         </svg>
@@ -89,10 +89,10 @@
             </p>
             <div class="flex items-center gap-1.5 text-xs text-white/50">
                 <span>Hotline:</span>
-                <a href="tel:19001234" class="hover:text-cta-300 transition-colors">1900 1234</a>
+                <a href="tel:{{ str_replace(' ', '', setting('contact_hotline', '1900 1234')) }}" class="hover:text-cta-300 transition-colors">{{ setting('contact_hotline', '1900 1234') }}</a>
                 <span class="select-none">&middot;</span>
                 <span>Email:</span>
-                <a href="mailto:hotro@arenasports.vn" class="hover:text-cta-300 transition-colors">hotro@arenasports.vn</a>
+                <a href="mailto:{{ setting('contact_email', 'hotro@arenasports.vn') }}" class="hover:text-cta-300 transition-colors">{{ setting('contact_email', 'hotro@arenasports.vn') }}</a>
             </div>
         </div>
     </div>

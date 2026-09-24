@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Webhook;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Payment;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,9 +13,9 @@ use Illuminate\Support\Facades\DB;
 /**
  * Nhận webhook giao dịch ngân hàng từ SePay (server-to-server).
  *
- * Chiến lược mã lỗi: 401 sai key / 400 thiếu dữ liệu / 422 thiếu tiền (SePay sẽ retry
- * vì khách có thể chuyển bổ sung). Mọi trường hợp không thể xử lý vĩnh viễn (mã đơn
- * không tồn tại, đơn đã hủy...) trả 200 để SePay không retry vô hạn.
+ * Chiến lược mã lỗi: 401 sai key / 400 thiếu dữ liệu. Mọi trường hợp không thể xử lý
+ * vĩnh viễn (mã đơn không tồn tại, đơn đã hủy, chưa đủ cọc...) trả 200 để SePay
+ * không retry vô hạn — tiền chưa đủ vẫn được lưu payment pending để cộng dồn lần sau.
  */
 class SePayWebhookController extends Controller
 {
@@ -71,31 +72,43 @@ class SePayWebhookController extends Controller
                 return [200, ['success' => false, 'message' => "Booking is {$booking->status}; handle refund manually"]];
             }
 
-            // 4c. Đối chiếu số tiền: đủ tổng -> xác nhận đơn; đủ cọc -> đánh dấu đã cọc
-            $amount  = (float) $data['transferAmount'];
-            $total   = (float) $booking->total_amount;
-            $deposit = $booking->deposit_amount !== null ? (float) $booking->deposit_amount : null;
+            // 4c. Đối chiếu số tiền CỘNG DỒN: giao dịch này + các giao dịch thành công trước đó
+            // so với tổng tiền / tiền cọc. Khách thường bị hạn mức chuyển khoản nên chia nhiều lần.
+            $amount    = (float) $data['transferAmount'];
+            $total     = (float) $booking->total_amount;
+            $deposit   = $booking->deposit_amount !== null ? (float) $booking->deposit_amount : null;
+            $paidSoFar = (float) Payment::where('booking_id', $booking->id)
+                ->where('status', 'success')
+                ->where('type', '!=', 'refund')
+                ->sum('amount');
 
-            if ($amount >= $total) {
+            if ($amount + $paidSoFar >= $total) {
                 [$type, $paymentStatus, $confirm] = ['full', 'fully_paid', true];
-            } elseif ($deposit !== null && $amount >= $deposit) {
+            } elseif ($deposit !== null && $amount + $paidSoFar >= $deposit) {
                 [$type, $paymentStatus, $confirm] = ['deposit', 'deposit_paid', false];
             } else {
-                // 422 để SePay retry — khách có thể chuyển khoản bổ sung sau
-                return [422, ['success' => false, 'message' => 'Insufficient amount']];
+                // Chưa đủ cọc: vẫn lưu giao dịch (status pending) để admin thấy tiền đã vào,
+                // giao dịch kế tiếp sẽ được cộng dồn. Trả 200 để SePay không retry vô hạn.
+                [$type, $paymentStatus, $confirm] = ['deposit', 'pending', false];
             }
 
             // 4d. Lưu giao dịch + cập nhật đơn
-            Payment::create([
-                'booking_id'      => $booking->id,
-                'gateway'         => 'sepay',
-                'gateway_txn_id'  => (string) $data['id'],
-                'amount'          => $amount,
-                'type'            => $type,
-                'status'          => 'success',
-                'gateway_response'=> $data,
-                'paid_at'         => $data['transactionDate'],
-            ]);
+            // gateway_txn_id có unique index (gateway, gateway_txn_id) — nếu 2 webhook trùng
+            // đến song song, bản ghi thứ 2 văng exception thay vì tạo payment đếm đôi.
+            try {
+                Payment::create([
+                    'booking_id'      => $booking->id,
+                    'gateway'         => 'sepay',
+                    'gateway_txn_id'  => (string) $data['id'],
+                    'amount'          => $amount,
+                    'type'            => $type,
+                    'status'          => $paymentStatus === 'pending' ? 'pending' : 'success',
+                    'gateway_response'=> $data,
+                    'paid_at'         => $data['transactionDate'],
+                ]);
+            } catch (UniqueConstraintViolationException) {
+                return [200, ['success' => true, 'message' => 'Already processed']];
+            }
 
             $booking->payment_status = $paymentStatus;
             if ($confirm && $booking->isPending()) {

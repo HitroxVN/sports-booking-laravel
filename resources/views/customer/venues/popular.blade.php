@@ -104,7 +104,7 @@
                         </div>
 
                         <h3 class="mt-4 text-lg font-extrabold text-white line-clamp-1">{{ $champion->name }}</h3>
-                        <p class="text-xs text-white/60 mt-1 line-clamp-1">{{ $champion->district }}, {{ $champion->city }}</p>
+                        <p class="text-xs text-white/60 mt-1 line-clamp-1">{{ $champion->address_line }}</p>
 
                         <div class="mt-4 flex items-center justify-between">
                             <span class="flex items-center gap-1.5 text-sm font-bold text-cta-300">
@@ -226,7 +226,7 @@
                                 <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
-                                <span class="line-clamp-1">{{ $venue->address }}, {{ $venue->district }}, {{ $venue->city }}</span>
+                                <span class="line-clamp-1">{{ $venue->address_line }}</span>
                             </p>
                         </div>
 
@@ -339,7 +339,7 @@
                                 <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 </svg>
-                                <span class="line-clamp-1">{{ $venue->address }}, {{ $venue->district }}, {{ $venue->city }}</span>
+                                <span class="line-clamp-1">{{ $venue->address_line }}</span>
                             </p>
                             @if($sportNames->isNotEmpty())
                                 <div class="flex flex-wrap gap-1.5">

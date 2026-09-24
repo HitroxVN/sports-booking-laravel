@@ -30,6 +30,23 @@ class Venue extends Model
         ];
     }
 
+    /** Nhãn tiếng Việt cho tiện ích — dùng chung form owner + hiển thị khách */
+    public const AMENITY_LABELS = [
+        'wifi'            => 'Wifi miễn phí',
+        'parking'         => 'Bãi đỗ xe',
+        'canteen'         => 'Căng tin/Nước',
+        'changing_room'   => 'Phòng thay đồ',
+        'shower'          => 'Phòng tắm/vệ sinh',
+        'air_conditioner' => 'Máy lạnh',
+    ];
+
+    /** Dòng địa chỉ hiển thị: số nhà + phường/xã (mới, ưu tiên hơn quận cũ) + tỉnh/TP */
+    public function getAddressLineAttribute(): string
+    {
+        return collect([$this->address, $this->ward ?: $this->district, $this->city])
+            ->filter()->implode(', ');
+    }
+
     // Auto-generate slug từ name
     public function getSlugOptions(): SlugOptions
     {
@@ -82,6 +99,32 @@ class Venue extends Model
     public function courts()
     {
         return $this->hasMany(Court::class);
+    }
+
+    /**
+     * Xóa mềm khu sân kèm tự động hủy các đơn chưa diễn ra — trong 1 transaction.
+     * Lỗi ở bất kỳ bước nào sẽ rollback toàn bộ, tránh tình trạng
+     * đơn đã hủy mà venue còn nguyên hoặc venue bị xóa mà đơn vẫn treo.
+     * Trả về số đơn bị hủy tự động.
+     */
+    public function deleteWithBookings(): int
+    {
+        return DB::transaction(function () {
+            // Đơn chưa diễn ra của khu sân: chưa hủy/completed và ngày đặt từ hôm nay trở đi
+            $cancelled = Booking::whereHas('court', fn ($q) => $q->where('venue_id', $this->id))
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->where('booking_date', '>=', today())
+                ->update([
+                    'status'        => 'cancelled',
+                    'cancel_reason' => 'Khu sân đã bị gỡ khỏi hệ thống. Vui lòng liên hệ hỗ trợ để được xử lý hoàn tiền.',
+                    'cancelled_at'  => now(),
+                ]);
+
+            // Soft delete — ném exception ở đây sẽ rollback cả phần hủy đơn phía trên
+            $this->delete();
+
+            return $cancelled;
+        });
     }
 
     // Giờ hoạt động trong tuần (7 ngày)

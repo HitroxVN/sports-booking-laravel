@@ -3,12 +3,16 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
+use App\Models\OperatingHour;
 use App\Models\Venue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class VenueController extends Controller
 {
+    // 0=Chủ nhật ... 6=Thứ 7 — khớp cột day_of_week
+    private const DAY_NAMES = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+
     /**
      * Hiển thị danh sách khu sân của chủ sân đang đăng nhập.
      */
@@ -40,8 +44,7 @@ class VenueController extends Controller
             'phone'       => 'required|string|max:20',
             'email'       => 'nullable|email|max:255',
             'city'        => 'required|string|max:100',
-            'district'    => 'required|string|max:100',
-            'ward'        => 'nullable|string|max:100',
+            'ward'        => 'required|string|max:100',
             'address'     => 'required|string|max:255',
             'description' => 'nullable|string',
             'latitude'    => 'nullable|numeric|between:-90,90',
@@ -96,13 +99,20 @@ class VenueController extends Controller
         $validated = $request->validate([
             'name'        => 'required|string|max:255',
             'address'     => 'required|string|max:255',
-            'district'    => 'required|string|max:100',
             'city'        => 'required|string|max:100',
+            'ward'        => 'required|string|max:100',
             'phone'       => 'required|string|max:20',
             'email'       => 'nullable|email|max:255',
             'description' => 'nullable|string',
             'image'       => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'latitude'    => 'nullable|numeric|between:-90,90',
+            'longitude'   => 'nullable|numeric|between:-180,180',
+            'amenities'   => 'nullable|array',
+            'amenities.*' => 'in:wifi,parking,canteen,changing_room,shower,air_conditioner',
         ]);
+
+        // Checkbox bỏ tick hết = không có key amenities → ép về mảng rỗng để xoá tiện ích cũ
+        $validated['amenities'] = $request->input('amenities', []);
 
         // Trạng thái sân chỉ admin được quyết định (duyệt/từ chối).
         // Chủ sân chỉ có thể tạm đóng/mở lại sân đang hoạt động — không tự "duyệt" sân pending/rejected.
@@ -144,17 +154,58 @@ class VenueController extends Controller
     }
 
     /**
+     * Cập nhật giờ hoạt động theo tuần (7 ngày) — upsert từng ngày.
+     * Khách đặt sân sẽ bị chặn theo giờ này, nên luôn ghi đè đủ 7 row.
+     */
+    public function updateOperatingHours(Request $request, Venue $venue)
+    {
+        $this->authorizeOwnership($venue);
+
+        $validated = $request->validate([
+            'hours'                 => 'required|array|size:7',
+            'hours.*.is_closed'     => 'required|boolean',
+            'hours.*.open_time'     => 'nullable|date_format:H:i',
+            'hours.*.close_time'    => 'nullable|date_format:H:i|after:hours.*.open_time',
+        ], [
+            'hours.*.close_time.after' => 'Giờ đóng cửa phải sau giờ mở cửa.',
+            'hours.*.open_time.required' => 'Vui lòng nhập giờ mở cửa cho ngày mở bán.',
+        ]);
+
+        foreach ($validated['hours'] as $dayOfWeek => $hour) {
+            if ($hour['is_closed']) {
+                // Ngày nghỉ: xóa row cũ (nếu có) — không lưu giờ rác
+                OperatingHour::where('venue_id', $venue->id)->where('day_of_week', $dayOfWeek)->delete();
+                continue;
+            }
+            // Ngày mở: bắt buộc có đủ giờ mở/đóng
+            if (empty($hour['open_time']) || empty($hour['close_time'])) {
+                return back()->with('error', 'Ngày '.self::DAY_NAMES[$dayOfWeek].' chưa nhập đủ giờ mở/đóng cửa.');
+            }
+            OperatingHour::updateOrCreate(
+                ['venue_id' => $venue->id, 'day_of_week' => $dayOfWeek],
+                ['open_time' => $hour['open_time'], 'close_time' => $hour['close_time'], 'is_closed' => false]
+            );
+        }
+
+        return redirect()->route('owner.venues.show', $venue)->with('success', 'Đã cập nhật giờ hoạt động!');
+    }
+
+    /**
      * Xóa khu sân (Sử dụng Soft Delete).
      */
     public function destroy(Venue $venue)
     {
         $this->authorizeOwnership($venue);
 
-        // Vì Model có dùng SoftDeletes, hàm delete() sẽ chỉ đánh dấu deleted_at chứ không xóa hẳn
-        $venue->delete();
+        // Xóa kèm tự động-cancel các đơn chưa diễn ra — 1 transaction, lỗi sẽ rollback toàn bộ
+        $cancelled = $venue->deleteWithBookings();
 
+        $msg = 'Đã xóa khu sân thành công!';
+        if ($cancelled > 0) {
+            $msg .= " Đã tự động hủy {$cancelled} đơn đặt sân chưa diễn ra.";
+        }
         return redirect()->route('owner.venues.index')
-            ->with('success', 'Đã xóa khu sân thành công!');
+            ->with('success', $msg);
     }
 
     /**

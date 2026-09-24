@@ -1,1 +1,1 @@
-<img src="{{ asset('images/logo/logo.jpg') }}" alt="{{ config('app.name') }}" {{ $attributes }}>
+<img src="{{ \App\Models\Setting::asset('app_logo', asset('images/logo/logo.jpg')) }}" alt="{{ config('app.name') }}" {{ $attributes }}>

@@ -97,19 +97,37 @@ class ChatController extends Controller
     }
 
     /**
+     * Kiểm tra quyền truy cập hội thoại:
+     * - Admin/owner: được vào mọi hội thoại để hỗ trợ
+     * - User đăng nhập: chỉ hội thoại có user_id khớp
+     * - Khách vãng lai (kể cả user đang xem hội thoại guest): session_token phải khớp
+     */
+    private function authorizeConversation(ChatConversation $conversation, ?string $sessionToken): bool
+    {
+        $user = Auth::user();
+
+        if ($user && in_array($user->role, ['admin', 'owner'])) {
+            return true;
+        }
+
+        if ($user && $conversation->user_id === $user->id) {
+            return true;
+        }
+
+        // Hội thoại guest (user_id null) hoặc user không phải chủ hội thoại:
+        // chỉ vào được khi giữ đúng session_token
+        return $sessionToken !== null
+            && hash_equals($conversation->session_token, $sessionToken);
+    }
+
+    /**
      * Lấy danh sách tin nhắn của hội thoại
      */
     public function getMessages(ChatConversation $conversation, Request $request): JsonResponse
     {
         $sessionToken = $request->header('X-Chat-Session') ?: $request->input('session_token');
-        $user = Auth::user();
 
-        // Kiểm tra quyền truy cập (user_id hoặc session_token khớp)
-        if ($conversation->user_id && $user && $conversation->user_id !== $user->id && !in_array($user->role, ['admin', 'owner'])) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        if (!$user && $conversation->session_token !== $sessionToken) {
+        if (! $this->authorizeConversation($conversation, $sessionToken)) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
@@ -150,16 +168,12 @@ class ChatController extends Controller
         ]);
 
         $sessionToken = $request->header('X-Chat-Session') ?: $request->input('session_token');
+
+        if (! $this->authorizeConversation($conversation, $sessionToken)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
         $user = Auth::user();
-
-        if ($conversation->user_id && $user && $conversation->user_id !== $user->id && !in_array($user->role, ['admin', 'owner'])) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        if (!$user && $conversation->session_token !== $sessionToken) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
         $senderName = $user ? $user->name : ($conversation->customer_name ?: 'Khách hàng');
 
         $message = ChatMessage::create([

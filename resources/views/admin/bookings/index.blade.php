@@ -54,7 +54,10 @@
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
                     @forelse($bookings as $booking)
                     <tr class="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
-                        <td class="p-4 font-bold text-primary-600 dark:text-primary-400">#{{ $booking->code }}</td>
+                        <td class="p-4 font-bold">
+                            <a href="{{ route('admin.bookings.show', $booking) }}"
+                               class="text-primary-600 dark:text-primary-400 hover:underline">#{{ $booking->code }}</a>
+                        </td>
                         <td class="p-4 font-medium text-zinc-900 dark:text-zinc-50">{{ $booking->user->name ?? 'Khách lẻ' }}</td>
                         <td class="p-4 text-zinc-600 dark:text-zinc-300 text-sm">{{ $booking->court->venue->name ?? '—' }} › {{ $booking->court->name ?? '—' }}</td>
                         <td class="p-4 text-zinc-600 dark:text-zinc-300 text-sm">{{ \Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') }}</td>
@@ -72,7 +75,7 @@
                                 <x-badge variant="danger">Đã hủy</x-badge>
                             @endif
                         </td>
-                        <td class="p-4">
+                        <td class="p-4 whitespace-normal min-w-[140px]">
                             @if($booking->isPaid())
                                 <x-badge variant="success">Đã thanh toán</x-badge>
                             @elseif($booking->hasDeposit())
@@ -82,7 +85,7 @@
                             @endif
                             <div class="mt-1">
                                 <a href="{{ route('admin.payments.index', ['search' => $booking->code]) }}"
-                                   class="text-[11px] text-primary-600 dark:text-primary-400 hover:underline font-medium inline-flex items-center gap-0.5">
+                                   class="text-[11px] text-primary-600 dark:text-primary-400 hover:underline font-medium">
                                     Lịch sử GD &rarr;
                                 </a>
                             </div>

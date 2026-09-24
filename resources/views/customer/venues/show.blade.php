@@ -54,7 +54,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                         </svg>
-                        <span>{{ $venue->address }}, {{ $venue->district }}, {{ $venue->city }}</span>
+                        <span>{{ $venue->address_line }}</span>
                     </p>
 
                     @if($venue->phone)
@@ -117,7 +117,7 @@
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
                                 </svg>
-                                {{ $amenity }}
+                                {{ \App\Models\Venue::AMENITY_LABELS[$amenity] ?? $amenity }}
                             </span>
                         @endforeach
                     </div>
@@ -126,6 +126,31 @@
         </div>
     </div>
 
+
+    {{-- ── 1.5. VỊ TRÍ KHU SÂN TRÊN GOOGLE MAPS ── --}}
+    @if($venue->latitude && $venue->longitude)
+        <div class="mb-10">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-zinc-900 dark:text-zinc-100">Vị trí khu sân</h2>
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{{ $venue->address_line }}</p>
+                </div>
+                <a href="https://www.google.com/maps/dir/?api=1&destination={{ $venue->latitude }},{{ $venue->longitude }}"
+                   target="_blank" rel="noopener"
+                   class="btn-primary text-xs shrink-0 inline-flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+                    Chỉ đường
+                </a>
+            </div>
+            <div class="rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm">
+                <iframe src="https://maps.google.com/maps?q={{ $venue->latitude }},{{ $venue->longitude }}&z=16&hl=vi&output=embed"
+                        class="w-full h-72 sm:h-80 border-0" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Bản đồ vị trí {{ $venue->name }}"
+                        allowfullscreen></iframe>
+            </div>
+        </div>
+    @endif
 
     {{-- ── 2. BỘ LỌC VÀ DANH SÁCH SÂN CON (CSS Grid 12 cột) ── --}}
     <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

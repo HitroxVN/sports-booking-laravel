@@ -20,9 +20,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->validateCsrfTokens(except: [
-            'chat/*',
-            'admin/chats/*',
             'webhooks/*',
+        ]);
+
+        // Cron-less scheduler: chạy schedule:run khi có request (XAMPP Windows không có cron)
+        $middleware->web(append: [
+            \App\Http\Middleware\RunScheduler::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

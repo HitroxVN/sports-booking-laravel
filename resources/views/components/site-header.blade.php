@@ -1,26 +1,8 @@
 {{-- ================================================================
      SITE HEADER — dùng chung mọi trang khách (layouts/customer)
-     Phong cách: Nhà thuốc Long Châu (top bar xanh brand + CTA vàng)
+     Phong cách: Nhà thuốc Long Châu (CTA vàng)
      Được dùng qua: <x-site-header />
 ================================================================= --}}
-<div class="bg-primary-600 dark:bg-primary-800 text-white/90 text-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-4">
-        <span class="flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5 text-cta-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                <path d="M2 5a2 2 0 012-2h1.5a1 1 0 01.968.732l1.107 3.857a1 1 0 01-.313 1.047l-1.403 1.194a11.018 11.018 0 005.501 5.501l1.194-1.403a1 1 0 011.047-.313l3.857 1.107A1 1 0 0117 13.5V15a2 2 0 01-2 2h-1C7.72 17 3 12.28 3 6.5V5z" />
-            </svg>
-            Hotline: <a href="tel:19001234" class="font-semibold text-white hover:text-cta-300 transition-colors">1900 1234</a>
-        </span>
-        <div class="hidden sm:flex items-center gap-3">
-            <a href="/search" class="hover:text-cta-300 transition-colors">Tìm sân</a>
-            <span class="text-white/30 select-none" aria-hidden="true">|</span>
-            <a href="/lien-he" class="hover:text-cta-300 transition-colors">Hỗ trợ</a>
-            <span class="text-white/30 select-none" aria-hidden="true">|</span>
-            <a href="/register" class="hover:text-cta-300 transition-colors">Đăng ký</a>
-        </div>
-    </div>
-</div>
-
 <header x-data="{ mobileOpen: false }" class="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 sticky top-0 z-50 shadow-lc">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16 gap-6">
@@ -30,8 +12,8 @@
                 <img src="{{ asset('images/logo/logo.jpg') }}" alt="Arena Sports Booking"
                     class="w-9 h-9 rounded-lg object-cover shrink-0">
                 <div class="leading-tight">
-                    <span class="block text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Arena</span>
-                    <span class="block text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Sports Booking</span>
+                    <span class="block text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">{{ setting('site_name', 'Arena') }}</span>
+                    <span class="block text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{{ setting('site_tagline', 'Sports Booking') }}</span>
                 </div>
             </a>
 
@@ -62,26 +44,7 @@
             {{-- Right: auth + theme toggle --}}
             <div class="flex items-center gap-2 sm:gap-3">
                 {{-- Dark mode toggle --}}
-                <button type="button"
-                    x-data="{
-                        dark: document.documentElement.classList.contains('dark'),
-                        toggle() {
-                            this.dark = !this.dark;
-                            document.documentElement.classList.toggle('dark', this.dark);
-                            try { localStorage.setItem('color-mode', this.dark ? 'dark' : 'light'); } catch (e) {}
-                        }
-                    }"
-                    @click="toggle()"
-                    :aria-label="dark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'"
-                    class="w-9 h-9 flex items-center justify-center rounded-lg text-zinc-500 dark:text-zinc-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary-500">
-                    <svg x-show="!dark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" x-cloak>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.352 8.964a8 8 0 01-9.388-9.388 8 8 0 109.388 9.388z" />
-                    </svg>
-                    <svg x-show="dark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" x-cloak>
-                        <circle cx="12" cy="12" r="4" stroke-width="2" />
-                        <path stroke-linecap="round" stroke-width="2" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-                    </svg>
-                </button>
+                <x-theme-toggle />
 
                 @auth
                 <div x-data="{ open: false }" class="relative">

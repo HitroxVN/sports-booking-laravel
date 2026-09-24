@@ -5,9 +5,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/jpeg" href="{{ asset('images/logo/logo.jpg') }}">
+    <link rel="icon" type="image/jpeg" href="{{ \App\Models\Setting::asset('app_logo', asset('images/logo/logo.jpg')) }}">
 
     <title>{{ $title ?? 'Quản lý sân' }} — Arena Sports Booking</title>
+
+    {{-- Khởi tạo theme (sáng/tối) trước khi render để tránh nhấp nháy FOUC --}}
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem('color-mode');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) { /* bỏ qua nếu localStorage bị chặn */ }
+        })();
+    </script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -63,8 +75,11 @@
                     </h1>
                 </div>
 
-                {{-- User dropdown --}}
-                <div x-data="{ open: false }" class="relative shrink-0">
+                {{-- Theme toggle + User dropdown --}}
+                <div class="flex items-center gap-2 shrink-0">
+                    <x-theme-toggle />
+
+                    <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
                         :aria-expanded="open.toString()"
                         aria-haspopup="true"
@@ -104,6 +119,7 @@
                             </button>
                         </form>
                     </div>
+                </div>
                 </div>
             </header>
 

@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="container py-8 mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="max-w-lg mx-auto card-base p-6" x-data="payPoll({{ $booking->id }})">
+        <div class="max-w-lg mx-auto card-base p-6" x-data="payPoll({{ $booking->id }}, {{ $booking->payment_status === 'unpaid' && !$booking->isCancelled() ? 'true' : 'false' }})">
 
             <h2 class="text-2xl font-bold mb-1 text-zinc-900 dark:text-zinc-100">Thanh toán chuyển khoản</h2>
             <p class="text-sm text-zinc-500 dark:text-zinc-400 mb-6">
@@ -29,8 +29,19 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-zinc-500 dark:text-zinc-400">Tổng tiền</span>
-                    <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ number_format($booking->total_amount) }} VNĐ</span>
+                    <span class="font-medium text-zinc-900 dark:text-zinc-100">
+                        @if($booking->discount_amount > 0)
+                            <span class="line-through text-zinc-400 dark:text-zinc-500 mr-1.5">{{ number_format($booking->total_amount + $booking->discount_amount) }}</span>
+                        @endif
+                        {{ number_format($booking->total_amount) }} VNĐ
+                    </span>
                 </div>
+                @if($booking->discount_amount > 0)
+                    <div class="flex justify-between">
+                        <span class="text-emerald-600 dark:text-emerald-400">Mã {{ $booking->promotion?->code ?? '' }}</span>
+                        <span class="font-medium text-emerald-600 dark:text-emerald-400">-{{ number_format($booking->discount_amount) }} VNĐ</span>
+                    </div>
+                @endif
                 @if($booking->deposit_amount)
                     <div class="flex justify-between">
                         <span class="text-zinc-500 dark:text-zinc-400">Cọc trước</span>
@@ -69,6 +80,23 @@
                         @endif
                     </p>
 
+                    {{-- Đếm ngược hạn thanh toán — hết giờ đơn bị hủy tự động (15 phút) --}}
+                    <div class="mb-4 px-3 py-2 text-sm bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-xl flex items-center justify-center gap-2"
+                         x-data="{
+                            deadline: new Date('{{ $booking->paymentExpiresAt()->format('Y-m-d\TH:i:s') }}').getTime(),
+                            left: 0, tick() { this.left = Math.max(0, this.deadline - Date.now()); },
+                         }"
+                         x-init="tick(); setInterval(() => tick(), 1000)"
+                         x-cloak>
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>
+                            Đơn được giữ trong <b x-text="Math.floor(left / 60000) + ':' + String(Math.floor(left / 1000) % 60).padStart(2, '0')"></b>
+                            — hết {{ \App\Models\Booking::PAYMENT_EXPIRY_MINUTES }} phút không thanh toán sẽ tự hủy.
+                        </span>
+                    </div>
+
                     <img src="{{ $qrUrl }}" alt="Mã QR VietQR" class="w-64 mx-auto rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white p-2">
 
                     <div class="mt-4 text-sm text-left space-y-2">
@@ -98,9 +126,14 @@
 @push('scripts')
 <script>
     // Poll trạng thái thanh toán — reload khi webhook đã cập nhật đơn
-    function payPoll(id) {
+    // Chỉ poll khi trang đang chờ tiền (unpaid + chưa hủy) — trang đã hiện
+    // kết quả (đã nhận tiền / đã hủy) thì poll sẽ reload vô hạn vì điều kiện
+    // vẫn đúng mãi.
+    function payPoll(id, shouldPoll) {
         return {
             init() {
+                if (!shouldPoll) return;
+
                 setInterval(async () => {
                     try {
                         const res = await fetch(`{{ url('bookings') }}/${id}/status`);

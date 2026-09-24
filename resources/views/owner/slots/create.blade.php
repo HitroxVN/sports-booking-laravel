@@ -35,12 +35,24 @@
                     <div class="grid grid-cols-2 gap-6">
                         <div>
                             <label for="slot-start" class="label-eyebrow block mb-2">Giờ bắt đầu <span class="text-red-500">*</span></label>
-                            <input id="slot-start" type="time" name="start_time" value="{{ old('start_time') }}" required class="input-base">
+                            <select id="slot-start" name="start_time" required class="input-base">
+                                <option value="" disabled @selected(old('start_time') === null)>-- Chọn giờ --</option>
+                                @for ($h = 0; $h <= 23; $h++)
+                                    @php($t = sprintf('%02d:00', $h))
+                                    <option value="{{ $t }}" @selected(old('start_time') === $t)>{{ $t }}</option>
+                                @endfor
+                            </select>
                             @error('start_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label for="slot-end" class="label-eyebrow block mb-2">Giờ kết thúc <span class="text-red-500">*</span></label>
-                            <input id="slot-end" type="time" name="end_time" value="{{ old('end_time') }}" required class="input-base">
+                            <select id="slot-end" name="end_time" required class="input-base">
+                                <option value="" disabled @selected(old('end_time') === null)>-- Chọn giờ --</option>
+                                @for ($h = 1; $h <= 23; $h++)
+                                    @php($t = sprintf('%02d:00', $h))
+                                    <option value="{{ $t }}" @selected(old('end_time') === $t)>{{ $t }}</option>
+                                @endfor
+                            </select>
                             @error('end_time') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                         </div>
                     </div>

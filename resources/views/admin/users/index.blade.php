@@ -1,9 +1,12 @@
 <x-admin-layout :title="'Người dùng'">
 
     {{-- Page header --}}
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Người dùng</h1>
-        <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Quản lý tài khoản khách hàng và chủ sân</p>
+    <div class="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">Người dùng</h1>
+            <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Quản lý tài khoản khách hàng và chủ sân</p>
+        </div>
+        <a href="{{ route('admin.users.create') }}" class="btn-primary">+ Thêm người dùng</a>
     </div>
 
     {{-- Filter bar --}}
@@ -29,6 +32,7 @@
                     <option value="">Tất cả</option>
                     <option value="active" @selected(request('status') === 'active')>Hoạt động</option>
                     <option value="banned" @selected(request('status') === 'banned')>Bị khóa</option>
+                    <option value="deleted" @selected(request('status') === 'deleted')>Đã xóa</option>
                 </select>
             </div>
             <div class="flex gap-2">
@@ -71,7 +75,9 @@
                             @endif
                         </td>
                         <td class="p-4">
-                            @if($user->isActive())
+                            @if($user->trashed())
+                                <x-badge variant="danger">Đã xóa</x-badge>
+                            @elseif($user->isActive())
                                 <x-badge variant="success">Hoạt động</x-badge>
                             @else
                                 <x-badge variant="danger">Bị khóa</x-badge>
@@ -79,19 +85,39 @@
                         </td>
                         <td class="p-4 text-zinc-500 dark:text-zinc-400 text-sm">{{ $user->created_at?->format('d/m/Y') }}</td>
                         <td class="p-4 text-center">
-                            @if($user->isActive())
-                                <form method="POST" action="{{ route('admin.users.ban', $user) }}" class="inline">
+                            @if($user->trashed())
+                                <form method="POST" action="{{ route('admin.users.restore', $user) }}" class="inline">
                                     @csrf
                                     <button type="submit"
-                                            @click="if(!confirm(`Chắc chắn khóa tài khoản ${@js($user->name)}?`)) $event.preventDefault()"
-                                            class="px-3 py-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl text-xs font-semibold transition"
-                                            x-data="">Khóa</button>
+                                            class="px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-xl text-xs font-semibold transition">Khôi phục</button>
                                 </form>
                             @else
-                                <form method="POST" action="{{ route('admin.users.unban', $user) }}" class="inline">
+                                <a href="{{ route('admin.users.show', $user) }}"
+                                   class="px-3 py-1.5 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50 rounded-xl text-xs font-semibold transition">Xem</a>
+                                <a href="{{ route('admin.users.edit', $user) }}"
+                                   class="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl text-xs font-semibold transition">Sửa</a>
+                                @if($user->isActive())
+                                    <form method="POST" action="{{ route('admin.users.ban', $user) }}" class="inline">
+                                        @csrf
+                                        <button type="submit"
+                                                @click="if(!confirm(`Chắc chắn khóa tài khoản ${@js($user->name)}?`)) $event.preventDefault()"
+                                                class="px-3 py-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl text-xs font-semibold transition"
+                                                x-data="">Khóa</button>
+                                    </form>
+                                @else
+                                    <form method="POST" action="{{ route('admin.users.unban', $user) }}" class="inline">
+                                        @csrf
+                                        <button type="submit"
+                                                class="px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-xl text-xs font-semibold transition">Mở khóa</button>
+                                    </form>
+                                @endif
+                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}" class="inline">
                                     @csrf
+                                    @method('DELETE')
                                     <button type="submit"
-                                            class="px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-xl text-xs font-semibold transition">Mở khóa</button>
+                                            @click="if(!confirm(`Chắc chắn xóa tài khoản ${@js($user->name)}? Hành động này không thể hoàn tác.`)) $event.preventDefault()"
+                                            class="px-3 py-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl text-xs font-semibold transition"
+                                            x-data="">Xóa</button>
                                 </form>
                             @endif
                         </td>

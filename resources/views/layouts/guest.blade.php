@@ -40,8 +40,8 @@
                 <img src="{{ asset('images/logo/logo.jpg') }}" alt="Arena Sports Booking"
                     class="w-9 h-9 rounded-lg object-cover shrink-0">
                 <div class="leading-tight">
-                    <span class="block text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">Arena</span>
-                    <span class="block text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">Sports Booking</span>
+                    <span class="block text-sm font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">{{ setting('site_name', 'Arena') }}</span>
+                    <span class="block text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">{{ setting('site_tagline', 'Sports Booking') }}</span>
                 </div>
             </a>
         </header>

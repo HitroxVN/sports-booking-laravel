@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\SportController as AdminSportController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\VenueController as AdminVenueController;
@@ -81,9 +82,11 @@ Route::middleware(['auth', 'verified', 'role:customer'])->name('customer.')->gro
     Route::post('/bookings', [CustomerBookingController::class, 'store'])->name('bookings.store');
     Route::get('/bookings/{booking}/pay', [CustomerBookingController::class, 'pay'])->name('bookings.pay');
     Route::get('/bookings/{booking}/status', [CustomerBookingController::class, 'status'])->name('bookings.status');
+    Route::post('/bookings/{booking}/review', [CustomerBookingController::class, 'storeReview'])->name('bookings.review');
 
-    // 2. Lịch sử đặt sân của tôi (Trang danh sách)
+    // 2. Lịch sử đặt sân của tôi (Trang danh sách + chi tiết đơn)
     Route::get('/my-bookings', [CustomerBookingController::class, 'index'])->name('bookings.index');
+    Route::get('/my-bookings/{booking}', [CustomerBookingController::class, 'show'])->name('bookings.show');
 });
 
 // ─── Chủ sân ─────────────────────────────────────────────────────────────────
@@ -93,6 +96,8 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
 
     // 1. Quản lý Khu Sân (Venues)
     Route::resource('venues', VenueController::class);
+    Route::put('/venues/{venue}/operating-hours', [VenueController::class, 'updateOperatingHours'])
+        ->name('venues.operating-hours.update');
 
     // 2. Quản lý Sân Con (Courts)
     Route::resource('venues.courts', CourtController::class)->shallow()->except(['show']);
@@ -100,8 +105,8 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     // 3. Quản lý Khuyến Mãi (Promotions) - Đã giữ nguyên shallow để khớp với logic Controller
     Route::resource('venues.promotions', PromotionController::class)->shallow();
 
-    // 4. Quản lý Khung Giờ (Slots) - Vá Bug #4: Chặn các route rác không dùng
-    Route::resource('courts.slots', SlotController::class)->shallow()->except(['show', 'edit', 'update']);
+    // 4. Quản lý Khung Giờ (Slots) - thêm/sửa/xóa (chặn show không dùng)
+    Route::resource('courts.slots', SlotController::class)->shallow()->except(['show']);
 
     // 5. Quản lý Khóa Lịch (Closures) - Vá Bug #4: Chặn các route rác không dùng
     Route::resource('courts.closures', ClosureController::class)->shallow()->except(['show', 'edit', 'update']);
@@ -123,21 +128,36 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
-    // Users: index + ban/unban
-    Route::get('/users',               [AdminUserController::class, 'index'])->name('users.index');
-    Route::post('/users/{user}/ban',   [AdminUserController::class, 'ban'])->name('users.ban');
-    Route::post('/users/{user}/unban', [AdminUserController::class, 'unban'])->name('users.unban');
+    // Users: CRUD + ban/unban + reset password
+    Route::get('/users',                  [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/create',           [AdminUserController::class, 'create'])->name('users.create');
+    Route::post('/users',                 [AdminUserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}',           [AdminUserController::class, 'show'])->name('users.show')->withTrashed();
+    Route::get('/users/{user}/edit',      [AdminUserController::class, 'edit'])->name('users.edit');
+    Route::patch('/users/{user}',         [AdminUserController::class, 'update'])->name('users.update');
+    Route::patch('/users/{user}/password',[AdminUserController::class, 'updatePassword'])->name('users.password');
+    Route::delete('/users/{user}',        [AdminUserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/{user}/restore',  [AdminUserController::class, 'restore'])->name('users.restore')->withTrashed();
+    Route::post('/users/{user}/ban',      [AdminUserController::class, 'ban'])->name('users.ban');
+    Route::post('/users/{user}/unban',    [AdminUserController::class, 'unban'])->name('users.unban');
 
-    // Venues: index + approve + reject (dùng {venue} — implicit binding theo slug)
+    // Venues: index + approve + reject + destroy (dùng {venue} — implicit binding theo slug)
     Route::get('/venues',               [AdminVenueController::class, 'index'])->name('venues.index');
     Route::post('/venues/{venue}/approve', [AdminVenueController::class, 'approve'])->name('venues.approve');
     Route::post('/venues/{venue}/reject',  [AdminVenueController::class, 'reject'])->name('venues.reject');
+    Route::delete('/venues/{venue}',       [AdminVenueController::class, 'destroy'])->name('venues.destroy');
+    Route::post('/venues/{venue}/restore', [AdminVenueController::class, 'restore'])->name('venues.restore')->withTrashed();
 
     // Bookings: read-only
     Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->name('bookings.show');
 
     // Sports: CRUD (không cần create/edit view riêng — inline modal)
     Route::resource('sports', AdminSportController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    // Settings: cấu hình chung hệ thống (logo, thông tin liên hệ...)
+    Route::get('/settings',    [AdminSettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings',    [AdminSettingController::class, 'update'])->name('settings.update');
 
     // Reports + export CSV
     Route::get('/reports',        [AdminReportController::class, 'index'])->name('reports.index');
