@@ -31,6 +31,9 @@
                         <td class="px-6 py-4 font-bold">
                             <a href="{{ route('customer.bookings.show', $booking) }}"
                                class="text-primary-600 dark:text-primary-400 hover:underline">#{{ $booking->code }}</a>
+                            @if($booking->series_id)
+                                <div class="mt-1"><x-badge variant="info">Lịch cố định</x-badge></div>
+                            @endif
                         </td>
                         <td class="px-6 py-4 text-zinc-900 dark:text-zinc-100">
                             {{ $booking->court->name ?? 'N/A' }}

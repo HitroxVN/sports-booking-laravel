@@ -27,10 +27,21 @@ class MessageSent implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        return [
+        $channels = [
             new PrivateChannel('chat.conversation.' . $this->message->conversation_id),
-            new PrivateChannel('chat.admin'),
         ];
+
+        $conversation = $this->message->conversation;
+
+        if ($conversation?->type === 'owner' && $conversation->owner_id) {
+            // Hội thoại với chủ sân: chỉ báo cho đúng chủ sân đó
+            $channels[] = new PrivateChannel('chat.owner.' . $conversation->owner_id);
+        } else {
+            // Hội thoại hỗ trợ: báo cho quầy livechat của admin
+            $channels[] = new PrivateChannel('chat.admin');
+        }
+
+        return $channels;
     }
 
     public function broadcastAs(): string
@@ -45,7 +56,11 @@ class MessageSent implements ShouldBroadcastNow
             'conversation_id' => $this->message->conversation_id,
             'sender_type'     => $this->message->sender_type,
             'sender_id'       => $this->message->sender_id,
-            'sender_name'     => $this->message->sender_name ?? ($this->message->sender_type === 'admin' ? 'Hỗ trợ viên' : 'Khách hàng'),
+            'sender_name'     => $this->message->sender_name ?? match ($this->message->sender_type) {
+                'admin' => 'Hỗ trợ viên',
+                'owner' => 'Chủ sân',
+                default => 'Khách hàng',
+            },
             'message'         => $this->message->message,
             'created_at'      => $this->message->created_at->format('H:i d/m/Y'),
             'created_at_time' => $this->message->created_at->format('H:i'),

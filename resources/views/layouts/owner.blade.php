@@ -49,6 +49,7 @@
                     ['owner.bookings.index', 'calendar', 'Đơn đặt sân'],
                     ['owner.schedule.index', 'pin', 'Lịch biểu'],
                     ['owner.reviews.index', 'star', 'Đánh giá'],
+                    ['owner.chats.index', 'chat', 'Chat khách hàng'],
                 ],
                 'Nâng cao' => [
                     ['owner.reports.index', 'chart', 'Báo cáo doanh thu'],

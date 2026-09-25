@@ -297,6 +297,23 @@
                            :class="promoValid === false ? 'text-red-500' : 'text-emerald-600 dark:text-emerald-400'"></p>
                         <p class="mt-1 text-xs text-zinc-400">Mã áp dụng theo khu sân — xem mã đang chạy ở trang sân.</p>
                     </div>
+
+                    {{-- Lịch cố định: lặp lại hàng tuần --}}
+                    <div class="md:col-span-4 border-t border-zinc-200 dark:border-zinc-700 pt-4">
+                        <label for="repeat_weeks" class="text-xs text-zinc-500 dark:text-zinc-400 block mb-1.5">Lặp lại hàng tuần</label>
+                        <select id="repeat_weeks" name="repeat_weeks" x-model.number="repeatWeeks"
+                            class="w-full md:w-64 px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                            <option value="1">Không lặp — đặt 1 buổi</option>
+                            <option value="2">Mỗi tuần, trong 2 tuần</option>
+                            <option value="4">Mỗi tuần, trong 4 tuần</option>
+                            <option value="8">Mỗi tuần, trong 8 tuần</option>
+                            <option value="12">Mỗi tuần, trong 12 tuần</option>
+                        </select>
+                        <p class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400" x-show="repeatWeeks > 1">
+                            Giữ đúng khung giờ đã chọn vào cùng thứ mỗi tuần. Lịch cố định <strong>thanh toán tại sân</strong> mỗi buổi, không cần chuyển khoản trước.
+                        </p>
+                    </div>
+
                     <div class="text-right">
                         <button type="submit"
                                 :disabled="!selectedStart"
@@ -304,7 +321,7 @@
                                     ? 'bg-zinc-300 dark:bg-zinc-700 text-zinc-500 cursor-not-allowed'
                                     : 'btn-cta'"
                                 class="w-full py-3 px-4 font-bold rounded-xl transition-all">
-                            Xác nhận đặt sân
+                            <span x-text="repeatWeeks > 1 ? 'Xác nhận đặt ' + repeatWeeks + ' buổi' : 'Xác nhận đặt sân'"></span>
                         </button>
                     </div>
                 </div>

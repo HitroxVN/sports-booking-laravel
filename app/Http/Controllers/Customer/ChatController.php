@@ -6,206 +6,190 @@ use App\Events\MessageSent;
 use App\Http\Controllers\Controller;
 use App\Models\ChatConversation;
 use App\Models\ChatMessage;
+use App\Models\Venue;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class ChatController extends Controller
 {
     /**
-     * Khởi tạo hoặc khôi phục hội thoại chat của khách hàng
+     * Hội thoại hỗ trợ (khách ↔ admin) của khách đang đăng nhập.
+     * Chat chỉ dành cho khách đã đăng nhập — không còn luồng khách vãng lai.
      */
-    public function initiate(Request $request): JsonResponse
-    {
-        $sessionToken = $request->input('session_token') ?: (string) Str::uuid();
-        $user = Auth::user();
-
-        $conversation = null;
-
-        // Nếu đã đăng nhập, tìm cuộc trò chuyện mở của user trước
-        if ($user) {
-            $conversation = ChatConversation::where('user_id', $user->id)
-                ->where('status', 'open')
-                ->latest()
-                ->first();
-        }
-
-        // Nếu chưa có, tìm theo session_token
-        if (!$conversation) {
-            $conversation = ChatConversation::where('session_token', $sessionToken)
-                ->where('status', 'open')
-                ->latest()
-                ->first();
-        }
-
-        // Nếu vẫn chưa có, tạo mới
-        if (!$conversation) {
-            $customerName = $user ? $user->name : ($request->input('customer_name') ?: 'Khách hàng');
-            $customerEmail = $user ? $user->email : $request->input('customer_email');
-            $customerPhone = $user ? $user->phone : $request->input('customer_phone');
-
-            $conversation = ChatConversation::create([
-                'user_id'         => $user?->id,
-                'session_token'   => $sessionToken,
-                'customer_name'   => $customerName,
-                'customer_email'  => $customerEmail,
-                'customer_phone'  => $customerPhone,
-                'status'          => 'open',
-                'last_message_at' => now(),
-            ]);
-
-            // Tin nhắn chào mừng tự động từ hệ thống
-            ChatMessage::create([
-                'conversation_id' => $conversation->id,
-                'sender_type'     => 'admin',
-                'sender_id'       => null,
-                'sender_name'     => 'Hỗ trợ Arena Booking',
-                'message'         => 'Xin chào! Cảm ơn bạn đã liên hệ Arena Sports Booking. Chúng tôi có thể hỗ trợ gì cho bạn hôm nay?',
-                'is_read'         => false,
-            ]);
-        } elseif ($user && !$conversation->user_id) {
-            // Liên kết user vào conversation nếu lúc trước là khách vãng lai
-            $conversation->update([
-                'user_id'       => $user->id,
-                'customer_name' => $user->name,
-                'customer_email'=> $user->email ?? $conversation->customer_email,
-            ]);
-        }
-
-        $messages = $conversation->messages()
-            ->orderBy('created_at', 'asc')
-            ->get()
-            ->map(fn ($m) => [
-                'id'              => $m->id,
-                'conversation_id' => $m->conversation_id,
-                'sender_type'     => $m->sender_type,
-                'sender_name'     => $m->sender_name ?? ($m->sender_type === 'admin' ? 'Hỗ trợ viên' : 'Bạn'),
-                'message'         => $m->message,
-                'is_me'           => $m->sender_type === 'customer',
-                'created_at'      => $m->created_at->format('H:i d/m/Y'),
-                'created_at_time' => $m->created_at->format('H:i'),
-            ]);
-
-        return response()->json([
-            'session_token'   => $conversation->session_token,
-            'conversation_id' => $conversation->id,
-            'customer_name'   => $conversation->customer_name,
-            'status'          => $conversation->status,
-            'messages'        => $messages,
-        ]);
-    }
-
-    /**
-     * Kiểm tra quyền truy cập hội thoại:
-     * - Admin/owner: được vào mọi hội thoại để hỗ trợ
-     * - User đăng nhập: chỉ hội thoại có user_id khớp
-     * - Khách vãng lai (kể cả user đang xem hội thoại guest): session_token phải khớp
-     */
-    private function authorizeConversation(ChatConversation $conversation, ?string $sessionToken): bool
+    public function initiate(): JsonResponse
     {
         $user = Auth::user();
 
-        if ($user && in_array($user->role, ['admin', 'owner'])) {
-            return true;
+        $conversation = ChatConversation::where('user_id', $user->id)
+            ->where('type', 'support')
+            ->where('status', 'open')
+            ->latest()
+            ->first();
+
+        if (! $conversation) {
+            $conversation = $this->createConversation([
+                'user_id'        => $user->id,
+                'type'           => 'support',
+                'customer_name'  => $user->name,
+                'customer_email' => $user->email,
+                'customer_phone' => $user->phone,
+            ]);
+
+            $this->systemMessage(
+                $conversation,
+                'admin',
+                'Hỗ trợ Arena Booking',
+                'Xin chào! Cảm ơn bạn đã liên hệ Arena Sports Booking. Chúng tôi có thể hỗ trợ gì cho bạn hôm nay?'
+            );
         }
 
-        if ($user && $conversation->user_id === $user->id) {
-            return true;
-        }
-
-        // Hội thoại guest (user_id null) hoặc user không phải chủ hội thoại:
-        // chỉ vào được khi giữ đúng session_token
-        return $sessionToken !== null
-            && hash_equals($conversation->session_token, $sessionToken);
+        return response()->json($this->payload($conversation));
     }
 
     /**
-     * Lấy danh sách tin nhắn của hội thoại
+     * Hội thoại với chủ sân của một khu sân (khách ↔ owner).
      */
-    public function getMessages(ChatConversation $conversation, Request $request): JsonResponse
+    public function initiateVenue(Venue $venue): JsonResponse
     {
-        $sessionToken = $request->header('X-Chat-Session') ?: $request->input('session_token');
+        $user = Auth::user();
 
-        if (! $this->authorizeConversation($conversation, $sessionToken)) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        // Chủ sân không tự mở hội thoại với chính mình
+        abort_if((int) $venue->owner_id === (int) $user->id, 403);
+
+        $conversation = ChatConversation::where('user_id', $user->id)
+            ->where('type', 'owner')
+            ->where('venue_id', $venue->id)
+            ->where('status', 'open')
+            ->latest()
+            ->first();
+
+        if (! $conversation) {
+            $conversation = $this->createConversation([
+                'user_id'        => $user->id,
+                'type'           => 'owner',
+                'venue_id'       => $venue->id,
+                'owner_id'       => $venue->owner_id,
+                'customer_name'  => $user->name,
+                'customer_email' => $user->email,
+                'customer_phone' => $user->phone,
+            ]);
+
+            $this->systemMessage(
+                $conversation,
+                'owner',
+                'Chủ sân ' . $venue->name,
+                'Xin chào! Bạn có thể để lại câu hỏi cho chủ sân ' . $venue->name . ' tại đây.'
+            );
         }
 
-        // Đánh dấu tin nhắn của admin đã được khách đọc
+        return response()->json($this->payload($conversation));
+    }
+
+    /**
+     * Lấy danh sách tin nhắn của hội thoại (chỉ chủ hội thoại).
+     */
+    public function getMessages(ChatConversation $conversation): JsonResponse
+    {
+        abort_unless($conversation->user_id === Auth::id(), 403);
+
+        // Khách mở hội thoại = đã đọc hết tin của admin/chủ sân
         $conversation->messages()
-            ->where('sender_type', 'admin')
+            ->whereIn('sender_type', ['admin', 'owner'])
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
-        $messages = $conversation->messages()
-            ->orderBy('created_at', 'asc')
-            ->get()
-            ->map(fn ($m) => [
-                'id'              => $m->id,
-                'conversation_id' => $m->conversation_id,
-                'sender_type'     => $m->sender_type,
-                'sender_name'     => $m->sender_name ?? ($m->sender_type === 'admin' ? 'Hỗ trợ viên' : 'Bạn'),
-                'message'         => $m->message,
-                'is_me'           => $m->sender_type === 'customer',
-                'created_at'      => $m->created_at->format('H:i d/m/Y'),
-                'created_at_time' => $m->created_at->format('H:i'),
-            ]);
-
-        return response()->json([
-            'conversation_id' => $conversation->id,
-            'status'          => $conversation->status,
-            'messages'        => $messages,
-        ]);
+        return response()->json($this->payload($conversation));
     }
 
     /**
-     * Khách hàng gửi tin nhắn
+     * Khách gửi tin nhắn.
      */
-    public function sendMessage(ChatConversation $conversation, Request $request): JsonResponse
+    public function sendMessage(Request $request, ChatConversation $conversation): JsonResponse
     {
-        $request->validate([
+        abort_unless($conversation->user_id === Auth::id(), 403);
+
+        $validated = $request->validate([
             'message' => 'required|string|max:2000',
         ]);
-
-        $sessionToken = $request->header('X-Chat-Session') ?: $request->input('session_token');
-
-        if (! $this->authorizeConversation($conversation, $sessionToken)) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        $user = Auth::user();
-        $senderName = $user ? $user->name : ($conversation->customer_name ?: 'Khách hàng');
 
         $message = ChatMessage::create([
             'conversation_id' => $conversation->id,
             'sender_type'     => 'customer',
-            'sender_id'       => $user?->id,
-            'sender_name'     => $senderName,
-            'message'         => trim($request->input('message')),
-            'is_read'         => false,
+            'sender_id'       => Auth::id(),
+            'sender_name'     => Auth::user()->name,
+            'message'         => $validated['message'],
         ]);
 
-        $conversation->update([
-            'last_message_at' => now(),
-            'status'          => 'open',
-        ]);
+        $conversation->update(['last_message_at' => now()]);
 
-        // Broadcast realtime qua WebSockets (nếu Reverb đang chạy)
         try {
             broadcast(new MessageSent($message))->toOthers();
         } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::warning('WebSocket broadcast deferred/failed: ' . $e->getMessage());
+            // Reverb chưa chạy cũng không được làm hỏng việc gửi tin
+            Log::warning('WebSocket broadcast deferred/failed: ' . $e->getMessage());
         }
 
-        return response()->json([
+        return response()->json($this->messagePayload($message, true));
+    }
+
+    private function createConversation(array $attributes): ChatConversation
+    {
+        return ChatConversation::create($attributes + [
+            'status'          => 'open',
+            'last_message_at' => now(),
+        ]);
+    }
+
+    // Tin nhắn chào tự động của hệ thống (không gắn user nào)
+    private function systemMessage(ChatConversation $conversation, string $senderType, string $senderName, string $text): void
+    {
+        ChatMessage::create([
+            'conversation_id' => $conversation->id,
+            'sender_type'     => $senderType,
+            'sender_id'       => null,
+            'sender_name'     => $senderName,
+            'message'         => $text,
+            'is_read'         => false,
+        ]);
+    }
+
+    private function payload(ChatConversation $conversation): array
+    {
+        return [
+            'conversation_id' => $conversation->id,
+            'type'            => $conversation->type,
+            'customer_name'   => $conversation->customer_name,
+            'status'          => $conversation->status,
+            'messages'        => $conversation->messages()
+                ->orderBy('created_at')
+                ->get()
+                ->map(fn (ChatMessage $m) => $this->messagePayload($m, $m->sender_type === 'customer'))
+                ->values(),
+        ];
+    }
+
+    private function messagePayload(ChatMessage $message, bool $isMe): array
+    {
+        return [
             'id'              => $message->id,
             'conversation_id' => $message->conversation_id,
             'sender_type'     => $message->sender_type,
-            'sender_name'     => $message->sender_name,
+            'sender_name'     => $message->sender_name ?? $this->defaultSenderName($message->sender_type),
             'message'         => $message->message,
-            'is_me'           => true,
+            'is_me'           => $isMe,
             'created_at'      => $message->created_at->format('H:i d/m/Y'),
             'created_at_time' => $message->created_at->format('H:i'),
-        ]);
+        ];
+    }
+
+    private function defaultSenderName(string $senderType): string
+    {
+        return match ($senderType) {
+            'admin' => 'Hỗ trợ viên',
+            'owner' => 'Chủ sân',
+            default => 'Bạn',
+        };
     }
 }

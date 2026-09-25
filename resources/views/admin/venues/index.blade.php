@@ -46,7 +46,6 @@
                             <th class="p-4 font-semibold">Chủ sân</th>
                             <th class="p-4 font-semibold">Địa chỉ</th>
                             <th class="p-4 font-semibold">Trạng thái</th>
-                            <th class="p-4 font-semibold">Lý do từ chối</th>
                             <th class="p-4 font-semibold text-center">Hành động</th>
                         </tr>
                     </thead>
@@ -57,25 +56,23 @@
                             <td class="p-4 text-zinc-600 dark:text-zinc-300">{{ $venue->owner->name ?? '—' }}</td>
                             <td class="p-4 text-zinc-600 dark:text-zinc-300 text-sm">{{ $venue->address_line }}</td>
                             <td class="p-4">
-                                @if($venue->trashed())
-                                    <x-badge variant="danger">Đã xóa</x-badge>
-                                @elseif($venue->status === 'pending')
-                                    <x-badge variant="warning">Chờ duyệt</x-badge>
-                                @elseif($venue->status === 'active')
-                                    <x-badge variant="success">Đã duyệt</x-badge>
-                                @elseif($venue->status === 'rejected')
-                                    <x-badge variant="danger">Đã từ chối</x-badge>
-                                @else
-                                    <x-badge variant="default">Đóng cửa</x-badge>
-                                @endif
-                            </td>
-                            <td class="p-4 text-zinc-500 dark:text-zinc-400 text-sm max-w-xs whitespace-normal">
-                                @if($venue->reject_reason)
-                                    <span title="Nhấp để xem đầy đủ" class="block truncate cursor-pointer hover:text-zinc-700 dark:hover:text-zinc-300"
-                                          @click="alert(@js($venue->reject_reason))">{{ $venue->reject_reason }}</span>
-                                @else
-                                    —
-                                @endif
+                                <div class="flex flex-col items-start gap-1.5">
+                                    @if($venue->trashed())
+                                        <x-badge variant="danger">Đã xóa</x-badge>
+                                    @elseif($venue->status === 'pending')
+                                        <x-badge variant="warning">Chờ duyệt</x-badge>
+                                    @elseif($venue->status === 'active')
+                                        <x-badge variant="success">Đã duyệt</x-badge>
+                                    @elseif($venue->status === 'rejected')
+                                        <x-badge variant="danger">Đã từ chối</x-badge>
+                                    @else
+                                        <x-badge variant="default">Đóng cửa</x-badge>
+                                    @endif
+                                    @if($venue->reject_reason)
+                                        <span class="text-xs text-zinc-500 dark:text-zinc-400 max-w-[220px] whitespace-normal"
+                                              title="{{ $venue->reject_reason }}">{{ $venue->reject_reason }}</span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="p-4 text-center">
                                 @if($venue->trashed())
@@ -109,7 +106,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="6" class="p-4">
+                            <td colspan="5" class="p-4">
                                 <x-empty-state icon="heroicons-o-inbox" title="Không có khu sân nào"
                                                description="Không có khu sân nào khớp với tab hiện tại." />
                             </td>

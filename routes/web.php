@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 // Owner
 use App\Http\Controllers\Owner\BookingController;
+use App\Http\Controllers\Owner\ChatController as OwnerChatController;
 use App\Http\Controllers\Owner\ClosureController;
 use App\Http\Controllers\Owner\CourtController;
 use App\Http\Controllers\Owner\DashboardController;
@@ -41,11 +42,6 @@ Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/lien-he', fn () => view('contact'))->name('contact');
 Route::get('/venues/popular', [CustomerVenueController::class, 'popular'])->name('venues.popular');
 Route::get('/venues/{slug}', [CustomerVenueController::class, 'show'])->name('venues.show');
-
-// ─── Livechat Khách Hàng (WebSockets Realtime) ───────────────────────────────
-Route::post('/chat/initiate',                  [CustomerChatController::class, 'initiate'])->name('chat.initiate');
-Route::get('/chat/{conversation}/messages',   [CustomerChatController::class, 'getMessages'])->name('chat.messages');
-Route::post('/chat/{conversation}/messages',  [CustomerChatController::class, 'sendMessage'])->name('chat.send');
 
 // Route trung gian giải quyết lỗi Route [dashboard] not defined của Breeze
 Route::get('/dashboard', function () {
@@ -87,6 +83,12 @@ Route::middleware(['auth', 'verified', 'role:customer'])->name('customer.')->gro
     // 2. Lịch sử đặt sân của tôi (Trang danh sách + chi tiết đơn)
     Route::get('/my-bookings', [CustomerBookingController::class, 'index'])->name('bookings.index');
     Route::get('/my-bookings/{booking}', [CustomerBookingController::class, 'show'])->name('bookings.show');
+
+    // 3. Livechat (WebSockets Realtime) — chỉ dành cho khách đã đăng nhập
+    Route::post('/chat/initiate', [CustomerChatController::class, 'initiate'])->name('chat.initiate');
+    Route::post('/chat/venue/{venue}', [CustomerChatController::class, 'initiateVenue'])->name('chat.venue');
+    Route::get('/chat/{conversation}/messages', [CustomerChatController::class, 'getMessages'])->name('chat.messages');
+    Route::post('/chat/{conversation}/messages', [CustomerChatController::class, 'sendMessage'])->name('chat.send');
 });
 
 // ─── Chủ sân ─────────────────────────────────────────────────────────────────
@@ -123,6 +125,12 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     // 9. Báo Cáo Doanh Thu (Reports) + xuất CSV
     Route::get('/reports',        [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
+
+    // 10. Chat với khách hàng (hội thoại loại 'owner' của khu sân mình)
+    Route::get('/chats',                      [OwnerChatController::class, 'index'])->name('chats.index');
+    Route::get('/chats/{conversation}',       [OwnerChatController::class, 'show'])->name('chats.show');
+    Route::post('/chats/{conversation}/reply', [OwnerChatController::class, 'reply'])->name('chats.reply');
+    Route::patch('/chats/{conversation}/status', [OwnerChatController::class, 'toggleStatus'])->name('chats.status');
 });
 
 // ─── Admin ───────────────────────────────────────────────────────────────────

@@ -11,7 +11,7 @@ class Booking extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'code', 'user_id', 'court_id', 'booking_date',
+        'code', 'user_id', 'court_id', 'series_id', 'booking_date',
         'start_time', 'end_time', 'duration',
         'price_snapshot', 'total_amount', 'deposit_amount',
         'promotion_id', 'discount_amount',
@@ -42,6 +42,12 @@ class Booking extends Model
     public function court()
     {
         return $this->belongsTo(Court::class);
+    }
+
+    // Đơn là 1 buổi của chuỗi lịch cố định (null nếu đặt lẻ)
+    public function series()
+    {
+        return $this->belongsTo(BookingSeries::class, 'series_id');
     }
 
     // Đơn có nhiều giao dịch thanh toán
