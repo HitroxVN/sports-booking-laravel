@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\NewsArticle;
 use App\Models\Sport;
 use App\Models\Venue;
 use Illuminate\Http\Request;
@@ -85,6 +86,11 @@ class HomeController extends Controller
             ],
         ];
 
-        return view('home', compact('sports', 'featuredVenues', 'banners', 'valueProps'));
+        $latestNews = NewsArticle::query()
+            ->orderByDesc('published_at')
+            ->limit(4)
+            ->get();
+
+        return view('home', compact('sports', 'featuredVenues', 'banners', 'valueProps', 'latestNews'));
     }
 }

@@ -18,6 +18,7 @@ use App\Http\Controllers\Owner\VenueController;
 // Customer
 use App\Http\Controllers\Customer\ChatController as CustomerChatController;
 use App\Http\Controllers\Customer\CustomerBookingController;
+use App\Http\Controllers\Customer\NewsArticleController;
 use App\Http\Controllers\Customer\SearchController;
 use App\Http\Controllers\Customer\VenueController as CustomerVenueController;
 
@@ -40,6 +41,7 @@ use App\Http\Controllers\ProfileController;
 // ─── Public ──────────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
+Route::get('/tin-tuc', [NewsArticleController::class, 'index'])->name('customer.news.index');
 Route::get('/lien-he', fn () => view('contact'))->name('contact');
 Route::get('/venues/popular', [CustomerVenueController::class, 'popular'])->name('venues.popular');
 Route::get('/venues/{slug}', [CustomerVenueController::class, 'show'])->name('venues.show');

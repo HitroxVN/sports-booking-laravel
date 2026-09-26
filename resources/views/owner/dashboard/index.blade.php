@@ -145,13 +145,11 @@
                     </div>
                 </div>
 
-<<<<<<< Updated upstream
         <!-- Bảng danh sách đơn đặt sân gần đây -->
         <div class="card-base">
             <div class="flex justify-between items-center px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
                 <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-50">Đơn Đặt Sân Gần Đây</h3>
                 <a href="{{ route('owner.bookings.index') }}" class="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">Xem tất cả &rarr;</a>
-=======
                 <!-- Thẻ 3: Hiệu suất kín sân -->
                 <div class="card-base p-5 flex flex-col justify-between">
                     <div class="flex items-center justify-between">
@@ -209,7 +207,6 @@
                     </div>
                 </div>
 
->>>>>>> Stashed changes
             </div>
 
             <!-- ── Tối Ưu Bố Cục Khu Vực Dưới (Two-Column Layout 7:3) ── -->
