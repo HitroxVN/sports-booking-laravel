@@ -24,6 +24,7 @@ class Booking extends Model
         return [
             'booking_date'   => 'date',
             'cancelled_at'   => 'datetime',
+            'reminder_sent_at' => 'datetime',
             'price_snapshot' => 'decimal:2',
             'total_amount'   => 'decimal:2',
             'deposit_amount' => 'decimal:2',

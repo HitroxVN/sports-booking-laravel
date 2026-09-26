@@ -49,7 +49,8 @@
                 {{-- Right side --}}
                 <div class="hidden sm:flex items-center gap-4">
                     @auth
-                    {{-- Notification bell (Sprint 7) --}}
+                    {{-- Notification bell (Sprint 7) — layout này hiện KHÔNG view nào dùng,
+                         chuông thật nằm ở components/site-header.blade.php + owner-layout + admin-layout --}}
                     {{-- <x-notification-bell /> --}}
 
                     <div x-data="{ open: false }" class="relative">

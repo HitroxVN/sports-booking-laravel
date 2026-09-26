@@ -77,8 +77,9 @@
                     </h1>
                 </div>
 
-                {{-- Theme toggle + User dropdown --}}
+                {{-- Thông báo + Theme toggle + User dropdown --}}
                 <div class="flex items-center gap-2 shrink-0">
+                    <x-notification-bell />
                     <x-theme-toggle />
 
                     <div x-data="{ open: false }" class="relative">

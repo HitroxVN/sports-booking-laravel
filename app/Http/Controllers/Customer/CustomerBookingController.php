@@ -11,6 +11,9 @@ use App\Models\CourtSlot;
 use App\Models\OperatingHour;
 use App\Models\Promotion;
 use App\Models\Review;
+use App\Notifications\BookingCreated;
+use App\Notifications\NewBookingForOwner;
+use App\Services\Notifier;
 use Carbon\Carbon;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
@@ -389,13 +392,22 @@ class CustomerBookingController extends Controller
             return back()->with('error', 'Đã xảy ra lỗi khi tạo đơn, vui lòng thử lại!');
         }
 
+        // Thông báo SAU khi transaction đã commit — tránh báo cho đơn bị rollback.
+        // Lịch cố định chỉ gửi 1 thông báo tóm tắt, không phải mỗi buổi một cái.
+        $first    = $result['bookings'][0];
+        $sessions = count($result['bookings']);
+        $first->load(['user', 'court.venue.owner']);
+
+        Notifier::send($first->user, new BookingCreated($first, $sessions));
+        Notifier::send($first->court?->venue?->owner, new NewBookingForOwner($first, $sessions));
+
         // Lịch cố định: cả chuỗi đã tạo xong → về danh sách đơn của khách
         if ($isSeries) {
             return redirect()->route('customer.bookings.index')
-                ->with('success', 'Đã đặt lịch cố định ' . count($result['bookings']) . ' buổi hàng tuần. Vui lòng thanh toán tại sân mỗi buổi.');
+                ->with('success', 'Đã đặt lịch cố định ' . $sessions . ' buổi hàng tuần. Vui lòng thanh toán tại sân mỗi buổi.');
         }
 
-        return redirect()->route('customer.bookings.pay', $result['bookings'][0])
+        return redirect()->route('customer.bookings.pay', $first)
             ->with('success', 'Đặt sân thành công! Vui lòng chuyển khoản để hoàn tất.');
     }
 

@@ -47,6 +47,8 @@
                 <x-theme-toggle />
 
                 @auth
+                <x-notification-bell />
+
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
                         :aria-expanded="open.toString()"

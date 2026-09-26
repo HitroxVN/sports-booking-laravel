@@ -4,6 +4,9 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Notifications\BookingCancelled;
+use App\Notifications\BookingConfirmed;
+use App\Services\Notifier;
 use Illuminate\Http\Request;
 
 class BookingController extends Controller
@@ -70,11 +73,13 @@ class BookingController extends Controller
         }
 
         // Nếu là hủy đơn, tự động lưu thời gian hủy + hoàn tiền nếu khách đã trả
+        $refundedAmount = 0.0;
         if ($newStatus === 'cancelled') {
             $validated['cancelled_at'] = now();
 
             if (\App\Services\BookingRefund::refund($booking, $validated['cancel_reason'] ?? 'Chủ sân hủy đơn')) {
-                return back()->with('success', 'Đã hủy đơn và ghi nhận hoàn tiền ' . number_format($booking->payments()->where('type', 'refund')->sum('amount'), 0, ',', '.') . 'đ cho khách.');
+                // Không return sớm: đơn vẫn phải được chuyển sang cancelled ở dưới
+                $refundedAmount = (float) $booking->payments()->where('type', 'refund')->sum('amount');
             }
         } else {
             // Nếu chuyển trạng thái khác, xóa lý do hủy cũ đi (nếu có)
@@ -84,7 +89,16 @@ class BookingController extends Controller
 
         $booking->update($validated);
 
-        return back()->with('success', 'Cập nhật trạng thái đơn đặt sân thành công!');
+        // Thông báo cho khách về trạng thái mới
+        if ($newStatus === 'confirmed') {
+            Notifier::send($booking->user, new BookingConfirmed($booking));
+        } elseif ($newStatus === 'cancelled') {
+            Notifier::send($booking->user, new BookingCancelled($booking));
+        }
+
+        return back()->with('success', $refundedAmount > 0
+            ? 'Đã hủy đơn và ghi nhận hoàn tiền ' . number_format($refundedAmount, 0, ',', '.') . 'đ cho khách.'
+            : 'Cập nhật trạng thái đơn đặt sân thành công!');
     }
 
     /**
