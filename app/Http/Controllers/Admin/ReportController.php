@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -33,8 +34,64 @@ class ReportController extends Controller
 
         $bookings = (clone $baseQuery)->latest()->paginate(20)->withQueryString();
 
+        // Doanh thu theo phương thức thanh toán (giống Dashboard)
+        $paymentQuery = Payment::query()
+            ->where('payments.status', 'success')
+            ->whereBetween('payments.created_at', [$fromDate->copy()->startOfDay(), $toDate->copy()->endOfDay()]);
+
+        $gatewayGroups = $paymentQuery->get()->groupBy('gateway');
+        $gatewayConfigs = [
+            'sepay' => ['label' => 'SePay (QR Chuyển khoản)', 'color' => '#6366f1'],
+            'vnpay' => ['label' => 'VNPay Cổng thẻ/QR',       'color' => '#3b82f6'],
+            'momo'  => ['label' => 'Ví MoMo',                 'color' => '#ec4899'],
+            'cash'  => ['label' => 'Tiền mặt tại sân',         'color' => '#10b981'],
+        ];
+        $paymentBreakdown = ['total' => 0, 'items' => []];
+        $labels = [];
+        $amounts = [];
+        $colors = [];
+        foreach ($gatewayConfigs as $key => $cfg) {
+            $sum = (float) ($gatewayGroups->get($key)?->sum('amount') ?? 0);
+            $count = (int) ($gatewayGroups->get($key)?->count() ?? 0);
+            if ($sum <= 0) {
+                continue;
+            }
+            $paymentBreakdown['total'] += $sum;
+            $labels[] = $cfg['label'];
+            $amounts[] = $sum;
+            $colors[] = $cfg['color'];
+            $paymentBreakdown['items'][] = [
+                'gateway'    => $key,
+                'label'      => $cfg['label'],
+                'amount'     => $sum,
+                'count'      => $count,
+                'percentage' => 0, // tính sau khi có tổng
+                'color'      => $cfg['color'],
+            ];
+        }
+        foreach ($paymentBreakdown['items'] as &$item) {
+            $item['percentage'] = $paymentBreakdown['total'] > 0 ? round($item['amount'] / $paymentBreakdown['total'] * 100, 1) : 0;
+        }
+        unset($item);
+
+        // Biểu đồ doanh thu theo từng ngày trong kỳ
+        $dailyData = (clone $paymentQuery)
+            ->selectRaw('DATE(created_at) as date, SUM(amount) as total')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('total', 'date')
+            ->toArray();
+
+        $chartLabels = [];
+        $chartValues = [];
+        foreach (Carbon::parse($fromDate)->daysUntil(Carbon::parse($toDate)) as $dt) {
+            $chartLabels[] = $dt->format('d/m');
+            $chartValues[] = (float) ($dailyData[$dt->format('Y-m-d')] ?? 0);
+        }
+
         return view('admin.reports.index', compact(
-            'totalRevenue', 'totalBookings', 'totalDeposit', 'topVenues', 'bookings', 'fromDate', 'toDate'
+            'totalRevenue', 'totalBookings', 'totalDeposit', 'topVenues', 'bookings', 'fromDate', 'toDate',
+            'paymentBreakdown', 'chartLabels', 'chartValues'
         ));
     }
 

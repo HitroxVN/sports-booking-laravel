@@ -3,6 +3,8 @@ function initBookingGrid() {
 
     Alpine.data('bookingGrid', (config = {}) => ({
         selectedDate: config.initialDate || '',
+        // Số tuần lặp của lịch cố định (1 = đặt lẻ 1 buổi)
+        repeatWeeks: 1,
         // Popup lịch tháng: mở/đóng + tháng đang xem (0-11) + năm
         showCalendar: false,
         calMonth: null,

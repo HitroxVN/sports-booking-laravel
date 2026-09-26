@@ -11,7 +11,9 @@ class ChatConversation extends Model
 
     protected $fillable = [
         'user_id',
-        'session_token',
+        'type',
+        'venue_id',
+        'owner_id',
         'customer_name',
         'customer_phone',
         'customer_email',
@@ -37,6 +39,18 @@ class ChatConversation extends Model
         return $this->belongsTo(User::class, 'admin_id');
     }
 
+    // Khu sân của hội thoại loại 'owner'
+    public function venue()
+    {
+        return $this->belongsTo(Venue::class);
+    }
+
+    // Chủ sân nhận hội thoại loại 'owner'
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
     public function messages()
     {
         return $this->hasMany(ChatMessage::class, 'conversation_id');
@@ -58,7 +72,7 @@ class ChatConversation extends Model
     public function unreadCountForCustomer(): int
     {
         return $this->messages()
-            ->where('sender_type', 'admin')
+            ->whereIn('sender_type', ['admin', 'owner'])
             ->where('is_read', false)
             ->count();
     }

@@ -6,30 +6,36 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
 
-// Kênh riêng từng hội thoại: chỉ chủ hội thoại (user_id khớp) hoặc
-// khách vãng lai giữ đúng session_token của hội thoại được vào.
-// Guest không đăng nhập => $user null, token lấy từ query string do client gửi kèm.
-Broadcast::channel('chat.conversation.{id}', function ($user = null, $id = null, ?string $sessionToken = null) {
+// Kênh riêng từng hội thoại: chỉ người liên quan mới vào được.
+// Chat chỉ dành cho người đã đăng nhập (không còn khách vãng lai).
+Broadcast::channel('chat.conversation.{id}', function ($user, $id) {
     $conversation = \App\Models\ChatConversation::find($id);
-    if (! $conversation) {
+    if (! $conversation || ! $user) {
         return false;
     }
 
-    if ($user) {
-        // Admin/owner được vào mọi hội thoại để hỗ trợ
-        if (in_array($user->role, ['admin', 'owner'])) {
-            return true;
-        }
-
-        return $conversation->user_id === $user->id;
+    // Admin vào mọi hội thoại hỗ trợ (quầy livechat)
+    if ($user->role === 'admin' && $conversation->type === 'support') {
+        return true;
     }
 
-    // Khách vãng lai: phải khớp session_token của hội thoại
-    return $sessionToken !== null
-        && hash_equals($conversation->session_token, $sessionToken);
+    // Chủ sân vào hội thoại của khu sân mình
+    if ($conversation->type === 'owner' && (int) $conversation->owner_id === (int) $user->id) {
+        return true;
+    }
+
+    // Khách chỉ vào hội thoại của chính mình
+    return (int) $conversation->user_id === (int) $user->id;
 });
 
-// Kênh tổng hợp cho phía admin: chỉ admin/owner.
-Broadcast::channel('chat.admin', function ($user = null) {
-    return $user && in_array($user->role, ['admin', 'owner']);
+// Quầy livechat của admin: chỉ admin.
+Broadcast::channel('chat.admin', function ($user) {
+    return $user && $user->role === 'admin';
+});
+
+// Kênh riêng của từng chủ sân: nhận thông báo có tin nhắn mới từ khách.
+Broadcast::channel('chat.owner.{ownerId}', function ($user, $ownerId) {
+    return $user
+        && $user->role === 'owner'
+        && (int) $user->id === (int) $ownerId;
 });

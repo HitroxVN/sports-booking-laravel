@@ -48,6 +48,8 @@
                     ['owner.venues.index', 'building', 'Khu sân'],
                     ['owner.bookings.index', 'calendar', 'Đơn đặt sân'],
                     ['owner.schedule.index', 'pin', 'Lịch biểu'],
+                    ['owner.reviews.index', 'star', 'Đánh giá'],
+                    ['owner.chats.index', 'chat', 'Chat khách hàng'],
                 ],
                 'Nâng cao' => [
                     ['owner.reports.index', 'chart', 'Báo cáo doanh thu'],
@@ -75,8 +77,9 @@
                     </h1>
                 </div>
 
-                {{-- Theme toggle + User dropdown --}}
+                {{-- Thông báo + Theme toggle + User dropdown --}}
                 <div class="flex items-center gap-2 shrink-0">
+                    <x-notification-bell />
                     <x-theme-toggle />
 
                     <div x-data="{ open: false }" class="relative">

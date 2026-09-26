@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 
 // Hủy đơn pending quá hạn chưa thanh toán — giải phóng khung giờ bị chặn
 Schedule::command('app:cancel-expired-pending-bookings')->everyMinute();
+
+// Nhắc khách sắp tới giờ đặt sân (trước 2 giờ) — giảm no-show
+Schedule::command('app:send-booking-reminders')->everyTenMinutes();

@@ -41,12 +41,17 @@
             <p class="text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 mt-1">{{ number_format($totalVenues) }}</p>
         </div>
 
+        @php $pendingVenueUrl = route('admin.venues.index', ['status' => 'pending']); @endphp
         <div class="card-base p-4">
             <p class="text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Chờ Duyệt</p>
             <p class="text-2xl font-extrabold text-zinc-900 dark:text-zinc-50 mt-1">
-                {{ number_format($pendingVenues) }}
                 @if($pendingVenues > 0)
-                    <x-badge variant="danger" class="align-middle ml-1 text-[10px]">xử lý</x-badge>
+                    <a href="{{ $pendingVenueUrl }}" class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                        {{ number_format($pendingVenues) }}
+                        <x-badge variant="danger" class="align-middle ml-1 text-[10px]">xử lý &rarr;</x-badge>
+                    </a>
+                @else
+                    {{ number_format($pendingVenues) }}
                 @endif
             </p>
         </div>

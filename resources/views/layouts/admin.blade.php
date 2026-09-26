@@ -78,14 +78,12 @@
                         </svg>
                     </button>
 
-                    {{-- Page title --}}
-                    <h1 class="text-base sm:text-lg font-bold text-zinc-800 dark:text-zinc-200 truncate">
-                        {{ $title ?? 'Admin Panel' }}
-                    </h1>
+                    {{-- Page title nằm trong content của từng trang --}}
                 </div>
 
-                {{-- Theme toggle + User dropdown --}}
+                {{-- Thông báo + Theme toggle + User dropdown --}}
                 <div class="flex items-center gap-2 shrink-0">
+                    <x-notification-bell />
                     <x-theme-toggle />
 
                     <div x-data="{ open: false }" class="relative">

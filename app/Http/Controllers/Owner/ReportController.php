@@ -86,4 +86,50 @@ class ReportController extends Controller
             'recentPayments'
         ));
     }
+
+    // Xuất CSV danh sách giao dịch theo đúng bộ lọc đang xem (BOM UTF-8 để Excel đọc được tiếng Việt)
+    public function export(Request $request)
+    {
+        $ownerId = auth()->id();
+        $startDate = $request->input('start_date', Carbon::now()->subDays(29)->format('Y-m-d'));
+        $endDate   = $request->input('end_date', Carbon::now()->format('Y-m-d'));
+        $venueId   = $request->input('venue_id');
+
+        $payments = Payment::query()
+            ->with(['booking.court.venue', 'booking.user'])
+            ->where('payments.status', 'success')
+            ->whereBetween('payments.created_at', [
+                Carbon::parse($startDate)->startOfDay(),
+                Carbon::parse($endDate)->endOfDay()
+            ])
+            ->whereHas('booking.court.venue', function ($q) use ($ownerId, $venueId) {
+                $q->where('owner_id', $ownerId);
+                if (!empty($venueId)) {
+                    $q->where('id', $venueId);
+                }
+            })
+            ->orderBy('payments.created_at')
+            ->get();
+
+        $filename = 'bao-cao-doanh-thu_' . $startDate . '_' . $endDate . '.csv';
+
+        return response()->streamDownload(function () use ($payments) {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF)); // BOM UTF-8 cho Excel
+            fputcsv($handle, ['Mã giao dịch', 'Mã đơn', 'Khách hàng', 'Khu sân', 'Sân', 'Phương thức', 'Số tiền', 'Thời gian']);
+            foreach ($payments as $p) {
+                fputcsv($handle, [
+                    $p->gateway_txn_id ?? ('#' . $p->id),
+                    $p->booking->code ?? '',
+                    $p->booking->user->name ?? 'Khách lẻ',
+                    $p->booking->court->venue->name ?? '',
+                    $p->booking->court->name ?? '',
+                    $p->gateway,
+                    $p->amount,
+                    $p->created_at->format('H:i d/m/Y'),
+                ]);
+            }
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
 }

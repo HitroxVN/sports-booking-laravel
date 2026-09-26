@@ -17,7 +17,9 @@ class ChatController extends Controller
      */
     public function index(Request $request)
     {
+        // Admin chỉ trực hội thoại hỗ trợ; hội thoại khách ↔ chủ sân là riêng tư
         $query = ChatConversation::with(['latestMessage', 'user'])
+            ->where('type', 'support')
             ->withCount(['messages as unread_customer_count' => function ($q) {
                 $q->where('sender_type', 'customer')->where('is_read', false);
             }])
@@ -42,9 +44,10 @@ class ChatController extends Controller
 
         $conversations = $query->paginate(20)->withQueryString();
 
-        // Đếm tổng tin chưa đọc từ khách gửi tới admin
+        // Đếm tổng tin chưa đọc từ khách gửi tới admin (chỉ hội thoại hỗ trợ)
         $totalUnread = ChatMessage::where('sender_type', 'customer')
             ->where('is_read', false)
+            ->whereHas('conversation', fn ($q) => $q->where('type', 'support'))
             ->count();
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -62,6 +65,8 @@ class ChatController extends Controller
      */
     public function show(ChatConversation $conversation): JsonResponse
     {
+        abort_unless($conversation->type === 'support', 404);
+
         // Đánh dấu toàn bộ tin nhắn của khách là admin đã đọc
         $conversation->messages()
             ->where('sender_type', 'customer')
@@ -107,6 +112,8 @@ class ChatController extends Controller
      */
     public function reply(ChatConversation $conversation, Request $request): JsonResponse
     {
+        abort_unless($conversation->type === 'support', 404);
+
         $request->validate([
             'message' => 'required|string|max:2000',
         ]);
@@ -151,6 +158,8 @@ class ChatController extends Controller
      */
     public function toggleStatus(ChatConversation $conversation): JsonResponse
     {
+        abort_unless($conversation->type === 'support', 404);
+
         $newStatus = $conversation->status === 'open' ? 'closed' : 'open';
         $conversation->update(['status' => $newStatus]);
 

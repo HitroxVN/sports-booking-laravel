@@ -72,79 +72,61 @@
 
         {{-- Filter Bar --}}
         <div class="card-base p-5 mb-6">
-            <form method="GET" action="{{ route('admin.payments.index') }}" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-                    {{-- Search --}}
-                    <div class="lg:col-span-2">
-                        <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Tìm kiếm</label>
-                        <div class="relative">
-                            <input type="text" name="search" value="{{ request('search') }}"
-                                   placeholder="Mã đơn (BOOK-...), mã GD, tên khách..."
-                                   class="w-full text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 pl-8 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-primary-500 focus:outline-none">
-                            <svg class="w-4 h-4 text-zinc-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            </svg>
-                        </div>
-                    </div>
-
-                    {{-- Gateway --}}
-                    <div>
-                        <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Cổng thanh toán</label>
-                        <select name="gateway" class="w-full text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-primary-500 focus:outline-none">
-                            <option value="">Tất cả cổng</option>
-                            <option value="sepay" {{ request('gateway') === 'sepay' ? 'selected' : '' }}>SePay (Chuyển khoản)</option>
-                            <option value="vnpay" {{ request('gateway') === 'vnpay' ? 'selected' : '' }}>VNPay</option>
-                            <option value="momo" {{ request('gateway') === 'momo' ? 'selected' : '' }}>MoMo</option>
-                            <option value="cash" {{ request('gateway') === 'cash' ? 'selected' : '' }}>Tiền mặt tại sân</option>
-                        </select>
-                    </div>
-
-                    {{-- Status --}}
-                    <div>
-                        <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Trạng thái</label>
-                        <select name="status" class="w-full text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-primary-500 focus:outline-none">
-                            <option value="">Tất cả trạng thái</option>
-                            <option value="success" {{ request('status') === 'success' ? 'selected' : '' }}>Thành công</option>
-                            <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Đang chờ</option>
-                            <option value="failed" {{ request('status') === 'failed' ? 'selected' : '' }}>Thất bại</option>
-                            <option value="refunded" {{ request('status') === 'refunded' ? 'selected' : '' }}>Đã hoàn tiền</option>
-                        </select>
-                    </div>
-
-                    {{-- Type --}}
-                    <div>
-                        <label class="block text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Loại giao dịch</label>
-                        <select name="type" class="w-full text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-primary-500 focus:outline-none">
-                            <option value="">Tất cả loại</option>
-                            <option value="deposit" {{ request('type') === 'deposit' ? 'selected' : '' }}>Tiền đặt cọc</option>
-                            <option value="full" {{ request('type') === 'full' ? 'selected' : '' }}>Toàn bộ đơn</option>
-                            <option value="refund" {{ request('type') === 'refund' ? 'selected' : '' }}>Hoàn tiền</option>
-                        </select>
-                    </div>
-
-                    {{-- Actions --}}
-                    <div class="flex items-end gap-2">
-                        <button type="submit" class="flex-1 py-2 px-3 rounded-lg text-xs font-semibold bg-primary-600 hover:bg-primary-700 text-white transition-colors">
-                            Lọc
-                        </button>
-                        @if(request()->hasAny(['search', 'gateway', 'status', 'type', 'from_date', 'to_date']))
-                            <a href="{{ route('admin.payments.index') }}" class="py-2 px-3 rounded-lg text-xs font-medium bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-zinc-700 dark:text-zinc-200 transition-colors">
-                                Xóa
-                            </a>
-                        @endif
-                    </div>
+            <form method="GET" action="{{ route('admin.payments.index') }}" class="flex flex-wrap items-end gap-3">
+                <div class="flex-1 min-w-[220px]">
+                    <label class="label-eyebrow block mb-1">Tìm kiếm</label>
+                    <input type="text" name="search" value="{{ request('search') }}"
+                           placeholder="Mã đơn (BOOK-...), mã GD, tên khách..."
+                           class="input-base">
                 </div>
 
-                {{-- Date filter row --}}
-                <div class="flex items-center gap-3 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 text-xs">
-                    <span class="text-zinc-500 font-medium">Khoảng thời gian:</span>
-                    <div class="flex items-center gap-2">
-                        <input type="date" name="from_date" value="{{ request('from_date') }}"
-                               class="text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 py-1 text-zinc-700 dark:text-zinc-300 focus:ring-1 focus:ring-primary-500">
-                        <span class="text-zinc-400">đến</span>
-                        <input type="date" name="to_date" value="{{ request('to_date') }}"
-                               class="text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 py-1 text-zinc-700 dark:text-zinc-300 focus:ring-1 focus:ring-primary-500">
-                    </div>
+                <div>
+                    <label class="label-eyebrow block mb-1">Cổng thanh toán</label>
+                    <select name="gateway" class="input-base w-auto">
+                        <option value="">Tất cả cổng</option>
+                        <option value="sepay" @selected(request('gateway') === 'sepay')>SePay (Chuyển khoản)</option>
+                        <option value="vnpay" @selected(request('gateway') === 'vnpay')>VNPay</option>
+                        <option value="momo" @selected(request('gateway') === 'momo')>MoMo</option>
+                        <option value="cash" @selected(request('gateway') === 'cash')>Tiền mặt tại sân</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="label-eyebrow block mb-1">Trạng thái</label>
+                    <select name="status" class="input-base w-auto">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="success" @selected(request('status') === 'success')>Thành công</option>
+                        <option value="pending" @selected(request('status') === 'pending')>Đang chờ</option>
+                        <option value="failed" @selected(request('status') === 'failed')>Thất bại</option>
+                        <option value="refunded" @selected(request('status') === 'refunded')>Đã hoàn tiền</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="label-eyebrow block mb-1">Loại giao dịch</label>
+                    <select name="type" class="input-base w-auto">
+                        <option value="">Tất cả loại</option>
+                        <option value="deposit" @selected(request('type') === 'deposit')>Tiền đặt cọc</option>
+                        <option value="full" @selected(request('type') === 'full')>Toàn bộ đơn</option>
+                        <option value="refund" @selected(request('type') === 'refund')>Hoàn tiền</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="label-eyebrow block mb-1">Từ ngày</label>
+                    <input type="date" name="from_date" value="{{ request('from_date') }}" class="input-base w-auto">
+                </div>
+
+                <div>
+                    <label class="label-eyebrow block mb-1">Đến ngày</label>
+                    <input type="date" name="to_date" value="{{ request('to_date') }}" class="input-base w-auto">
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="btn-primary">Lọc</button>
+                    @if(request()->hasAny(['search', 'gateway', 'status', 'type', 'from_date', 'to_date']))
+                        <a href="{{ route('admin.payments.index') }}" class="btn-secondary">Reset</a>
+                    @endif
                 </div>
             </form>
         </div>

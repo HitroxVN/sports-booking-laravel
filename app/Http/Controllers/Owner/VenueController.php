@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Models\OperatingHour;
 use App\Models\Venue;
+use App\Notifications\VenuePendingApproval;
+use App\Services\Notifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -60,7 +62,11 @@ class VenueController extends Controller
             $validated['cover_image'] = $request->file('cover_image')->store('venues', 'public');
         }
 
-        Venue::create($validated);
+        $venue = Venue::create($validated);
+        $venue->load('owner');
+
+        // Báo admin có khu sân mới đang chờ duyệt
+        Notifier::toAdmins(fn () => new VenuePendingApproval($venue));
 
         return redirect()->route('owner.venues.index')
             ->with('success', 'Thêm khu sân thành công. Vui lòng chờ hệ thống duyệt!');

@@ -65,6 +65,20 @@
                             <span>Hotline: <strong class="text-zinc-800 dark:text-zinc-200">{{ $venue->phone }}</strong></span>
                         </p>
                     @endif
+
+                    {{-- Chat trực tiếp với chủ sân (chỉ khách đã đăng nhập) --}}
+                    @auth
+                        @if(auth()->user()->role === 'customer' && auth()->id() !== $venue->owner_id)
+                            <button type="button"
+                                    onclick="window.dispatchEvent(new CustomEvent('open-owner-chat', { detail: { slug: @js($venue->slug), name: @js($venue->name) } }))"
+                                    class="inline-flex items-center gap-2 text-sm font-semibold text-primary-700 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-800 px-3.5 py-2 rounded-xl hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                                Chat với chủ sân
+                            </button>
+                        @endif
+                    @endauth
                 </div>
 
                 {{-- Đánh giá & Giá khởi điểm --}}

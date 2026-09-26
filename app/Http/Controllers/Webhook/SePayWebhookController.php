@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Webhook;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Payment;
+use App\Notifications\BookingConfirmed;
+use App\Notifications\PaymentReceived;
+use App\Services\Notifier;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,8 +46,11 @@ class SePayWebhookController extends Controller
             return response()->json(['success' => true, 'message' => 'Ignored (transferType out)']);
         }
 
+        // Gom dữ liệu cần cho thông báo để gửi SAU khi transaction commit ($notify = null nghĩa là không có gì để báo)
+        $notify = null;
+
         // 4. Xử lý trong transaction để idempotency + khóa dòng booking không bị race
-        $result = DB::transaction(function () use ($data) {
+        $result = DB::transaction(function () use ($data, &$notify) {
             // 4a. Chống xử lý trùng webhook (SePay có thể gửi lại cùng giao dịch)
             $alreadyProcessed = Payment::where('gateway', 'sepay')
                 ->where('gateway_txn_id', (string) $data['id'])
@@ -110,14 +116,36 @@ class SePayWebhookController extends Controller
                 return [200, ['success' => true, 'message' => 'Already processed']];
             }
 
+            // Chốt sân lần này hay chỉ là đơn trước đó đã confirmed (đọc trước khi đổi status)
+            $newlyConfirmed = $confirm && $booking->isPending();
+
             $booking->payment_status = $paymentStatus;
-            if ($confirm && $booking->isPending()) {
+            if ($newlyConfirmed) {
                 $booking->status = 'confirmed'; // chỉ pending -> confirmed, không đụng đơn đã hủy/hoàn thành
             }
             $booking->save();
 
+            $notify = [
+                'booking'        => $booking,
+                'amount'         => $amount,
+                'fullyPaid'      => $paymentStatus === 'fully_paid',
+                'newlyConfirmed' => $newlyConfirmed,
+            ];
+
             return [200, ['success' => true, 'message' => 'Payment verified']];
         });
+
+        // 5. Thông báo cho khách (ngoài transaction — chỉ chạy khi đã commit thành công)
+        if ($notify) {
+            $booking = $notify['booking'];
+            $booking->load(['user', 'court.venue']);
+
+            Notifier::send($booking->user, new PaymentReceived($booking, $notify['amount'], $notify['fullyPaid']));
+
+            if ($notify['newlyConfirmed']) {
+                Notifier::send($booking->user, new BookingConfirmed($booking));
+            }
+        }
 
         return response()->json($result[1], $result[0]);
     }

@@ -84,42 +84,51 @@
                             @endif
                         </td>
                         <td class="p-4 text-zinc-500 dark:text-zinc-400 text-sm">{{ $user->created_at?->format('d/m/Y') }}</td>
-                        <td class="p-4 text-center">
+                        <td class="p-4">
+                            <div class="inline-flex items-center gap-1" x-data="{ open: false }">
                             @if($user->trashed())
                                 <form method="POST" action="{{ route('admin.users.restore', $user) }}" class="inline">
                                     @csrf
-                                    <button type="submit"
-                                            class="px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-xl text-xs font-semibold transition">Khôi phục</button>
+                                    <button type="submit" class="btn-ghost text-xs text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30">Khôi phục</button>
                                 </form>
                             @else
-                                <a href="{{ route('admin.users.show', $user) }}"
-                                   class="px-3 py-1.5 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/50 rounded-xl text-xs font-semibold transition">Xem</a>
-                                <a href="{{ route('admin.users.edit', $user) }}"
-                                   class="px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-xl text-xs font-semibold transition">Sửa</a>
-                                @if($user->isActive())
-                                    <form method="POST" action="{{ route('admin.users.ban', $user) }}" class="inline">
-                                        @csrf
-                                        <button type="submit"
-                                                @click="if(!confirm(`Chắc chắn khóa tài khoản ${@js($user->name)}?`)) $event.preventDefault()"
-                                                class="px-3 py-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl text-xs font-semibold transition"
-                                                x-data="">Khóa</button>
-                                    </form>
-                                @else
-                                    <form method="POST" action="{{ route('admin.users.unban', $user) }}" class="inline">
-                                        @csrf
-                                        <button type="submit"
-                                                class="px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50 rounded-xl text-xs font-semibold transition">Mở khóa</button>
-                                    </form>
-                                @endif
-                                <form method="POST" action="{{ route('admin.users.destroy', $user) }}" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                            @click="if(!confirm(`Chắc chắn xóa tài khoản ${@js($user->name)}? Hành động này không thể hoàn tác.`)) $event.preventDefault()"
-                                            class="px-3 py-1.5 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-xl text-xs font-semibold transition"
-                                            x-data="">Xóa</button>
-                                </form>
+                                <a href="{{ route('admin.users.show', $user) }}" class="btn-ghost text-xs">Xem</a>
+
+                                {{-- Menu còn lại gọn vào dropdown --}}
+                                <div class="relative">
+                                    <button type="button" @click="open = !open" @click.outside="open = false"
+                                            class="btn-ghost text-xs px-2" aria-label="Thao tác khác">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM18 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                        </svg>
+                                    </button>
+                                    <div x-show="open" x-cloak x-transition
+                                         class="absolute right-0 mt-1 w-40 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 py-1 z-20 text-left">
+                                        <a href="{{ route('admin.users.edit', $user) }}" class="block px-4 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700">Sửa</a>
+                                        @if($user->isActive())
+                                            <form method="POST" action="{{ route('admin.users.ban', $user) }}">
+                                                @csrf
+                                                <button type="submit"
+                                                        @click="if(!confirm(`Chắc chắn khóa tài khoản ${@js($user->name)}?`)) $event.preventDefault()"
+                                                        class="w-full text-left px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">Khóa</button>
+                                            </form>
+                                        @else
+                                            <form method="POST" action="{{ route('admin.users.unban', $user) }}">
+                                                @csrf
+                                                <button type="submit" class="w-full text-left px-4 py-2 text-xs text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30">Mở khóa</button>
+                                            </form>
+                                        @endif
+                                        <form method="POST" action="{{ route('admin.users.destroy', $user) }}">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    @click="if(!confirm(`Chắc chắn xóa tài khoản ${@js($user->name)}? Hành động này không thể hoàn tác.`)) $event.preventDefault()"
+                                                    class="w-full text-left px-4 py-2 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30">Xóa</button>
+                                        </form>
+                                    </div>
+                                </div>
                             @endif
+                            </div>
                         </td>
                     </tr>
                     @empty

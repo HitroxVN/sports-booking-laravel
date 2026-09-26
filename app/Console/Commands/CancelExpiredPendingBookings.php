@@ -3,6 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Booking;
+use App\Notifications\BookingCancelled;
+use App\Services\Notifier;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -18,16 +20,23 @@ class CancelExpiredPendingBookings extends Command
 
         // Chỉ hủy đơn online chưa xác nhận: pending quá X phút kể từ khi tạo
         // (webhook SePay sẽ không bao giờ xác nhận đơn đã hủy — xem SePayWebhookController).
-        $count = Booking::where('status', 'pending')
+        $expired = Booking::with(['user', 'court.venue'])
+            ->where('status', 'pending')
             ->where('created_at', '<', now()->subMinutes($minutes))
-            ->update([
+            ->get();
+
+        foreach ($expired as $booking) {
+            $booking->update([
                 'status'        => 'cancelled',
                 'cancelled_at'  => now(),
                 'cancel_reason' => "Hết hạn thanh toán ({$minutes} phút) — tự động hủy hệ thống",
             ]);
 
-        if ($count > 0) {
-            $this->info("Đã hủy {$count} đơn pending quá hạn.");
+            Notifier::send($booking->user, new BookingCancelled($booking));
+        }
+
+        if ($expired->isNotEmpty()) {
+            $this->info("Đã hủy {$expired->count()} đơn pending quá hạn.");
         }
 
         return self::SUCCESS;
