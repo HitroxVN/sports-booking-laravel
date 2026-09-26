@@ -34,6 +34,11 @@
                           {{ request()->is('venues/popular') ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30' : 'text-zinc-600 dark:text-zinc-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20' }}">
                     Sân nổi bật
                 </a>
+                <a href="{{ route('customer.news.index') }}"
+                    class="px-3 py-2 text-sm font-medium rounded-lg transition-colors
+                          {{ request()->is('tin-tuc*') ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30' : 'text-zinc-600 dark:text-zinc-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20' }}">
+                    Tin tức
+                </a>
                 <a href="/lien-he"
                     class="px-3 py-2 text-sm font-medium rounded-lg transition-colors
                           {{ request()->is('lien-he') ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30' : 'text-zinc-600 dark:text-zinc-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/20' }}">
@@ -141,6 +146,7 @@
                 <a href="/" class="block px-3 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-700 dark:hover:text-primary-300 rounded-lg transition-colors">Trang chủ</a>
                 <a href="/search" class="block px-3 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-700 dark:hover:text-primary-300 rounded-lg transition-colors">Tìm sân</a>
                 <a href="/venues/popular" class="block px-3 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-700 dark:hover:text-primary-300 rounded-lg transition-colors">Sân nổi bật</a>
+                <a href="{{ route('customer.news.index') }}" class="block px-3 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-700 dark:hover:text-primary-300 rounded-lg transition-colors">Tin tức</a>
                 <a href="/lien-he" class="block px-3 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-700 dark:hover:text-primary-300 rounded-lg transition-colors">Liên hệ</a>
                 @auth
                 <a href="/my-bookings" class="block px-3 py-2.5 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:text-primary-700 dark:hover:text-primary-300 rounded-lg transition-colors">Đơn đặt sân</a>
