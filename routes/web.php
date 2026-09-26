@@ -120,6 +120,7 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::resource('courts.closures', ClosureController::class)->shallow()->except(['show', 'edit', 'update']);
 
     // 6. Quản lý Đơn Đặt Sân (Bookings)
+    Route::post('bookings/quick-store', [BookingController::class, 'quickStore'])->name('bookings.quick-store');
     Route::resource('bookings', BookingController::class)->only(['index', 'show', 'update']);
 
     // 7. Lịch biểu tổng quan (Schedule)
