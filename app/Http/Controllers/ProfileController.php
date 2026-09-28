@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Reward;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,15 +19,31 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): View
     {
-        $view = match ($request->user()->role) {
-            'admin'  => 'profile.edit-admin',
-            'owner'  => 'profile.edit-owner',
-            default  => 'profile.edit',
+        $user = $request->user();
+        $view = match ($user->role) {
+            'admin' => 'profile.edit-admin',
+            'owner' => 'profile.edit-owner',
+            default => 'profile.edit',
         };
 
-        return view($view, [
-            'user' => $request->user(),
-        ]);
+        $data = ['user' => $user];
+
+        if ($user->isCustomer()) {
+            $data['rewards'] = Reward::active()
+                ->orderBy('points_required')
+                ->get();
+            $data['availableVouchers'] = $user->loyaltyTransactions()
+                ->availableVouchers()
+                ->with('reward')
+                ->latest()
+                ->get();
+            $data['loyaltyTransactions'] = $user->loyaltyTransactions()
+                ->with(['booking', 'reward'])
+                ->latest()
+                ->paginate(10, ['*'], 'loyalty_page');
+        }
+
+        return view($view, $data);
     }
 
     /**
@@ -41,9 +58,9 @@ class ProfileController extends Controller
             $digits = preg_replace('/[\s.\-()]/', '', $validated['phone']);
 
             if (str_starts_with($digits, '+84')) {
-                $digits = '0' . substr($digits, 3);
+                $digits = '0'.substr($digits, 3);
             } elseif (str_starts_with($digits, '84') && strlen($digits) === 11) {
-                $digits = '0' . substr($digits, 2);
+                $digits = '0'.substr($digits, 2);
             }
 
             $validated['phone'] = $digits;

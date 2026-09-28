@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -22,15 +22,31 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return [
             'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
+            'password' => 'hashed',
+            'points' => 'integer',
         ];
     }
 
     // --- Helpers ---
-    public function isAdmin(): bool   { return $this->role === 'admin'; }
-    public function isOwner(): bool   { return $this->role === 'owner'; }
-    public function isCustomer(): bool { return $this->role === 'customer'; }
-    public function isActive(): bool  { return $this->status === 'active'; }
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role === 'owner';
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->role === 'customer';
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
+    }
 
     // --- Relationships ---
 
@@ -46,6 +62,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Booking::class);
     }
 
+    // Sổ cái tích/đổi điểm của thành viên
+    public function loyaltyTransactions()
+    {
+        return $this->hasMany(LoyaltyTransaction::class);
+    }
+
     // 1 người dùng có nhiều đánh giá
     public function reviews()
     {
@@ -58,4 +80,3 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(Venue::class, 'favorites')->withTimestamps();
     }
 }
-

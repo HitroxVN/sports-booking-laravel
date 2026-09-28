@@ -74,7 +74,9 @@
                     </div>
                     @if($booking->discount_amount > 0)
                         <div class="flex justify-between text-emerald-600 dark:text-emerald-400">
-                            <span>Mã giảm giá {{ $booking->promotion?->code ?? '' }}</span>
+                            <span>
+                                {{ $booking->loyaltyVoucher ? 'Voucher ' . $booking->loyaltyVoucher->voucher_code : 'Mã giảm giá ' . ($booking->promotion?->code ?? '') }}
+                            </span>
                             <span>-{{ number_format($booking->discount_amount) }} VNĐ</span>
                         </div>
                     @endif

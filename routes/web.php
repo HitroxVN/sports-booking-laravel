@@ -1,9 +1,25 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Admin\BookingController as AdminBookingController;
 // Owner
+use App\Http\Controllers\Admin\ChatController as AdminChatController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
+use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\SettingController as AdminSettingController;
+use App\Http\Controllers\Admin\SportController as AdminSportController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\VenueController as AdminVenueController;
+use App\Http\Controllers\Customer\ChatController as CustomerChatController;
+use App\Http\Controllers\Customer\CustomerBookingController;
+use App\Http\Controllers\Customer\LoyaltyController;
+// Customer
+use App\Http\Controllers\Customer\SearchController;
+use App\Http\Controllers\Customer\VenueController as CustomerVenueController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Owner\BookingController;
+// Admin
 use App\Http\Controllers\Owner\ChatController as OwnerChatController;
 use App\Http\Controllers\Owner\ClosureController;
 use App\Http\Controllers\Owner\CourtController;
@@ -13,29 +29,11 @@ use App\Http\Controllers\Owner\ReportController;
 use App\Http\Controllers\Owner\ReviewController;
 use App\Http\Controllers\Owner\ScheduleController;
 use App\Http\Controllers\Owner\SlotController;
-use App\Http\Controllers\Owner\VenueController;
-
-// Customer
-use App\Http\Controllers\Customer\ChatController as CustomerChatController;
-use App\Http\Controllers\Customer\CustomerBookingController;
-use App\Http\Controllers\Customer\SearchController;
-use App\Http\Controllers\Customer\VenueController as CustomerVenueController;
-
-// Admin
-use App\Http\Controllers\Admin\BookingController as AdminBookingController;
-use App\Http\Controllers\Admin\ChatController as AdminChatController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
-use App\Http\Controllers\Admin\ReportController as AdminReportController;
-use App\Http\Controllers\Admin\SettingController as AdminSettingController;
-use App\Http\Controllers\Admin\SportController as AdminSportController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\VenueController as AdminVenueController;
-
 // Chung
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Owner\VenueController;
 use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 // ─── Public ──────────────────────────────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -46,7 +44,7 @@ Route::get('/venues/{slug}', [CustomerVenueController::class, 'show'])->name('ve
 
 // Route trung gian giải quyết lỗi Route [dashboard] not defined của Breeze
 Route::get('/dashboard', function () {
-    $user = \Illuminate\Support\Facades\Auth::user();
+    $user = Auth::user();
 
     // user null -> về login
     if (! $user) {
@@ -59,9 +57,9 @@ Route::get('/dashboard', function () {
     }
 
     return match ($user->role) {
-        'admin'    => redirect()->route('admin.dashboard'),
+        'admin' => redirect()->route('admin.dashboard'),
         'customer' => redirect()->route('home'),
-        default    => redirect()->route('owner.dashboard'),
+        default => redirect()->route('owner.dashboard'),
     };
 })->middleware(['auth'])->name('dashboard');
 
@@ -85,6 +83,10 @@ Route::middleware(['auth', 'verified', 'role:customer'])->name('customer.')->gro
     Route::get('/bookings/{booking}/pay', [CustomerBookingController::class, 'pay'])->name('bookings.pay');
     Route::get('/bookings/{booking}/status', [CustomerBookingController::class, 'status'])->name('bookings.status');
     Route::post('/bookings/{booking}/review', [CustomerBookingController::class, 'storeReview'])->name('bookings.review');
+    Route::post('/bookings/{booking}/loyalty-voucher', [LoyaltyController::class, 'apply'])->name('bookings.loyalty-voucher.apply');
+
+    // Đổi điểm thành voucher tại trang hồ sơ
+    Route::post('/loyalty/rewards/{reward}/redeem', [LoyaltyController::class, 'redeem'])->name('loyalty.rewards.redeem');
 
     // 2. Lịch sử đặt sân của tôi (Trang danh sách + chi tiết đơn)
     Route::get('/my-bookings', [CustomerBookingController::class, 'index'])->name('bookings.index');
@@ -130,12 +132,12 @@ Route::prefix('owner')->name('owner.')->middleware(['auth', 'verified', 'role:ow
     Route::resource('reviews', ReviewController::class)->only(['index', 'update']);
 
     // 9. Báo Cáo Doanh Thu (Reports) + xuất CSV
-    Route::get('/reports',        [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
 
     // 10. Chat với khách hàng (hội thoại loại 'owner' của khu sân mình)
-    Route::get('/chats',                      [OwnerChatController::class, 'index'])->name('chats.index');
-    Route::get('/chats/{conversation}',       [OwnerChatController::class, 'show'])->name('chats.show');
+    Route::get('/chats', [OwnerChatController::class, 'index'])->name('chats.index');
+    Route::get('/chats/{conversation}', [OwnerChatController::class, 'show'])->name('chats.show');
     Route::post('/chats/{conversation}/reply', [OwnerChatController::class, 'reply'])->name('chats.reply');
     Route::patch('/chats/{conversation}/status', [OwnerChatController::class, 'toggleStatus'])->name('chats.status');
 });
@@ -145,23 +147,23 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // Users: CRUD + ban/unban + reset password
-    Route::get('/users',                  [AdminUserController::class, 'index'])->name('users.index');
-    Route::get('/users/create',           [AdminUserController::class, 'create'])->name('users.create');
-    Route::post('/users',                 [AdminUserController::class, 'store'])->name('users.store');
-    Route::get('/users/{user}',           [AdminUserController::class, 'show'])->name('users.show')->withTrashed();
-    Route::get('/users/{user}/edit',      [AdminUserController::class, 'edit'])->name('users.edit');
-    Route::patch('/users/{user}',         [AdminUserController::class, 'update'])->name('users.update');
-    Route::patch('/users/{user}/password',[AdminUserController::class, 'updatePassword'])->name('users.password');
-    Route::delete('/users/{user}',        [AdminUserController::class, 'destroy'])->name('users.destroy');
-    Route::post('/users/{user}/restore',  [AdminUserController::class, 'restore'])->name('users.restore')->withTrashed();
-    Route::post('/users/{user}/ban',      [AdminUserController::class, 'ban'])->name('users.ban');
-    Route::post('/users/{user}/unban',    [AdminUserController::class, 'unban'])->name('users.unban');
+    Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [AdminUserController::class, 'create'])->name('users.create');
+    Route::post('/users', [AdminUserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show')->withTrashed();
+    Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
+    Route::patch('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
+    Route::patch('/users/{user}/password', [AdminUserController::class, 'updatePassword'])->name('users.password');
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/{user}/restore', [AdminUserController::class, 'restore'])->name('users.restore')->withTrashed();
+    Route::post('/users/{user}/ban', [AdminUserController::class, 'ban'])->name('users.ban');
+    Route::post('/users/{user}/unban', [AdminUserController::class, 'unban'])->name('users.unban');
 
     // Venues: index + approve + reject + destroy (dùng {venue} — implicit binding theo slug)
-    Route::get('/venues',               [AdminVenueController::class, 'index'])->name('venues.index');
+    Route::get('/venues', [AdminVenueController::class, 'index'])->name('venues.index');
     Route::post('/venues/{venue}/approve', [AdminVenueController::class, 'approve'])->name('venues.approve');
-    Route::post('/venues/{venue}/reject',  [AdminVenueController::class, 'reject'])->name('venues.reject');
-    Route::delete('/venues/{venue}',       [AdminVenueController::class, 'destroy'])->name('venues.destroy');
+    Route::post('/venues/{venue}/reject', [AdminVenueController::class, 'reject'])->name('venues.reject');
+    Route::delete('/venues/{venue}', [AdminVenueController::class, 'destroy'])->name('venues.destroy');
     Route::post('/venues/{venue}/restore', [AdminVenueController::class, 'restore'])->name('venues.restore')->withTrashed();
 
     // Bookings: read-only
@@ -172,22 +174,22 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::resource('sports', AdminSportController::class)->only(['index', 'store', 'update', 'destroy']);
 
     // Settings: cấu hình chung hệ thống (logo, thông tin liên hệ...)
-    Route::get('/settings',    [AdminSettingController::class, 'index'])->name('settings.index');
-    Route::put('/settings',    [AdminSettingController::class, 'update'])->name('settings.update');
+    Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');
+    Route::put('/settings', [AdminSettingController::class, 'update'])->name('settings.update');
 
     // Reports + export CSV
-    Route::get('/reports',        [AdminReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports', [AdminReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [AdminReportController::class, 'export'])->name('reports.export');
 
     // Payments: Quản lý chi tiết lịch sử thanh toán đơn hàng
-    Route::get('/payments',           [AdminPaymentController::class, 'index'])->name('payments.index');
+    Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
     Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
 
     // Livechat: Quản trị tin nhắn thời gian thực
-    Route::get('/chats',                         [AdminChatController::class, 'index'])->name('chats.index');
-    Route::get('/chats/{conversation}',          [AdminChatController::class, 'show'])->name('chats.show');
-    Route::post('/chats/{conversation}/reply',   [AdminChatController::class, 'reply'])->name('chats.reply');
+    Route::get('/chats', [AdminChatController::class, 'index'])->name('chats.index');
+    Route::get('/chats/{conversation}', [AdminChatController::class, 'show'])->name('chats.show');
+    Route::post('/chats/{conversation}/reply', [AdminChatController::class, 'reply'])->name('chats.reply');
     Route::patch('/chats/{conversation}/status', [AdminChatController::class, 'toggleStatus'])->name('chats.status');
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

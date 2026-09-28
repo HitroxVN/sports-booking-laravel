@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Booking;
 use App\Models\Review;
+use App\Observers\BookingObserver;
 use App\Observers\ReviewObserver;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\ServiceProvider;
@@ -16,6 +18,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Booking::observe(BookingObserver::class);
         Review::observe(ReviewObserver::class);
 
         // Process đi kèm lệnh `php artisan dev` (dev-only): schedule + reverb
