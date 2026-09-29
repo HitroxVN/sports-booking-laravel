@@ -38,7 +38,7 @@
         @foreach($sections as $title => $links)
         <div>
             @if($title)
-            <p class="px-3 mb-2 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest select-none">
+            <p class="px-3 mb-2 text-[10px] font-bold text-zinc-500 dark:text-zinc-300 uppercase tracking-widest select-none">
                 {{ $title }}
             </p>
             @endif
@@ -55,7 +55,7 @@
 
     {{-- Bottom --}}
     <div class="px-4 py-3 border-t border-zinc-200 dark:border-zinc-800 shrink-0">
-        <p class="text-[11px] text-zinc-400 dark:text-zinc-500 text-center">
+        <p class="text-[11px] text-zinc-500 dark:text-zinc-400 text-center">
             Arena Sports Booking &copy; {{ date('Y') }}
         </p>
     </div>

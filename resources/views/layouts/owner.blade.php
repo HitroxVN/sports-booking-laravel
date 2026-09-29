@@ -5,21 +5,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link rel="icon" type="image/jpeg" href="{{ \App\Models\Setting::asset('app_logo', asset('images/logo/logo.jpg')) }}">
+    <link rel="icon" type="image/jpeg" href="{{ asset('images/logo/logo.jpg') }}">
 
     <title>{{ $title ?? 'Quản lý sân' }} — Arena Sports Booking</title>
-
-    {{-- Khởi tạo theme (sáng/tối) trước khi render để tránh nhấp nháy FOUC --}}
-    <script>
-        (function () {
-            try {
-                var theme = localStorage.getItem('color-mode');
-                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    document.documentElement.classList.add('dark');
-                }
-            } catch (e) { /* bỏ qua nếu localStorage bị chặn */ }
-        })();
-    </script>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -28,10 +16,19 @@
     <!-- Scripts & Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- Dark mode script to prevent FOUC -->
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
     @stack('styles')
 </head>
 
-<body class="font-sans antialiased bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+<body class="font-sans antialiased bg-zinc-100/70 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
 
     <div x-data="{ sidebarOpen: false }" class="flex h-screen overflow-hidden">
 
@@ -72,25 +69,52 @@
                     </button>
 
                     {{-- Page title --}}
-                    <h1 class="text-base sm:text-lg font-bold text-zinc-800 dark:text-zinc-200 truncate">
+                    <h1 class="text-base sm:text-lg font-bold text-zinc-800 dark:text-zinc-100 truncate">
                         {{ $title ?? 'Quản lý sân' }}
                     </h1>
                 </div>
 
-                {{-- Thông báo + Theme toggle + User dropdown --}}
-                <div class="flex items-center gap-2 shrink-0">
-                    <x-notification-bell />
-                    <x-theme-toggle />
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    {{-- Dark Mode Toggle --}}
+                    <button type="button"
+                        x-data="{
+                            darkMode: document.documentElement.classList.contains('dark'),
+                            toggle() {
+                                this.darkMode = !this.darkMode;
+                                if (this.darkMode) {
+                                    document.documentElement.classList.add('dark');
+                                    localStorage.theme = 'dark';
+                                } else {
+                                    document.documentElement.classList.remove('dark');
+                                    localStorage.theme = 'light';
+                                }
+                                window.dispatchEvent(new CustomEvent('theme-changed', { detail: { dark: this.darkMode } }));
+                            }
+                        }"
+                        @click="toggle()"
+                        class="p-2 rounded-xl text-zinc-500 hover:text-zinc-800 dark:text-zinc-300 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                        title="Chuyển chế độ Sáng / Tối"
+                        aria-label="Chuyển chế độ Sáng / Tối">
+                        {{-- Sun icon (shown in dark mode) --}}
+                        <svg x-show="darkMode" x-cloak class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        {{-- Moon icon (shown in light mode) --}}
+                        <svg x-show="!darkMode" class="w-5 h-5 text-zinc-600 dark:text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
 
-                    <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open"
-                        :aria-expanded="open.toString()"
-                        aria-haspopup="true"
-                        class="flex items-center gap-2.5 text-sm text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xl pl-2 pr-3 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
-                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-600 text-white text-xs font-bold shrink-0">
+                    {{-- User dropdown --}}
+                    <div x-data="{ open: false }" class="relative shrink-0">
+                        <button @click="open = !open"
+                            :aria-expanded="open.toString()"
+                            aria-haspopup="true"
+                            class="flex items-center gap-2.5 text-sm text-zinc-600 dark:text-zinc-200 hover:text-zinc-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-xl pl-2 pr-3 py-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-600 text-white text-xs font-bold shrink-0">
                             {{ mb_substr(trim(Auth::user()->name), 0, 1) }}
                         </span>
-                        <span class="hidden sm:block font-medium max-w-32 truncate">{{ Auth::user()->name }}</span>
+                        <span class="hidden sm:block font-medium max-w-32 truncate text-zinc-800 dark:text-zinc-200">{{ Auth::user()->name }}</span>
                         <svg class="h-4 w-4 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                             <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
@@ -122,7 +146,6 @@
                             </button>
                         </form>
                     </div>
-                </div>
                 </div>
             </header>
 
