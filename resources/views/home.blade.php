@@ -452,6 +452,36 @@
 </section>
 
 {{-- ====================================================
+     SPORTS NEWS — TIN MỚI NHẤT TỪ RSS
+==================================================== --}}
+<section class="bg-tint-sky py-12 sm:py-16 dark:bg-zinc-950">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <span class="text-sm font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400">Nhịp đập thể thao</span>
+                <h2 class="mt-2 text-2xl font-bold tracking-tight text-zinc-950 sm:text-3xl dark:text-white">Tin mới nhất</h2>
+                <p class="mt-2 text-sm leading-6 text-zinc-600 dark:text-zinc-400">Cập nhật mỗi 30 phút từ các nguồn tin thể thao uy tín.</p>
+            </div>
+            <a href="{{ route('customer.news.index') }}" class="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-primary-600 transition-colors hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300">
+                Xem tất cả tin tức <span aria-hidden="true">→</span>
+            </a>
+        </div>
+
+        @if($latestNews->isNotEmpty())
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                @foreach($latestNews as $article)
+                    <x-news-card :article="$article" />
+                @endforeach
+            </div>
+        @else
+            <div class="rounded-2xl border border-dashed border-zinc-300 bg-white px-6 py-10 text-center shadow-lc dark:border-zinc-700 dark:bg-zinc-900">
+                <p class="text-sm text-zinc-500 dark:text-zinc-400">Tin thể thao đang được cập nhật. Mời bạn quay lại sau.</p>
+            </div>
+        @endif
+    </div>
+</section>
+
+{{-- ====================================================
      CTA STRIP
 ==================================================== --}}
 <section class="bg-tint-sky dark:bg-zinc-950 py-12 sm:py-16">
