@@ -27,6 +27,14 @@ class EnsureRole
 
         // 2. Kiểm tra đăng nhập và role
         if (! $user || ! in_array($user->role, $roles)) {
+            // Nếu là chủ sân/admin bấm nhầm vào route dành riêng cho khách hàng, điều hướng về Dashboard kèm thông báo
+            if ($user && $user->role === 'owner' && in_array('customer', $roles)) {
+                return redirect()->route('owner.dashboard')->with('error', 'Chức năng này dành cho tài khoản Khách hàng. Bạn đang đăng nhập bằng tài khoản Chủ sân.');
+            }
+            if ($user && $user->role === 'admin' && in_array('customer', $roles)) {
+                return redirect()->route('admin.dashboard')->with('error', 'Chức năng này dành cho tài khoản Khách hàng. Bạn đang đăng nhập bằng tài khoản Quản trị viên.');
+            }
+
             abort(403, 'Bạn không có quyền truy cập trang này.');
         }
 

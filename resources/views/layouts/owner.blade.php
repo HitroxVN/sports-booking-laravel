@@ -105,6 +105,16 @@
                         </svg>
                     </button>
 
+                    {{-- Nút xem giao diện khách hàng --}}
+                    <a href="{{ route('home') }}"
+                        class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition-colors"
+                        title="Xem giao diện khách hàng ngoài trang chủ">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        Xem trang khách
+                    </a>
+
                     {{-- User dropdown --}}
                     <div x-data="{ open: false }" class="relative shrink-0">
                         <button @click="open = !open"

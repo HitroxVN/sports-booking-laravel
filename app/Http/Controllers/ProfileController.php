@@ -26,9 +26,12 @@ class ProfileController extends Controller
             default => 'profile.edit',
         };
 
-        $data = ['user' => $user];
+        $tab = $user->isCustomer() && $request->query('tab') === 'loyalty' ? 'loyalty' : 'account';
 
-        if ($user->isCustomer()) {
+        $data = ['user' => $user, 'tab' => $tab];
+
+        // Chỉ query dữ liệu điểm thưởng khi khách đang mở tab tích luỹ
+        if ($tab === 'loyalty') {
             $data['rewards'] = Reward::active()
                 ->orderBy('points_required')
                 ->get();

@@ -12,6 +12,39 @@
         <span class="text-zinc-900 dark:text-zinc-100 font-medium truncate">{{ $venue->name }}</span>
     </nav>
 
+    @if(Auth::check() && Auth::id() === $venue->owner_id)
+    {{-- Banner thông báo dành riêng cho Chủ sân khi đang xem sân của chính mình --}}
+    <div class="mb-6 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+            </div>
+            <div>
+                <p class="text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+                    Bạn đang xem khu sân của mình dưới góc nhìn của khách hàng
+                </p>
+                <p class="text-xs text-emerald-700 dark:text-emerald-400">
+                    Chế độ xem trước giúp bạn kiểm tra hình ảnh, giá các khung giờ và thông tin hiển thị công khai.
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+            <a href="{{ route('owner.venues.edit', $venue->id) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Chỉnh sửa khu sân
+            </a>
+            <a href="{{ route('owner.dashboard') }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors">
+                Về Dashboard
+            </a>
+        </div>
+    </div>
+    @endif
+
     {{-- ── 1. KHUNG THÔNG TIN TỔNG QUAN KHU SÂN ── --}}
     <div class="bg-white dark:bg-zinc-900 rounded-3xl border border-zinc-200 dark:border-zinc-800 overflow-hidden shadow-sm mb-10">
         {{-- Banner & Cover Image --}}
@@ -356,10 +389,25 @@
                                         @endif
                                     </div>
 
-                                    <a href="{{ route('customer.bookings.create', $court->id) }}"
-                                       class="btn-primary text-xs min-h-[44px]">
-                                        Đặt sân này
-                                    </a>
+                                    @if(Auth::check() && Auth::user()->isOwner())
+                                        @if(Auth::id() === $venue->owner_id)
+                                            <a href="{{ route('owner.courts.edit', $court->id) }}"
+                                               class="btn-secondary text-xs min-h-[44px]">
+                                                Sửa sân con
+                                            </a>
+                                        @else
+                                            <button type="button"
+                                               onclick="window.toast ? window.toast('Tài khoản Chủ sân chỉ dùng để quản lý, không thể đặt sân.', 'warning') : alert('Tài khoản Chủ sân chỉ dùng để quản lý, không thể đặt sân.');"
+                                               class="btn-primary text-xs min-h-[44px] opacity-75">
+                                                Đặt sân này
+                                            </button>
+                                        @endif
+                                    @else
+                                        <a href="{{ route('customer.bookings.create', $court->id) }}"
+                                           class="btn-primary text-xs min-h-[44px]">
+                                            Đặt sân này
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -408,10 +456,25 @@
         </div>
         @php $firstActiveCourt = $venue->courts->where('status','active')->first(); @endphp
         @if($firstActiveCourt)
-            <a href="{{ route('customer.bookings.create', $firstActiveCourt->id) }}"
-               class="btn-cta text-sm shrink-0">
-                Đặt sân ngay
-            </a>
+            @if(Auth::check() && Auth::user()->isOwner())
+                @if(Auth::id() === $venue->owner_id)
+                    <a href="{{ route('owner.venues.edit', $venue->id) }}"
+                       class="btn-secondary text-sm shrink-0">
+                        Quản lý khu sân
+                    </a>
+                @else
+                    <button type="button"
+                       onclick="window.toast ? window.toast('Tài khoản Chủ sân chỉ dùng để quản lý, không thể đặt sân.', 'warning') : alert('Tài khoản Chủ sân chỉ dùng để quản lý, không thể đặt sân.');"
+                       class="btn-cta text-sm shrink-0 opacity-75">
+                        Đặt sân ngay
+                    </button>
+                @endif
+            @else
+                <a href="{{ route('customer.bookings.create', $firstActiveCourt->id) }}"
+                   class="btn-cta text-sm shrink-0">
+                    Đặt sân ngay
+                </a>
+            @endif
         @endif
     </div>
 </div>

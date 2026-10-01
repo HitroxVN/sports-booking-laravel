@@ -49,10 +49,16 @@
                 <h3 class="text-xs font-semibold text-white uppercase tracking-widest mb-4">Người dùng</h3>
                 <ul class="space-y-2.5">
                     <li><a href="/search" class="text-sm hover:text-cta-300 transition-colors">Tìm kiếm sân</a></li>
-                    <li><a href="/register" class="text-sm hover:text-cta-300 transition-colors">Đăng ký tài khoản</a></li>
-                    <li><a href="/login" class="text-sm hover:text-cta-300 transition-colors">Đăng nhập</a></li>
-                    <li><a href="/my-bookings" class="text-sm hover:text-cta-300 transition-colors">Đơn đặt sân</a></li>
-                    <li><a href="#" class="text-sm hover:text-cta-300 transition-colors">Hướng dẫn sử dụng</a></li>
+                    <li><a href="/venues/popular" class="text-sm hover:text-cta-300 transition-colors">Sân nổi bật</a></li>
+                    @auth
+                        @if(Auth::user()->isCustomer())
+                            <li><a href="/my-bookings" class="text-sm hover:text-cta-300 transition-colors">Đơn đặt sân của tôi</a></li>
+                        @endif
+                    @else
+                        <li><a href="/register" class="text-sm hover:text-cta-300 transition-colors">Đăng ký tài khoản</a></li>
+                        <li><a href="/login" class="text-sm hover:text-cta-300 transition-colors">Đăng nhập</a></li>
+                    @endauth
+                    <li><a href="/tin-tuc" class="text-sm hover:text-cta-300 transition-colors">Tin tức thể thao</a></li>
                 </ul>
             </div>
 
@@ -60,11 +66,20 @@
             <div>
                 <h3 class="text-xs font-semibold text-white uppercase tracking-widest mb-4">Chủ sân</h3>
                 <ul class="space-y-2.5">
-                    <li><a href="#" class="text-sm hover:text-cta-300 transition-colors">Đăng ký khu sân</a></li>
-                    <li><a href="#" class="text-sm hover:text-cta-300 transition-colors">Quản lý lịch đặt</a></li>
-                    <li><a href="#" class="text-sm hover:text-cta-300 transition-colors">Báo cáo doanh thu</a></li>
-                    <li><a href="#" class="text-sm hover:text-cta-300 transition-colors">Khuyến mãi</a></li>
-                    <li><a href="#" class="text-sm hover:text-cta-300 transition-colors">Chính sách hợp tác</a></li>
+                    @auth
+                        @if(Auth::user()->isOwner())
+                            <li><a href="{{ route('owner.dashboard') }}" class="text-sm hover:text-cta-300 transition-colors font-medium text-cta-300">Kênh quản lý sân</a></li>
+                            <li><a href="{{ route('owner.venues.index') }}" class="text-sm hover:text-cta-300 transition-colors">Khu sân của tôi</a></li>
+                            <li><a href="{{ route('owner.bookings.index') }}" class="text-sm hover:text-cta-300 transition-colors">Quản lý lịch đặt</a></li>
+                            <li><a href="{{ route('owner.reports.index') }}" class="text-sm hover:text-cta-300 transition-colors">Báo cáo doanh thu</a></li>
+                        @else
+                            <li><a href="/lien-he" class="text-sm hover:text-cta-300 transition-colors">Chính sách đối tác chủ sân</a></li>
+                        @endif
+                    @else
+                        <li><a href="{{ route('register') }}" class="text-sm hover:text-cta-300 transition-colors">Đăng ký đối tác chủ sân</a></li>
+                        <li><a href="{{ route('login') }}" class="text-sm hover:text-cta-300 transition-colors">Đăng nhập chủ sân</a></li>
+                        <li><a href="/lien-he" class="text-sm hover:text-cta-300 transition-colors">Chính sách hợp tác</a></li>
+                    @endauth
                 </ul>
             </div>
 

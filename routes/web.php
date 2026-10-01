@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Admin\BookingController as AdminBookingController;
-// Owner
 use App\Http\Controllers\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
@@ -31,26 +30,7 @@ use App\Http\Controllers\Owner\ScheduleController;
 use App\Http\Controllers\Owner\SlotController;
 use App\Http\Controllers\Owner\VenueController;
 
-// Customer
-use App\Http\Controllers\Customer\ChatController as CustomerChatController;
-use App\Http\Controllers\Customer\CustomerBookingController;
 use App\Http\Controllers\Customer\NewsArticleController;
-use App\Http\Controllers\Customer\SearchController;
-use App\Http\Controllers\Customer\VenueController as CustomerVenueController;
-
-// Admin
-use App\Http\Controllers\Admin\BookingController as AdminBookingController;
-use App\Http\Controllers\Admin\ChatController as AdminChatController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
-use App\Http\Controllers\Admin\ReportController as AdminReportController;
-use App\Http\Controllers\Admin\SettingController as AdminSettingController;
-use App\Http\Controllers\Admin\SportController as AdminSportController;
-use App\Http\Controllers\Admin\UserController as AdminUserController;
-use App\Http\Controllers\Admin\VenueController as AdminVenueController;
-
-// Chung
-use App\Http\Controllers\Owner\VenueController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
