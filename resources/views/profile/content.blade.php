@@ -6,6 +6,10 @@
         <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Quản lý thông tin tài khoản và bảo mật của bạn.</p>
     </div>
 
+    @if($user->isCustomer())
+        @include('profile.partials.loyalty-program')
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
         {{-- ================================================

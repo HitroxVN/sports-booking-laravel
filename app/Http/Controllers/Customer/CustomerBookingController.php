@@ -22,9 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 // Báo hiệu khung giờ bị chiếm/khóa — bắt ngoài transaction để trả flash message thay vì 500
-class BookingConflictException extends \RuntimeException
-{
-}
+class BookingConflictException extends \RuntimeException {}
 
 class CustomerBookingController extends Controller
 {
@@ -46,7 +44,7 @@ class CustomerBookingController extends Controller
     public function show(Booking $booking)
     {
         abort_unless($booking->user_id === Auth::id(), 403);
-        $booking->load(['court.venue', 'review', 'promotion', 'payments']);
+        $booking->load(['court.venue', 'review', 'promotion', 'payments', 'loyaltyVoucher.reward']);
 
         return view('customer.bookings.show', compact('booking'));
     }
@@ -65,7 +63,7 @@ class CustomerBookingController extends Controller
         }
 
         $validated = $request->validate([
-            'rating'  => 'required|integer|min:1|max:5',
+            'rating' => 'required|integer|min:1|max:5',
             'comment' => 'nullable|string|max:1000',
         ], [
             'rating.required' => 'Vui lòng chọn số sao đánh giá!',
@@ -73,10 +71,10 @@ class CustomerBookingController extends Controller
 
         Review::create([
             'booking_id' => $booking->id,
-            'user_id'    => Auth::id(),
-            'venue_id'   => $booking->court->venue_id,
-            'rating'     => $validated['rating'],
-            'comment'    => $validated['comment'] ?? null,
+            'user_id' => Auth::id(),
+            'venue_id' => $booking->court->venue_id,
+            'rating' => $validated['rating'],
+            'comment' => $validated['comment'] ?? null,
         ]);
 
         return back()->with('success', 'Cảm ơn bạn đã đánh giá khu sân!');
@@ -89,14 +87,14 @@ class CustomerBookingController extends Controller
 
         // Cửa sổ đặt sân: từ hôm nay đến hết tháng sau (tháng này + tháng sau)
         $windowEnd = Carbon::today()->addMonthNoOverflow()->endOfMonth();
-        $maxDate   = $windowEnd->toDateString();
+        $maxDate = $windowEnd->toDateString();
 
         $dates = [];
         for ($date = Carbon::today(); $date->lte($windowEnd); $date->addDay()) {
             $dates[] = [
-                'full_date'  => $date->format('Y-m-d'),
-                'day_name'   => $date->locale('vi')->dayName,
-                'formatted'  => $date->format('d/m'),
+                'full_date' => $date->format('Y-m-d'),
+                'day_name' => $date->locale('vi')->dayName,
+                'formatted' => $date->format('d/m'),
             ];
         }
 
@@ -115,8 +113,8 @@ class CustomerBookingController extends Controller
             ->get(['booking_date', 'start_time', 'end_time'])
             ->map(fn ($b) => [
                 'booking_date' => $b->booking_date->toDateString(),
-                'start_time'   => Carbon::parse($b->start_time)->format('H:i'),
-                'end_time'     => Carbon::parse($b->end_time)->format('H:i'),
+                'start_time' => Carbon::parse($b->start_time)->format('H:i'),
+                'end_time' => Carbon::parse($b->end_time)->format('H:i'),
             ]);
 
         // Lịch khóa của sân (cùng cửa sổ đặt: đến hết tháng sau) — để chặn hiển thị/đặt các khung giờ bị khóa
@@ -125,9 +123,9 @@ class CustomerBookingController extends Controller
             ->whereDate('date', '<=', $windowEnd->toDateString())
             ->get(['date', 'start_time', 'end_time'])
             ->map(fn ($c) => [
-                'date'       => $c->date->toDateString(),
+                'date' => $c->date->toDateString(),
                 'start_time' => $c->start_time ? Carbon::parse($c->start_time)->format('H:i') : null,
-                'end_time'   => $c->end_time ? Carbon::parse($c->end_time)->format('H:i') : null,
+                'end_time' => $c->end_time ? Carbon::parse($c->end_time)->format('H:i') : null,
             ]);
 
         // Giờ hoạt động theo ngày trong tuần của khu sân — dùng để chặn ngày nghỉ khi đặt
@@ -135,9 +133,9 @@ class CustomerBookingController extends Controller
         $operatingHours = $court->venue->operatingHours
             ->map(fn ($h) => [
                 'day_of_week' => (int) $h->day_of_week,
-                'open_time'   => $h->open_time ? substr($h->open_time, 0, 5) : null,
-                'close_time'  => $h->close_time ? substr($h->close_time, 0, 5) : null,
-                'is_closed'   => (bool) $h->is_closed,
+                'open_time' => $h->open_time ? substr($h->open_time, 0, 5) : null,
+                'close_time' => $h->close_time ? substr($h->close_time, 0, 5) : null,
+                'is_closed' => (bool) $h->is_closed,
             ]);
 
         // Khu sân có cài giờ hoạt động không — chưa cài thì UI không chặn theo giờ hoạt động
@@ -161,26 +159,26 @@ class CustomerBookingController extends Controller
         $windowEnd = Carbon::today()->addMonthNoOverflow()->endOfMonth();
 
         $request->validate([
-            'court_id'     => 'required|exists:courts,id',
-            'booking_date' => 'required|date|after_or_equal:today|before_or_equal:' . $windowEnd->toDateString(),
-            'start_time'   => 'required',
-            'end_time'     => 'required|after:start_time',
+            'court_id' => 'required|exists:courts,id',
+            'booking_date' => 'required|date|after_or_equal:today|before_or_equal:'.$windowEnd->toDateString(),
+            'start_time' => 'required',
+            'end_time' => 'required|after:start_time',
             // Số tuần lặp của lịch cố định (1 hoặc rỗng = đặt lẻ 1 buổi)
-            'repeat_weeks' => 'nullable|integer|min:1|max:' . self::MAX_REPEAT_WEEKS,
+            'repeat_weeks' => 'nullable|integer|min:1|max:'.self::MAX_REPEAT_WEEKS,
         ], [
-            'repeat_weeks.max' => 'Chỉ đặt lịch cố định tối đa ' . self::MAX_REPEAT_WEEKS . ' tuần một lần.',
+            'repeat_weeks.max' => 'Chỉ đặt lịch cố định tối đa '.self::MAX_REPEAT_WEEKS.' tuần một lần.',
         ]);
 
         $court = $this->findBookableCourt($request->court_id);
 
         $bookingDate = Carbon::parse($request->booking_date);
-        $dow         = $bookingDate->dayOfWeek; // 0 = CN ... 6 = Thứ 7 (đồng bộ operating_hours/court_slots)
-        $startTime   = Carbon::parse($request->start_time);
-        $endTime     = Carbon::parse($request->end_time);
+        $dow = $bookingDate->dayOfWeek; // 0 = CN ... 6 = Thứ 7 (đồng bộ operating_hours/court_slots)
+        $startTime = Carbon::parse($request->start_time);
+        $endTime = Carbon::parse($request->end_time);
 
         // ─── Lịch cố định: danh sách ngày của chuỗi (mỗi tuần 1 buổi, cùng thứ) ───
         $repeatWeeks = (int) ($request->input('repeat_weeks') ?: 1);
-        $isSeries    = $repeatWeeks > 1;
+        $isSeries = $repeatWeeks > 1;
 
         $dates = [];
         for ($i = 0; $i < $repeatWeeks; $i++) {
@@ -189,7 +187,7 @@ class CustomerBookingController extends Controller
 
         // Buổi cuối của chuỗi phải còn nằm trong cửa sổ đặt sân
         if (end($dates)->gt($windowEnd)) {
-            return back()->with('error', 'Lịch cố định vượt quá thời gian cho phép đặt (hết ngày ' . $windowEnd->format('d/m/Y') . '). Vui lòng giảm số tuần!');
+            return back()->with('error', 'Lịch cố định vượt quá thời gian cho phép đặt (hết ngày '.$windowEnd->format('d/m/Y').'). Vui lòng giảm số tuần!');
         }
 
         // Chặn đặt khung giờ đã qua của hôm nay
@@ -204,14 +202,14 @@ class CustomerBookingController extends Controller
         if ($hasOperatingHours) {
             $operatingHour = OperatingHour::where('venue_id', $court->venue_id)->where('day_of_week', $dow)->first();
 
-            if (!$operatingHour || $operatingHour->is_closed) {
+            if (! $operatingHour || $operatingHour->is_closed) {
                 return back()->with('error', 'Khu sân nghỉ ngày này, vui lòng chọn ngày khác!');
             }
 
-            $openTime  = Carbon::parse($operatingHour->open_time);
+            $openTime = Carbon::parse($operatingHour->open_time);
             $closeTime = Carbon::parse($operatingHour->close_time);
             if ($startTime->lt($openTime) || $endTime->gt($closeTime)) {
-                return back()->with('error', 'Thời gian đặt phải nằm trong giờ hoạt động (' . $openTime->format('H:i') . ' - ' . $closeTime->format('H:i') . ')!');
+                return back()->with('error', 'Thời gian đặt phải nằm trong giờ hoạt động ('.$openTime->format('H:i').' - '.$closeTime->format('H:i').')!');
             }
         }
 
@@ -228,13 +226,13 @@ class CustomerBookingController extends Controller
 
         // Khoảng giờ khách gửi phải khớp chính xác một dãy ô mở bán liền kề
         $requestedStart = substr($request->start_time, 0, 5);
-        $requestedEnd   = substr($request->end_time, 0, 5);
+        $requestedEnd = substr($request->end_time, 0, 5);
 
         $selectedCells = [];
         $matching = true;
         foreach ($cells as $index => $cell) {
             if ($cell['start'] >= $requestedStart && $cell['end'] <= $requestedEnd) {
-                if (!$cell['is_open']) {
+                if (! $cell['is_open']) {
                     $matching = false;
                     break;
                 }
@@ -247,7 +245,7 @@ class CustomerBookingController extends Controller
                 } else {
                     $matching = ($cell['start'] === $prevEnd);
                 }
-                if (!$matching) {
+                if (! $matching) {
                     break;
                 }
                 $selectedCells[] = $cell;
@@ -255,7 +253,7 @@ class CustomerBookingController extends Controller
         }
 
         if (
-            !$matching || empty($selectedCells)
+            ! $matching || empty($selectedCells)
             || end($selectedCells)['end'] !== $requestedEnd
         ) {
             return back()->with('error', 'Khung giờ này không áp dụng cho sân, vui lòng chọn lại theo các ô giờ hiển thị!');
@@ -265,7 +263,7 @@ class CustomerBookingController extends Controller
         $totalAmount = array_sum(array_column($selectedCells, 'price'));
 
         // ─── Mã giảm giá (nếu có) ───
-        $promotion   = null;
+        $promotion = null;
         $discountAmount = 0;
 
         if ($request->filled('promotion_code')) {
@@ -273,7 +271,7 @@ class CustomerBookingController extends Controller
                 ->where('venue_id', $court->venue_id)
                 ->first();
 
-            if (!$promotion || !$promotion->isValid()
+            if (! $promotion || ! $promotion->isValid()
                 || ($promotion->min_amount !== null && $totalAmount < $promotion->min_amount)) {
                 return back()->with('error', 'Mã giảm giá không hợp lệ hoặc không áp dụng cho đơn này!');
             }
@@ -283,12 +281,12 @@ class CustomerBookingController extends Controller
 
             // Mã phải còn đủ lượt cho toàn bộ số buổi sắp tạo
             if ($promotion->max_uses !== null && $promotion->used_count + $repeatWeeks > $promotion->max_uses) {
-                return back()->with('error', 'Mã giảm giá không còn đủ lượt cho ' . $repeatWeeks . ' buổi!');
+                return back()->with('error', 'Mã giảm giá không còn đủ lượt cho '.$repeatWeeks.' buổi!');
             }
         }
         // Chuẩn hóa H:i:s để so khớp TIME khi so chuỗi (sqlite lưu verbatim, MySQL cast TIME)
         $startTimeSql = $startTime->format('H:i:s');
-        $endTimeSql   = $endTime->format('H:i:s');
+        $endTimeSql = $endTime->format('H:i:s');
 
         $duration = $startTime->diffInMinutes($endTime);
 
@@ -304,15 +302,15 @@ class CustomerBookingController extends Controller
                 $series = null;
                 if ($isSeries) {
                     $series = BookingSeries::create([
-                        'user_id'        => Auth::id(),
-                        'court_id'       => $court->id,
-                        'weekday'        => $dow,
-                        'start_time'     => $startTimeSql,
-                        'end_time'       => $endTimeSql,
-                        'duration'       => $duration,
+                        'user_id' => Auth::id(),
+                        'court_id' => $court->id,
+                        'weekday' => $dow,
+                        'start_time' => $startTimeSql,
+                        'end_time' => $endTimeSql,
+                        'duration' => $duration,
                         'price_snapshot' => ($duration > 0) ? ($totalAmount / ($duration / 60)) : 0,
-                        'weeks'          => $repeatWeeks,
-                        'starts_on'      => $dates[0]->toDateString(),
+                        'weeks' => $repeatWeeks,
+                        'starts_on' => $dates[0]->toDateString(),
                     ]);
                 }
 
@@ -320,7 +318,7 @@ class CustomerBookingController extends Controller
                 foreach ($dates as $date) {
                     $dateStr = $date->toDateString();
                     // Lỗi ở buổi nào thì nói rõ buổi đó (chỉ khi là chuỗi)
-                    $prefix = $isSeries ? 'Buổi ' . $date->format('d/m') . ': ' : '';
+                    $prefix = $isSeries ? 'Buổi '.$date->format('d/m').': ' : '';
 
                     $isBlocked = CourtClosure::where('court_id', $court->id)
                         ->whereDate('date', $dateStr)
@@ -330,14 +328,14 @@ class CustomerBookingController extends Controller
                                 // Khóa theo khung giờ: trùng lặp khoảng
                                 ->orWhere(function ($q) use ($endTimeSql, $startTimeSql) {
                                     $q->whereNotNull('start_time')
-                                      ->where('start_time', '<', $endTimeSql)
-                                      ->where('end_time', '>', $startTimeSql);
+                                        ->where('start_time', '<', $endTimeSql)
+                                        ->where('end_time', '>', $startTimeSql);
                                 });
                         })
                         ->exists();
 
                     if ($isBlocked) {
-                        throw new BookingConflictException($prefix . 'Sân đang bị khóa lịch trong khoảng thời gian này, vui lòng chọn thời gian khác!');
+                        throw new BookingConflictException($prefix.'Sân đang bị khóa lịch trong khoảng thời gian này, vui lòng chọn thời gian khác!');
                     }
 
                     // Đơn pending quá hạn coi như hết hạn (command app:cancel-expired-pending-bookings
@@ -357,24 +355,24 @@ class CustomerBookingController extends Controller
                         ->exists();
 
                     if ($isBooked) {
-                        throw new BookingConflictException($prefix . 'Khung giờ này đã có người đặt, vui lòng chọn giờ khác!');
+                        throw new BookingConflictException($prefix.'Khung giờ này đã có người đặt, vui lòng chọn giờ khác!');
                     }
 
                     $bookings[] = Booking::create([
-                        'code'           => 'BK' . strtoupper(Str::random(8)), // không có "-" vì nhiều ngân hàng xóa ký tự đặc biệt trong nội dung CK
-                        'user_id'        => Auth::id(),
-                        'court_id'       => $court->id,
-                        'series_id'      => $series?->id,
-                        'booking_date'   => $dateStr,
-                        'start_time'     => $startTimeSql,
-                        'end_time'       => $endTimeSql,
-                        'duration'       => $duration,
+                        'code' => 'BK'.strtoupper(Str::random(8)), // không có "-" vì nhiều ngân hàng xóa ký tự đặc biệt trong nội dung CK
+                        'user_id' => Auth::id(),
+                        'court_id' => $court->id,
+                        'series_id' => $series?->id,
+                        'booking_date' => $dateStr,
+                        'start_time' => $startTimeSql,
+                        'end_time' => $endTimeSql,
+                        'duration' => $duration,
                         'price_snapshot' => ($duration > 0) ? ($totalAmount / ($duration / 60)) : 0,
-                        'total_amount'   => $totalAmount - $discountAmount,
-                        'promotion_id'   => $promotion?->id,
-                        'discount_amount'=> $discountAmount,
+                        'total_amount' => $totalAmount - $discountAmount,
+                        'promotion_id' => $promotion?->id,
+                        'discount_amount' => $discountAmount,
                         'payment_method' => $paymentMethod,
-                        'status'         => $initialStatus,
+                        'status' => $initialStatus,
                     ]);
 
                     // Mã giảm giá trừ 1 lượt cho MỖI buổi tạo thành công (increment atomic trong transaction)
@@ -394,7 +392,7 @@ class CustomerBookingController extends Controller
 
         // Thông báo SAU khi transaction đã commit — tránh báo cho đơn bị rollback.
         // Lịch cố định chỉ gửi 1 thông báo tóm tắt, không phải mỗi buổi một cái.
-        $first    = $result['bookings'][0];
+        $first = $result['bookings'][0];
         $sessions = count($result['bookings']);
         $first->load(['user', 'court.venue.owner']);
 
@@ -404,7 +402,7 @@ class CustomerBookingController extends Controller
         // Lịch cố định: cả chuỗi đã tạo xong → về danh sách đơn của khách
         if ($isSeries) {
             return redirect()->route('customer.bookings.index')
-                ->with('success', 'Đã đặt lịch cố định ' . $sessions . ' buổi hàng tuần. Vui lòng thanh toán tại sân mỗi buổi.');
+                ->with('success', 'Đã đặt lịch cố định '.$sessions.' buổi hàng tuần. Vui lòng thanh toán tại sân mỗi buổi.');
         }
 
         return redirect()->route('customer.bookings.pay', $first)
@@ -415,18 +413,29 @@ class CustomerBookingController extends Controller
     public function pay(Booking $booking)
     {
         abort_unless($booking->user_id === Auth::id(), 403);
-        $booking->load('court.venue');
+        $booking->load(['court.venue', 'promotion', 'loyaltyVoucher.reward']);
+
+        $availableVouchers = Auth::user()
+            ->loyaltyTransactions()
+            ->availableVouchers()
+            ->with('reward')
+            ->latest()
+            ->get()
+            ->filter(fn ($voucher) => $voucher->reward
+                && ($voucher->reward->min_amount === null
+                    || (float) $booking->total_amount >= (float) $voucher->reward->min_amount))
+            ->values();
 
         // Nếu đơn yêu cầu cọc, QR mặc định sinh ra cho số tiền cọc (khách vẫn có thể chuyển đủ tổng)
         $amount = $booking->deposit_amount ?? $booking->total_amount;
 
         $qrUrl = 'https://img.vietqr.io/image/'
-            . config('services.vietqr.bank_id') . '-' . config('services.vietqr.account_no') . '-' . config('services.vietqr.template')
-            . '.png?amount=' . (int) $amount
-            . '&addInfo=' . urlencode($booking->code)
-            . '&accountName=' . urlencode(config('services.vietqr.account_name'));
+            .config('services.vietqr.bank_id').'-'.config('services.vietqr.account_no').'-'.config('services.vietqr.template')
+            .'.png?amount='.(int) $amount
+            .'&addInfo='.urlencode($booking->code)
+            .'&accountName='.urlencode(config('services.vietqr.account_name'));
 
-        return view('customer.bookings.pay', compact('booking', 'qrUrl', 'amount'));
+        return view('customer.bookings.pay', compact('booking', 'qrUrl', 'amount', 'availableVouchers'));
     }
 
     // 5. API nhỏ cho polling trạng thái thanh toán trên trang pay
@@ -436,7 +445,7 @@ class CustomerBookingController extends Controller
 
         return response()->json([
             'payment_status' => $booking->payment_status,
-            'status'         => $booking->status,
+            'status' => $booking->status,
         ]);
     }
 

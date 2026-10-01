@@ -145,68 +145,12 @@
                     </div>
                 </div>
 
+<<<<<<< Updated upstream
         <!-- Bảng danh sách đơn đặt sân gần đây -->
         <div class="card-base">
             <div class="flex justify-between items-center px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
                 <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-50">Đơn Đặt Sân Gần Đây</h3>
                 <a href="{{ route('owner.bookings.index') }}" class="text-sm font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">Xem tất cả &rarr;</a>
-                <!-- Thẻ 3: Hiệu suất kín sân -->
-                <div class="card-base p-5 flex flex-col justify-between">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-300">
-                            Hiệu Suất Kín Sân
-                        </span>
-                        <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-100 dark:border-purple-800/60 flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <div class="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight">
-                            {{ $occupancyRate }}<span class="text-base font-semibold text-zinc-500 dark:text-zinc-300">%</span>
-                        </div>
-                        <div class="mt-2">
-                            <div class="w-full bg-zinc-200 dark:bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                                <div class="bg-purple-500 h-full rounded-full transition-all duration-500" style="width: {{ min(100, $occupancyRate) }}%"></div>
-                            </div>
-                            <div class="mt-1.5 flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-300 font-medium">
-                                <span>{{ $bookedHours }}h đã đặt</span>
-                                <span>{{ $totalCapacityHours }}h khả dụng</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Thẻ 4: Chờ xác nhận -->
-                <div class="card-base p-5 flex flex-col justify-between">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-300">
-                            Chờ Xác Nhận
-                        </span>
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-100 dark:border-amber-800/60 flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.8">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <div class="text-2xl sm:text-3xl font-extrabold text-amber-500 dark:text-amber-400 tracking-tight">
-                            {{ $pendingBookingsCount }} <span class="text-base font-semibold text-zinc-500 dark:text-zinc-300">đơn</span>
-                        </div>
-                        <div class="mt-2">
-                            <a href="{{ route('owner.bookings.index', ['status' => 'pending']) }}"
-                                class="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 dark:text-amber-300 hover:text-amber-700 dark:hover:text-amber-200 hover:underline transition-colors">
-                                <span>Xem danh sách cần duyệt</span>
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
             <!-- ── Tối Ưu Bố Cục Khu Vực Dưới (Two-Column Layout 7:3) ── -->

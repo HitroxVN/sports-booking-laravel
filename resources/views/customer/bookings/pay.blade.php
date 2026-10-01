@@ -38,7 +38,9 @@
                 </div>
                 @if($booking->discount_amount > 0)
                     <div class="flex justify-between">
-                        <span class="text-emerald-600 dark:text-emerald-400">Mã {{ $booking->promotion?->code ?? '' }}</span>
+                        <span class="text-emerald-600 dark:text-emerald-400">
+                            {{ $booking->loyaltyVoucher ? 'Voucher ' . $booking->loyaltyVoucher->voucher_code : 'Mã ' . ($booking->promotion?->code ?? '') }}
+                        </span>
                         <span class="font-medium text-emerald-600 dark:text-emerald-400">-{{ number_format($booking->discount_amount) }} VNĐ</span>
                     </div>
                 @endif
@@ -72,6 +74,46 @@
                 </div>
             @else
                 {{-- Chờ thanh toán --}}
+                <div class="mb-6 rounded-xl border border-zinc-200 dark:border-zinc-700 p-4">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h3 class="font-bold text-zinc-900 dark:text-zinc-100">Voucher điểm thưởng</h3>
+                            <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">Áp dụng trước khi chuyển khoản.</p>
+                        </div>
+                        <a href="{{ route('profile.edit') }}" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">Đổi điểm</a>
+                    </div>
+
+                    @if($booking->loyaltyVoucher)
+                        <div class="mt-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300">
+                            Đã áp dụng <strong>{{ $booking->loyaltyVoucher->voucher_code }}</strong>
+                            @if($booking->loyaltyVoucher->reward)
+                                — {{ $booking->loyaltyVoucher->reward->name }}
+                            @endif
+                        </div>
+                    @elseif($booking->promotion_id)
+                        <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">Đơn đã dùng mã khuyến mãi nên không thể dùng thêm voucher điểm thưởng.</p>
+                    @elseif($availableVouchers->isEmpty())
+                        <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">Bạn chưa có voucher phù hợp với giá trị đơn này.</p>
+                    @else
+                        <div class="mt-3 space-y-2">
+                            @foreach($availableVouchers as $voucher)
+                                <form method="POST" action="{{ route('customer.bookings.loyalty-voucher.apply', $booking) }}"
+                                      class="flex items-center justify-between gap-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/60 p-3">
+                                    @csrf
+                                    <input type="hidden" name="loyalty_transaction_id" value="{{ $voucher->id }}">
+                                    <div class="min-w-0">
+                                        <p class="truncate font-mono text-sm font-bold text-primary-700 dark:text-primary-300">{{ $voucher->voucher_code }}</p>
+                                        <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $voucher->reward?->name }}</p>
+                                    </div>
+                                    <button type="submit" class="shrink-0 rounded-lg bg-primary-600 px-3 py-2 text-xs font-semibold text-white hover:bg-primary-700">
+                                        Áp dụng
+                                    </button>
+                                </form>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+
                 <div class="border border-zinc-200 dark:border-zinc-700 bg-tint-sky/50 dark:bg-transparent rounded-xl p-6 text-center">
                     <p class="mb-4 text-sm text-zinc-500 dark:text-zinc-400">
                         Quét QR bằng app ngân hàng
