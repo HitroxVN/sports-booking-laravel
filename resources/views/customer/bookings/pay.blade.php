@@ -80,7 +80,7 @@
                             <h3 class="font-bold text-zinc-900 dark:text-zinc-100">Voucher điểm thưởng</h3>
                             <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">Áp dụng trước khi chuyển khoản.</p>
                         </div>
-                        <a href="{{ route('profile.edit') }}" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">Đổi điểm</a>
+                        <a href="{{ route('customer.loyalty.index') }}" class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline">Đổi điểm</a>
                     </div>
 
                     @if($booking->loyaltyVoucher)

@@ -50,6 +50,7 @@
                     ['admin.bookings.index', 'calendar', 'Đơn đặt sân'],
                     ['admin.payments.index', 'card', 'Thanh toán'],
                     ['admin.sports.index', 'squares', 'Môn thể thao'],
+                    ['admin.rewards.index', 'ticket', 'Đổi điểm & Voucher'],
                 ],
                 'Hỗ trợ' => [
                     ['admin.chats.index', 'chat', 'Livechat Hỗ trợ'],

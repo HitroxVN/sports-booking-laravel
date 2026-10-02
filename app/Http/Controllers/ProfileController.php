@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
-use App\Models\Reward;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,27 +25,9 @@ class ProfileController extends Controller
             default => 'profile.edit',
         };
 
-        $tab = $user->isCustomer() && $request->query('tab') === 'loyalty' ? 'loyalty' : 'account';
-
-        $data = ['user' => $user, 'tab' => $tab];
-
-        // Chỉ query dữ liệu điểm thưởng khi khách đang mở tab tích luỹ
-        if ($tab === 'loyalty') {
-            $data['rewards'] = Reward::active()
-                ->orderBy('points_required')
-                ->get();
-            $data['availableVouchers'] = $user->loyaltyTransactions()
-                ->availableVouchers()
-                ->with('reward')
-                ->latest()
-                ->get();
-            $data['loyaltyTransactions'] = $user->loyaltyTransactions()
-                ->with(['booking', 'reward'])
-                ->latest()
-                ->paginate(10, ['*'], 'loyalty_page');
-        }
-
-        return view($view, $data);
+        return view($view, [
+            'user' => $user,
+        ]);
     }
 
     /**

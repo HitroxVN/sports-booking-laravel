@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PaymentController as AdminPaymentController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
+use App\Http\Controllers\Admin\RewardController as AdminRewardController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\SportController as AdminSportController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -101,6 +102,9 @@ Route::middleware(['auth', 'verified', 'role:customer'])->name('customer.')->gro
     Route::get('/my-bookings', [CustomerBookingController::class, 'index'])->name('bookings.index');
     Route::get('/my-bookings/{booking}', [CustomerBookingController::class, 'show'])->name('bookings.show');
 
+    // 3. Trang Điểm tích luỹ & Voucher (Trang riêng biệt)
+    Route::get('/loyalty', [LoyaltyController::class, 'index'])->name('loyalty.index');
+
     // 3. Livechat (WebSockets Realtime) — chỉ dành cho khách đã đăng nhập
     Route::post('/chat/initiate', [CustomerChatController::class, 'initiate'])->name('chat.initiate');
     Route::post('/chat/venue/{venue}', [CustomerChatController::class, 'initiateVenue'])->name('chat.venue');
@@ -181,6 +185,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
 
     // Sports: CRUD (không cần create/edit view riêng — inline modal)
     Route::resource('sports', AdminSportController::class)->only(['index', 'store', 'update', 'destroy']);
+
+    // Rewards: Quản lý phần thưởng đổi điểm
+    Route::resource('rewards', AdminRewardController::class)->only(['index', 'store', 'update', 'destroy']);
 
     // Settings: cấu hình chung hệ thống (logo, thông tin liên hệ...)
     Route::get('/settings', [AdminSettingController::class, 'index'])->name('settings.index');

@@ -1,35 +1,11 @@
 {{-- Thân trang hồ sơ dùng chung cho mọi role — shell layout do profile/edit.blade.php chọn --}}
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    {{-- Tiêu đề trang --}}
+    {{-- Tiêu đề trang & Breadcrumb --}}
     <div class="mb-8 border-b border-zinc-200 dark:border-zinc-700 pb-5">
         <h1 class="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-zinc-100 tracking-tight">Hồ sơ cá nhân</h1>
         <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Quản lý thông tin tài khoản và bảo mật của bạn.</p>
     </div>
 
-    @if($user->isCustomer())
-        {{-- Tab: Hồ sơ tài khoản / Điểm tích luỹ — chuyển tab bằng query param để pagination & back() giữ đúng tab --}}
-        <nav class="mb-6 flex flex-wrap gap-2" role="tablist">
-            <a href="{{ route('profile.edit') }}" role="tab" aria-selected="{{ $tab === 'account' ? 'true' : 'false' }}"
-               class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold transition {{ $tab === 'account'
-                   ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
-                   : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800' }}">
-                Hồ sơ tài khoản
-            </a>
-            <a href="{{ route('profile.edit', ['tab' => 'loyalty']) }}" role="tab" aria-selected="{{ $tab === 'loyalty' ? 'true' : 'false' }}"
-               class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold transition {{ $tab === 'loyalty'
-                   ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
-                   : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800' }}">
-                Điểm tích luỹ
-                <span class="ml-2 px-2 py-0.5 rounded-full text-xs bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
-                    {{ number_format($user->points) }}
-                </span>
-            </a>
-        </nav>
-    @endif
-
-    @if($user->isCustomer() && $tab === 'loyalty')
-        @include('profile.partials.loyalty-program')
-    @else
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
         {{-- ================================================
@@ -123,5 +99,4 @@
             </div>
         </div>
     </div>
-    @endif
 </div>

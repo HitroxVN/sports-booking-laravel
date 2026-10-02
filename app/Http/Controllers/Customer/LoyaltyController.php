@@ -9,9 +9,34 @@ use App\Services\LoyaltyService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class LoyaltyController extends Controller
 {
+    public function index(Request $request): View
+    {
+        $user = $request->user();
+        $rewards = Reward::active()
+            ->orderBy('points_required')
+            ->get();
+        $availableVouchers = $user->loyaltyTransactions()
+            ->availableVouchers()
+            ->with('reward')
+            ->latest()
+            ->get();
+        $loyaltyTransactions = $user->loyaltyTransactions()
+            ->with(['booking', 'reward'])
+            ->latest()
+            ->paginate(10, ['*'], 'loyalty_page');
+
+        return view('customer.loyalty.index', [
+            'user' => $user,
+            'rewards' => $rewards,
+            'availableVouchers' => $availableVouchers,
+            'loyaltyTransactions' => $loyaltyTransactions,
+        ]);
+    }
+
     public function redeem(Request $request, Reward $reward, LoyaltyService $loyaltyService): RedirectResponse
     {
         try {

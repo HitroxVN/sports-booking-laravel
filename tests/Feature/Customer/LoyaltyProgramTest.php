@@ -81,7 +81,7 @@ class LoyaltyProgramTest extends TestCase
         $this->assertSame('silver', $this->customer->tier);
     }
 
-    public function test_customer_can_redeem_points_and_see_voucher_on_profile(): void
+    public function test_customer_can_redeem_points_and_see_voucher_on_loyalty_page(): void
     {
         $this->customer->forceFill(['points' => 100])->save();
         $reward = $this->reward();
@@ -97,11 +97,16 @@ class LoyaltyProgramTest extends TestCase
         $this->assertNotNull($voucher->voucher_code);
 
         $this->actingAs($this->customer)
-            ->get(route('profile.edit'))
+            ->get(route('customer.loyalty.index'))
             ->assertOk()
             ->assertSee('50')
             ->assertSee($voucher->voucher_code)
             ->assertSee('Lịch sử điểm thưởng');
+
+        $this->actingAs($this->customer)
+            ->get(route('profile.edit'))
+            ->assertOk()
+            ->assertDontSee('Lịch sử điểm thưởng');
     }
 
     public function test_customer_cannot_redeem_reward_without_enough_points(): void
