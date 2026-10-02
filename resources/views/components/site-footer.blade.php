@@ -23,18 +23,18 @@
                 </p>
                 {{-- Social links --}}
                 <div class="flex items-center gap-3">
-                    <a href="{{ setting('social_facebook') ?: '#' }}" aria-label="Facebook" class="w-8 h-8 bg-white/10 hover:bg-cta-400 hover:text-zinc-900 rounded-lg flex items-center justify-center transition-colors">
+                    <a href="{{ setting('social_facebook') ?: 'https://facebook.com' }}" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="w-8 h-8 bg-white/10 hover:bg-cta-400 hover:text-zinc-900 rounded-lg flex items-center justify-center transition-colors">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                         </svg>
                     </a>
-                    <a href="#" aria-label="YouTube" class="w-8 h-8 bg-white/10 hover:bg-cta-400 hover:text-zinc-900 rounded-lg flex items-center justify-center transition-colors">
+                    <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="w-8 h-8 bg-white/10 hover:bg-cta-400 hover:text-zinc-900 rounded-lg flex items-center justify-center transition-colors">
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
                             <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white" />
                         </svg>
                     </a>
-                    <a href="#" aria-label="Instagram" class="w-8 h-8 bg-white/10 hover:bg-cta-400 hover:text-zinc-900 rounded-lg flex items-center justify-center transition-colors">
+                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="w-8 h-8 bg-white/10 hover:bg-cta-400 hover:text-zinc-900 rounded-lg flex items-center justify-center transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke-width="2" />
                             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" stroke-width="2" />
@@ -72,13 +72,14 @@
                             <li><a href="{{ route('owner.venues.index') }}" class="text-sm hover:text-cta-300 transition-colors">Khu sân của tôi</a></li>
                             <li><a href="{{ route('owner.bookings.index') }}" class="text-sm hover:text-cta-300 transition-colors">Quản lý lịch đặt</a></li>
                             <li><a href="{{ route('owner.reports.index') }}" class="text-sm hover:text-cta-300 transition-colors">Báo cáo doanh thu</a></li>
+                            <li><a href="{{ route('partner-policy') }}" class="text-sm hover:text-cta-300 transition-colors">Chính sách đối tác chủ sân</a></li>
                         @else
-                            <li><a href="/lien-he" class="text-sm hover:text-cta-300 transition-colors">Chính sách đối tác chủ sân</a></li>
+                            <li><a href="{{ route('partner-policy') }}" class="text-sm hover:text-cta-300 transition-colors">Chính sách đối tác chủ sân</a></li>
                         @endif
                     @else
                         <li><a href="{{ route('register') }}" class="text-sm hover:text-cta-300 transition-colors">Đăng ký đối tác chủ sân</a></li>
                         <li><a href="{{ route('login') }}" class="text-sm hover:text-cta-300 transition-colors">Đăng nhập chủ sân</a></li>
-                        <li><a href="/lien-he" class="text-sm hover:text-cta-300 transition-colors">Chính sách hợp tác</a></li>
+                        <li><a href="{{ route('partner-policy') }}" class="text-sm hover:text-cta-300 transition-colors">Chính sách đối tác chủ sân</a></li>
                     @endauth
                 </ul>
             </div>
@@ -88,11 +89,11 @@
                 <h3 class="text-xs font-semibold text-white uppercase tracking-widest mb-4">Hỗ trợ</h3>
                 <ul class="space-y-2.5">
                     <li><a href="/lien-he" class="text-sm hover:text-cta-300 transition-colors">Liên hệ với chúng tôi</a></li>
-                    <li><a href="#" class="text-sm hover:text-cta-300 transition-colors">Trung tâm trợ giúp</a></li>
-                    <li><a href="#" class="text-sm hover:text-cta-300 transition-colors">Chính sách hủy sân</a></li>
-                    <li><a href="#" class="text-sm hover:text-cta-300 transition-colors">Chính sách thanh toán</a></li>
-                    <li><a href="#" class="text-sm hover:text-cta-300 transition-colors">Điều khoản sử dụng</a></li>
-                    <li><a href="#" class="text-sm hover:text-cta-300 transition-colors">Chính sách bảo mật</a></li>
+                    <li><a href="{{ route('help') }}" class="text-sm hover:text-cta-300 transition-colors">Trung tâm trợ giúp</a></li>
+                    <li><a href="{{ route('cancellation-policy') }}" class="text-sm hover:text-cta-300 transition-colors">Chính sách hủy sân</a></li>
+                    <li><a href="{{ route('payment-policy') }}" class="text-sm hover:text-cta-300 transition-colors">Chính sách thanh toán</a></li>
+                    <li><a href="{{ route('terms') }}" class="text-sm hover:text-cta-300 transition-colors">Điều khoản sử dụng</a></li>
+                    <li><a href="{{ route('privacy-policy') }}" class="text-sm hover:text-cta-300 transition-colors">Chính sách bảo mật</a></li>
                 </ul>
             </div>
         </div>

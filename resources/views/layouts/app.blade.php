@@ -218,11 +218,10 @@
                 <div>
                     <h3 class="text-xs font-semibold text-white uppercase tracking-widest mb-4">Chủ sân</h3>
                     <ul class="space-y-2.5">
-                        <li><a href="#" class="text-sm hover:text-white transition-colors">Đăng ký khu sân</a></li>
-                        <li><a href="#" class="text-sm hover:text-white transition-colors">Quản lý lịch đặt</a></li>
-                        <li><a href="#" class="text-sm hover:text-white transition-colors">Báo cáo doanh thu</a></li>
-                        <li><a href="#" class="text-sm hover:text-white transition-colors">Khuyến mãi</a></li>
-                        <li><a href="#" class="text-sm hover:text-white transition-colors">Chính sách hợp tác</a></li>
+                        <li><a href="{{ route('owner.dashboard') }}" class="text-sm hover:text-white transition-colors">Quản lý khu sân</a></li>
+                        <li><a href="{{ route('owner.bookings.index') }}" class="text-sm hover:text-white transition-colors">Quản lý lịch đặt</a></li>
+                        <li><a href="{{ route('owner.reports.index') }}" class="text-sm hover:text-white transition-colors">Báo cáo doanh thu</a></li>
+                        <li><a href="{{ route('partner-policy') }}" class="text-sm hover:text-white transition-colors">Chính sách đối tác chủ sân</a></li>
                     </ul>
                 </div>
 
@@ -230,11 +229,11 @@
                 <div>
                     <h3 class="text-xs font-semibold text-white uppercase tracking-widest mb-4">Hỗ trợ</h3>
                     <ul class="space-y-2.5">
-                        <li><a href="#" class="text-sm hover:text-white transition-colors">Trung tâm trợ giúp</a></li>
-                        <li><a href="#" class="text-sm hover:text-white transition-colors">Chính sách hủy sân</a></li>
-                        <li><a href="#" class="text-sm hover:text-white transition-colors">Chính sách thanh toán</a></li>
-                        <li><a href="#" class="text-sm hover:text-white transition-colors">Điều khoản sử dụng</a></li>
-                        <li><a href="#" class="text-sm hover:text-white transition-colors">Chính sách bảo mật</a></li>
+                        <li><a href="{{ route('help') }}" class="text-sm hover:text-white transition-colors">Trung tâm trợ giúp</a></li>
+                        <li><a href="{{ route('cancellation-policy') }}" class="text-sm hover:text-white transition-colors">Chính sách hủy sân</a></li>
+                        <li><a href="{{ route('payment-policy') }}" class="text-sm hover:text-white transition-colors">Chính sách thanh toán</a></li>
+                        <li><a href="{{ route('terms') }}" class="text-sm hover:text-white transition-colors">Điều khoản sử dụng</a></li>
+                        <li><a href="{{ route('privacy-policy') }}" class="text-sm hover:text-white transition-colors">Chính sách bảo mật</a></li>
                     </ul>
                 </div>
             </div>

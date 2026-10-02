@@ -43,6 +43,14 @@ Route::get('/lien-he', fn () => view('contact'))->name('contact');
 Route::get('/venues/popular', [CustomerVenueController::class, 'popular'])->name('venues.popular');
 Route::get('/venues/{slug}', [CustomerVenueController::class, 'show'])->name('venues.show');
 
+// Các trang thông tin hỗ trợ & chính sách công khai
+Route::get('/tro-giup', fn () => view('pages.help'))->name('help');
+Route::get('/chinh-sach-doi-tac', fn () => view('pages.partner-policy'))->name('partner-policy');
+Route::get('/chinh-sach-huy-san', fn () => view('pages.cancellation-policy'))->name('cancellation-policy');
+Route::get('/chinh-sach-thanh-toan', fn () => view('pages.payment-policy'))->name('payment-policy');
+Route::get('/dieu-khoan-su-dung', fn () => view('pages.terms'))->name('terms');
+Route::get('/chinh-sach-bao-mat', fn () => view('pages.privacy-policy'))->name('privacy-policy');
+
 // Route trung gian giải quyết lỗi Route [dashboard] not defined của Breeze
 Route::get('/dashboard', function () {
     $user = Auth::user();
